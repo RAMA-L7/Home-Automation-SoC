@@ -1,0 +1,69 @@
+# Icarus Verilog Simulation Makefile
+# Home-Automation-SoC
+# Usage: make -f Makefile.icarus [TARGET]
+
+# Configuration
+TOP_MODULE = has_soc
+RTL_ROOT = ../../rtl
+SIM_ROOT = ../../sim/sim_top
+TB_FILE = $(SIM_ROOT)/tb_has_soc.v
+
+# Icarus flags
+IVERILOG = iverilog
+IVFLAGS = -g2012 -Wall -Wno-timescale -I$(RTL_ROOT)/rtl_top -I$(RTL_ROOT)/rtl_peripherals
+IVFLAGS += -DIVERILOG_SIM -DIVERILOG
+IVFLAGS += -s $(TOP_MODULE) -o simv
+
+# Source files
+RTL_SRCS = \
+	$(RTL_ROOT)/rtl_top/has_soc.sv \
+	$(RTL_ROOT)/rtl_top/riscv_core.sv \
+	$(RTL_ROOT)/rtl_top/req_gnt_to_axi_lite.sv \
+	$(RTL_ROOT)/rtl_top/axi_lite_interconnect.sv \
+	$(RTL_ROOT)/rtl_top/has_addr_map.sv \
+	$(RTL_ROOT)/rtl_top/boot_rom.sv \
+	$(RTL_ROOT)/rtl_top/sram.sv \
+	$(RTL_ROOT)/rtl_top/axi_lite_to_apb.sv \
+	$(RTL_ROOT)/rtl_peripherals/uart.sv \
+	$(RTL_ROOT)/rtl_peripherals/gpio.sv \
+	$(RTL_ROOT)/rtl_peripherals/i2c_ctrl.sv \
+	$(RTL_ROOT)/rtl_peripherals/spi_ctrl.sv \
+	$(RTL_ROOT)/rtl_peripherals/pwm.sv \
+	$(RTL_ROOT)/rtl_peripherals/timer.sv \
+	$(RTL_ROOT)/rtl_peripherals/watchdog.sv \
+	$(RTL_ROOT)/rtl_peripherals/i2s.sv \
+	$(RTL_ROOT)/rtl_peripherals/qspi_flash_ctrl.sv \
+	$(RTL_ROOT)/rtl_peripherals/clint.sv \
+	$(RTL_ROOT)/rtl_peripherals/plic.sv \
+	$(RTL_ROOT)/rtl_peripherals/debug_jtag.sv \
+	$(RTL_ROOT)/rtl_peripherals/power_mgr.sv \
+	$(RTL_ROOT)/rtl_peripherals/power_mgr_regs.sv
+
+# Default target
+all: simv
+
+# Compile with Icarus
+simv: $(RTL_SRCS) $(TB_FILE)
+	$(IVERILOG) $(IVFLAGS) $(RTL_SRCS) $(TB_FILE)
+
+# Run simulation
+run: simv
+	vvp -n simv -lxt2
+
+# Run with VCD waveform
+run_vcd: simv
+	vvp -n simv
+
+# Clean
+clean:
+	rm -f simv waveforms/*.vcd waveforms/*.lxt
+
+# Lint only (no compilation)
+lint:
+	$(IVERILOG) -g2012 -Wall -Wno-timescale -I$(RTL_ROOT)/rtl_top -I$(RTL_ROOT)/rtl_peripherals -t null $(RTL_SRCS)
+
+# Syntax check only
+check:
+	$(IVERILOG) -g2012 -Wall -Wno-timescale -I$(RTL_ROOT)/rtl_top -I$(RTL_ROOT)/rtl_peripherals -t null $(RTL_SRCS) 2>&1 | head -50
+
+.PHONY: all run run_vcd clean lint check

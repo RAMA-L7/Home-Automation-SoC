@@ -1,0 +1,24 @@
+# Home-Automation-SoC — Bill of Materials
+# Stage 8 PCB
+# Reference carrier board (QFN-64 SoC)
+
+Ref,Description,Package,Quantity,Manufacturer,PartNumber,Notes
+U1,Home-Automation-SoC RISC-V SoC,QFN-64,1,Custom,HAS-SOC-QFN64,Main SoC
+U2,QSPI Flash 64 MB,WSON-8,1,Winbond,W25Q512JV,Firmware storage
+U3,PMIC (3 buck + 2 LDO),QFN-24,1,TI,TPS65217,Power management
+U4,USB-UART Bridge,SSOP-28,1,Silicon Labs,CP2102,Host console
+U5,Temp/Humidity Sensor,DFN-6,1,Bosch,BME280,I2C sensor
+Y1,12 MHz Crystal,SMD-3225,1,Various,12MHz,Circuit reference
+Y2,32.768 kHz Crystal,SMD-3215,1,Various,RTC reference
+C1-C20,Decoupling Capacitor 0.1uF,0402,20,Various,Various,Power rail decoupling
+C21,C22,Load Capacitor 15pF,0402,2,Various,Crystal load
+R1-R10,Pull-up/Pull-down 10k,0402,10,Various,Various,I2C/JTAG/GPIO
+J1,JTAG Header 6-pin,2.54mm,1,Various,Debug
+J2,UART Header 4-pin,2.54mm,1,Various,Console
+J3,GPIO Header 20-pin,2.54mm,1,Various,Expansion
+J4,SPI Header 6-pin,2.54mm,1,Various,Radio module
+J5,I2C Header 4-pin,2.54mm,1,Various,Sensors
+J6,PWM Header 4-pin,2.54mm,1,Various,LEDs/Motors
+FB1-FB4,Ferrite Bead,0603,4,Various,Various,Power rail filtering
+
+# Status: NOT STARTED - BOM not validated against actual design

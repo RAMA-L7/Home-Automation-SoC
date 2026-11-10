@@ -1,0 +1,16 @@
+[options]
+mode prove
+depth 20
+timeout 120
+
+[engines]
+smtbmc yices2
+
+[script]
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/axi_lite_interconnect.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/has_addr_map.vh
+prep -top axi_lite_interconnect
+
+[files]
+D:/Home-Automation-SoC/rtl/rtl_top/axi_lite_interconnect.sv
+D:/Home-Automation-SoC/rtl/rtl_top/has_addr_map.vh

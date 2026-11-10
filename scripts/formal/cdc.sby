@@ -1,0 +1,86 @@
+# SymbiYosys CDC Verification Script
+# Home-Automation-SoC
+# Addresses: ARC-036, ARC-065
+# Usage: sby -f cdc.sby
+
+[options]
+mode prove
+depth 50
+multiclock on
+append 1
+
+[engines]
+smtbmc yices
+smtbmc z3
+smtbmc cvc5
+
+[script]
+# Read all RTL
+read_verilog -formal ../../rtl/rtl_top/has_soc.sv
+read_verilog -formal ../../rtl/rtl_top/riscv_core.sv
+read_verilog -formal ../../rtl/rtl_top/req_gnt_to_axi_lite.sv
+read_verilog -formal ../../rtl/rtl_top/axi_lite_interconnect.sv
+read_verilog -formal ../../rtl/rtl_top/has_addr_map.sv
+read_verilog -formal ../../rtl/rtl_top/boot_rom.sv
+read_verilog -formal ../../rtl/rtl_top/sram.sv
+read_verilog -formal ../../rtl/rtl_top/axi_lite_to_apb.sv
+read_verilog -formal ../../rtl/rtl_peripherals/uart.sv
+read_verilog -formal ../../rtl/rtl_peripherals/gpio.sv
+read_verilog -formal ../../rtl/rtl_peripherals/i2c_ctrl.sv
+read_verilog -formal ../../rtl/rtl_peripherals/spi_ctrl.sv
+read_verilog -formal ../../rtl/rtl_peripherals/pwm.sv
+read_verilog -formal ../../rtl/rtl_peripherals/timer.sv
+read_verilog -formal ../../rtl/rtl_peripherals/watchdog.sv
+read_verilog -formal ../../rtl/rtl_peripherals/i2s.sv
+read_verilog -formal ../../rtl/rtl_peripherals/qspi_flash_ctrl.sv
+read_verilog -formal ../../rtl/rtl_peripherals/clint.sv
+read_verilog -formal ../../rtl/rtl_peripherals/plic.sv
+read_verilog -formal ../../rtl/rtl_peripherals/debug_jtag.sv
+read_verilog -formal ../../rtl/rtl_peripherals/power_mgr.sv
+read_verilog -formal ../../rtl/rtl_peripherals/power_mgr_regs.sv
+
+# CDC-specific modules (if extracted)
+# read_verilog -formal ../cdc/async_fifo.sv
+# read_verilog -formal ../cdc/cdc_sync_3flop.sv
+# read_verilog -formal ../cdc/reset_sync.sv
+
+# Top for CDC verification
+# We verify the CDC paths by proving properties on the instantiated modules
+prep -top has_soc
+
+# Set clocks
+# clk_core = 50 MHz, clk_periph = 25 MHz, clk_aon = 32 kHz
+# In formal, we use abstract clocks
+# clk is the main clock (core domain)
+# We need to define multiple clock domains for multiclock
+
+# Define clocks for multiclock verification
+# The SoC has clk (core), periph_clk = clk / 2, aon_clk = 32 kHz (async)
+
+# Mark clock domains
+# Note: SymbiYosys multiclock needs explicit clock definitions
+# We'll use the 'set_option -multiclock on' and define clocks in the properties
+
+[files]
+../../rtl/rtl_top/has_soc.sv
+../../rtl/rtl_top/riscv_core.sv
+../../rtl/rtl_top/req_gnt_to_axi_lite.sv
+../../rtl/rtl_top/axi_lite_interconnect.sv
+../../rtl/rtl_top/has_addr_map.sv
+../../rtl/rtl_top/boot_rom.sv
+../../rtl/rtl_top/sram.sv
+../../rtl/rtl_top/axi_lite_to_apb.sv
+../../rtl/rtl_peripherals/uart.sv
+../../rtl/rtl_peripherals/gpio.sv
+../../rtl/rtl_peripherals/i2c_ctrl.sv
+../../rtl/rtl_peripherals/spi_ctrl.sv
+../../rtl/rtl_peripherals/pwm.sv
+../../rtl/rtl_peripherals/timer.sv
+../../rtl/rtl_peripherals/watchdog.sv
+../../rtl/rtl_peripherals/i2s.sv
+../../rtl/rtl_peripherals/qspi_flash_ctrl.sv
+../../rtl/rtl_peripherals/clint.sv
+../../rtl/rtl_peripherals/plic.sv
+../../rtl/rtl_peripherals/debug_jtag.sv
+../../rtl/rtl_peripherals/power_mgr.sv
+../../rtl/rtl_peripherals/power_mgr_regs.sv

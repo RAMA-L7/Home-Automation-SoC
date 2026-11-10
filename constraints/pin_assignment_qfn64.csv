@@ -1,0 +1,88 @@
+Pin,Signal,Direction,Domain,Voltage,Function,Notes
+1,VDD_CORE,POWER,,1.0V,Core power rail,Buck1 (TPS65217 DCDC1)
+2,GND_CORE,GROUND,,,Core ground,
+3,VDD_CORE,POWER,,1.0V,Core power rail,
+4,GND_CORE,GROUND,,,Core ground,
+5,XTAL_IN,INPUT,AON,3.3V,12 MHz Crystal Input,Connect to 12 MHz XTAL
+6,XTAL_OUT,OUTPUT,AON,3.3V,12 MHz Crystal Output,Connect to 12 MHz XTAL
+7,VDD_AON,POWER,,3.3V,Always-on domain,LDO (TPS65217 LDO1)
+8,GND_AON,GROUND,,,AON ground,
+9,RESET_N,INPUT,AON,3.3V,Global active-low reset,PMIC POR_B + external button
+10,BOOT_MODE0,INPUT,AON,3.3V,Boot mode select bit 0,Sampled at POR
+11,BOOT_MODE1,INPUT,AON,3.3V,Boot mode select bit 1,Sampled at POR
+12,TCK,INPUT,AON,3.3V,JTAG Clock,Debug interface
+13,TMS,INPUT,AON,3.3V,JTAG Mode Select,Debug interface
+14,TDI,INPUT,AON,3.3V,JTAG Data In,Debug interface
+15,TDO,OUTPUT,AON,3.3V,JTAG Data Out,Debug interface
+16,TRST_N,INPUT,AON,3.3V,JTAG Reset (active-low),Optional
+17,UART0_TX,OUTPUT,IO,1.8V,Debug UART TX,Console/debug
+18,UART0_RX,INPUT,IO,1.8V,Debug UART RX,Console/debug
+19,VDD_IO,POWER,,1.8V,IO power rail,Buck2 (TPS65217 DCDC2)
+20,GND_IO,GROUND,,,IO ground,
+21,I2C0_SCL,INOUT,IO,1.8V,I2C Bus 0 Clock,PMIC + sensors (open-drain)
+22,I2C0_SDA,INOUT,IO,1.8V,I2C Bus 0 Data,PMIC + sensors (open-drain)
+23,VDD_PERIPH,POWER,,3.3V,Peripheral IO power,LDO (TPS65217 LDO2) or direct
+24,GND_PERIPH,GROUND,,,Peripheral ground,
+25,SPI0_SCK,OUTPUT,IO,1.8V,SPI0 Clock,QSPI flash + aux
+26,SPI0_MOSI,OUTPUT,IO,1.8V,SPI0 Master Out,QSPI flash + aux
+27,SPI0_MISO,INPUT,IO,1.8V,SPI0 Master In,QSPI flash + aux
+28,SPI0_CS0_N,OUTPUT,IO,1.8V,SPI0 Chip Select 0,QSPI Flash (primary)
+29,SPI0_CS1_N,OUTPUT,IO,1.8V,SPI0 Chip Select 1,External Radio (Wi-Fi/BLE)
+30,SPI0_CS2_N,OUTPUT,IO,1.8V,SPI0 Chip Select 2,Auxiliary (sensor/EEPROM)
+31,PWM0_OUT,OUTPUT,IO,3.3V,PWM Channel 0,Motor/LED control
+32,PWM1_OUT,OUTPUT,IO,3.3V,PWM Channel 1,Motor/LED control
+33,PWM2_OUT,OUTPUT,IO,3.3V,PWM Channel 2,Motor/LED control
+34,PWM3_OUT,OUTPUT,IO,3.3V,PWM Channel 3,Motor/LED control
+35,GPIO0,INOUT,IO,3.3V,GPIO 0,Shared/function selectable
+36,GPIO1,INOUT,IO,3.3V,GPIO 1,Shared/function selectable
+37,GPIO2,INOUT,IO,3.3V,GPIO 2,Shared/function selectable
+38,GPIO3,INOUT,IO,3.3V,GPIO 3,Shared/function selectable
+39,GPIO4,INOUT,IO,3.3V,GPIO 4,Shared/function selectable
+40,GPIO5,INOUT,IO,3.3V,GPIO 5,Shared/function selectable
+41,GPIO6,INOUT,IO,3.3V,GPIO 6,Shared/function selectable
+42,GPIO7,INOUT,IO,3.3V,GPIO 7,Shared/function selectable
+43,GPIO8,INOUT,IO,3.3V,GPIO 8,Shared/function selectable
+44,GPIO9,INOUT,IO,3.3V,GPIO 9,Shared/function selectable
+45,GPIO10,INOUT,IO,3.3V,GPIO 10,Shared/function selectable
+46,GPIO11,INOUT,IO,3.3V,GPIO 11,Shared/function selectable
+47,GPIO12,INOUT,IO,3.3V,GPIO 12,Shared/function selectable
+48,GPIO13,INOUT,IO,3.3V,GPIO 13,Shared/function selectable
+49,GPIO14,INOUT,IO,3.3V,GPIO 14,Shared/function selectable
+50,GPIO15,INOUT,IO,3.3V,GPIO 15,Shared/function selectable
+51,I2S_BCLK,INOUT,IO,1.8V,I2S Bit Clock,Audio interface
+52,I2S_LRCLK,INOUT,IO,1.8V,I2S Left/Right Clock,Audio interface
+53,I2S_DIN,INPUT,IO,1.8V,I2S Data In,Audio input
+54,I2S_DOUT,OUTPUT,IO,1.8V,I2S Data Out,Audio output
+55,UART1_TX,OUTPUT,IO,1.8V,External Module UART TX,Wi-Fi/BLE/Zigbee
+56,UART1_RX,INPUT,IO,1.8V,External Module UART RX,Wi-Fi/BLE/Zigbee
+57,VDD_RTC,POWER,,3.0V,RTC Backup,Coincell (CR2032) or PMIC
+58,GND_RTC,GROUND,,,RTC ground,
+59,PMIC_ALERT,INPUT,AON,3.3V,PMIC Alert Interrupt,Power loss / fault
+60,PMIC_IRQ,INPUT,AON,3.3V,PMIC General IRQ,Thermal / overcurrent
+61,RF_CTRL0,OUTPUT,IO,1.8V,Radio Control 0,External module enable
+62,RF_CTRL1,OUTPUT,IO,1.8V,Radio Control 1,External module mode
+63,EP,GND,GROUND,,,Exposed Pad - GND,Must connect to PCB GND plane
+64,EP,GND,GROUND,,,Exposed Pad - GND,Must connect to PCB GND plane
+
+# Pin Count Summary:
+# Power/GND: 16 pins (VDD_CORE x2, GND_CORE x2, VDD_AON, GND_AON, VDD_IO, GND_IO, VDD_PERIPH, GND_PERIPH, VDD_RTC, GND_RTC, EP x2)
+# System: 4 pins (XTAL_IN, XTAL_OUT, RESET_N, BOOT_MODE[1:0])
+# Debug: 6 pins (TCK, TMS, TDI, TDO, TRST_N, UART0_TX/RX shared with debug)
+# UART: 4 pins (UART0_TX/RX, UART1_TX/RX)
+# I2C: 2 pins (I2C0_SCL/SDA)
+# SPI/QSPI: 6 pins (SCK, MOSI, MISO, CS0/1/2)
+# PWM: 4 pins (PWM0-3)
+# GPIO: 16 pins (GPIO0-15)
+# I2S: 4 pins (BCLK, LRCLK, DIN, DOUT)
+# PMIC: 2 pins (ALERT, IRQ)
+# RF Control: 2 pins (RF_CTRL0/1)
+# Total: 64 pins (including 2 EP pads)
+# Usable I/O: 56 (excluding power/ground/EP)
+
+# Notes:
+# - QFN-64 with 0.5mm pitch, 9x9mm, exposed pad
+# - Pin assignment is PROVISIONAL - requires SI/PI analysis
+# - GPIO pins shared with alternate functions (see mux table below)
+# - Voltage domains: Core (1.0V), IO (1.8V), Peripheral (3.3V), AON (3.3V)
+# - All digital I/O are 3.3V tolerant except SPI/QSPI (1.8V)
+# - EP must be soldered to PCB ground plane for thermal/EMC

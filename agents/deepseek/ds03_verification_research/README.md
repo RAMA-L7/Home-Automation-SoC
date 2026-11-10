@@ -1,4 +1,4 @@
-﻿# ds03 - Verification Research
+# ds03 - Verification Research
 
-**Phase 0 - Not Started**
+**Phase 1 – Research Complete**
 

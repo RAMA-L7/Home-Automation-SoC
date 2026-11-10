@@ -1,0 +1,122 @@
+{
+  "agent": "buffy",
+  "files": {
+    "rtl/rtl_top/axi_lite_interconnect.sv": {
+      "sha256": "2d410246f7d42acfb547bfc120039ac6d89a690b98c33bbc96c8adc5eaa991d9",
+      "time": "2026-11-10T20:52:52.390Z"
+    },
+    "rtl/rtl_top/axi_lite_to_apb.sv": {
+      "sha256": "35cfa74b6a9f2f1a464f1201d452f38e7c2166bdac99805fe9e8a00659a1a750",
+      "time": "2026-11-10T20:52:52.396Z"
+    },
+    "rtl/rtl_top/boot_rom.sv": {
+      "sha256": "e481a1c59f995736a74934701fd83c1b67d89ae3465cc22d9e800d2e86eeb776",
+      "time": "2026-11-10T20:52:52.399Z"
+    },
+    "rtl/rtl_top/has_addr_map.sv": {
+      "sha256": "d76aaeee8557221cb256801496c904436b6ed9502ea2f135aebd2e35731c62ef",
+      "time": "2026-11-10T20:52:52.401Z"
+    },
+    "rtl/rtl_top/has_addr_map.vh": {
+      "sha256": "9d2d7ffe3a5c71b35b5de98de8f10b69aa3ecf5b1d3581e2a33fba5060e0905d",
+      "time": "2026-11-10T20:52:52.403Z"
+    },
+    "rtl/rtl_top/has_soc.sv": {
+      "sha256": "939c7a5f5b6547aef35077e225190e4d9fa4cc649a0678bdaa7dc55970311498",
+      "time": "2026-11-10T20:52:52.406Z"
+    },
+    "rtl/rtl_top/intc_axi.sv": {
+      "sha256": "b12455b43d20b35ac90bb12a15c3e9617b9cf4dd3c0ebd2c12b65dd63d9a994e",
+      "time": "2026-11-10T20:52:52.408Z"
+    },
+    "rtl/rtl_top/req_gnt_to_axi_lite.sv": {
+      "sha256": "4f0c74f7276be8f43a9e8e2ed3e87341f7c41b1f08f619b6069f5920d12dc0d8",
+      "time": "2026-11-10T20:52:52.411Z"
+    },
+    "rtl/rtl_top/riscv_core.sv": {
+      "sha256": "565948760b8f69079eb193b022d50125ca31c3d1c569f1f6366f7a6af1fc538b",
+      "time": "2026-11-10T20:52:52.413Z"
+    },
+    "rtl/rtl_top/sram.sv": {
+      "sha256": "3777b29bc480d28dae23292be05bc914fd8c373f8fb01ab090eb46d1a7758aa6",
+      "time": "2026-11-10T20:52:52.416Z"
+    },
+    "rtl/rtl_peripherals/clint.sv": {
+      "sha256": "b838590c6f841e9b54b48e8954f574b2d6e3eabb9751f49f13119e2b68b3054d",
+      "time": "2026-11-10T20:52:52.418Z"
+    },
+    "rtl/rtl_peripherals/debug_jtag.sv": {
+      "sha256": "bc1628d13ccaad7e54878e24d19fe4973c17870cdffcf72c92320df37c301cd4",
+      "time": "2026-11-10T20:52:52.420Z"
+    },
+    "rtl/rtl_peripherals/gpio.sv": {
+      "sha256": "2fccf981d0e1bbb4234c0aefea4d66c1d803972917eee73962f39685e53938ff",
+      "time": "2026-11-10T20:52:52.422Z"
+    },
+    "rtl/rtl_peripherals/i2c_ctrl.sv": {
+      "sha256": "9990bdeb626d0e6079199f12ac695b7066a5d61e9a51b2309e98703892f92a6b",
+      "time": "2026-11-10T20:52:52.424Z"
+    },
+    "rtl/rtl_peripherals/i2s.sv": {
+      "sha256": "2dfae4c9dd22c2fc2a89a970373fa989eb275212b6d18db0061bb71c6e5f9199",
+      "time": "2026-11-10T20:52:52.427Z"
+    },
+    "rtl/rtl_peripherals/plic.sv": {
+      "sha256": "529b23de594bae8d0c21a650a18f8b7fb3ee088abcd55ec1fe99dac3c7346688",
+      "time": "2026-11-10T20:52:52.429Z"
+    },
+    "rtl/rtl_peripherals/power_mgr.sv": {
+      "sha256": "9ec76866e1b832815d26685f56da4509d5ee03c25f707835a665eb4bf8656bd2",
+      "time": "2026-11-10T20:52:52.431Z"
+    },
+    "rtl/rtl_peripherals/power_mgr_regs.sv": {
+      "sha256": "20322458772c9d4acec4596f850df96886018e999977fcccf3df06e4f8c1c362",
+      "time": "2026-11-10T20:52:52.434Z"
+    },
+    "rtl/rtl_peripherals/pwm.sv": {
+      "sha256": "9025f08a8e641e675b7ae85ac0c99a3b32b5321e3d4faf1574091b0d0c068b43",
+      "time": "2026-11-10T20:52:52.436Z"
+    },
+    "rtl/rtl_peripherals/qspi_flash_ctrl.sv": {
+      "sha256": "868e48d0802e51e172ca254614a2f5c5652952970dcf0692ae657d3d3049f46f",
+      "time": "2026-11-10T20:52:52.438Z"
+    },
+    "rtl/rtl_peripherals/spi_ctrl.sv": {
+      "sha256": "1c720db7236186c4610b8feb55f81c486361cf681f0b6408656426bb075306d8",
+      "time": "2026-11-10T20:52:52.440Z"
+    },
+    "rtl/rtl_peripherals/timer.sv": {
+      "sha256": "67de5368c66711e8b7ecd081d3cf49e5eb3908d2788c1ce2983b3fc24116e128",
+      "time": "2026-11-10T20:52:52.442Z"
+    },
+    "rtl/rtl_peripherals/uart.sv": {
+      "sha256": "2594c57dff1696c31576d45dd233fd572d2bf2b6d2f6918bc1719b6fd7776113",
+      "time": "2026-11-10T20:52:52.444Z"
+    },
+    "rtl/rtl_peripherals/watchdog.sv": {
+      "sha256": "191e780a2ed747e78df5f326737d7d9c821f7e6d72cef910e7318a9a26bbe96d",
+      "time": "2026-11-10T20:52:52.446Z"
+    },
+    "rtl/filelist.f": {
+      "sha256": "dd7a1ffffede5e6b398fb81116d5b7b2a29758a2c3a465d1d3fb7ef7ed55dd64",
+      "time": "2026-11-10T20:52:52.448Z"
+    },
+    "scripts/fw/as.js": {
+      "sha256": "1d3de9a96c76d5c8550e33bc3b288c05b9e59d5ae52517d32904d4b34599b1ce",
+      "time": "2026-11-10T20:50:45.724Z"
+    },
+    "scripts/agents/lock.js": {
+      "sha256": "d65e7384b4bc3eac00eed8cd9b927537478026bd33a1021af90cd1c1e0f850c5",
+      "time": "2026-11-10T20:50:45.727Z"
+    },
+    "firmware/boot/boot.S": {
+      "sha256": "ba520baf1dcb19725760e8136e53139c27190887f6c6ff36030554a6fcea38b0",
+      "time": "2026-11-10T20:50:45.731Z"
+    },
+    "sim/sim_top/tb_boot.v": {
+      "sha256": "518571406a3caa55a016d4d9a6badc11f066cec08846d0fee0f2b2d331e9d3f7",
+      "time": "2026-11-10T20:50:45.733Z"
+    }
+  },
+  "updated": "2026-11-10T20:52:52.448Z"
+}
