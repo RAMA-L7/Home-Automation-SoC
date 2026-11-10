@@ -18,11 +18,21 @@
 
 ---
 
+## 8. CHANGE LOG (Most Recent First) — READ FIRST
+
+| Date | Agent | Action | Files Changed | Evidence |
+|------|-------|--------|---------------|----------|
+| 2026-11-11 | OpenCode | Full project implementation — RTL, firmware, verification, docs | All 22 RTL files, 8 firmware files, 13 testbenches, scripts, docs | VERIFIED |
+| 2026-11-11 | OpenCode | PWM fix (generate block → explicit channels), CLINT/PLIC port connection fix, startup.S CSR fix, firmware compile | PWM test PASS, Verilator lint 0 errors, firmware.elf compiled (36 KB) | VERIFIED |
+| 2026-11-11 | OpenCode | Commit all changes to git | 310 files changed, 47806 insertions | COMMIT 91ef664 + 02edbe6 |
+
+---
+
 ## 2. STAGE STATUS (READ BEFORE WORKING)
 
 | Stage | Title | Status | What's Done | What's Remaining | Can You Work On It? |
 |-------|-------|--------|-------------|------------------|---------------------|
-| 0 | Requirements | COMPLETE | `docs/requirements/system_requirements.md` | None | NO |
+| 0 | Requirements | COMPLETE | `docs/requirements/system_requirements.md` — measurable targets | None | NO |
 | 1 | Architecture | PARTIAL | ADRs (PROPOSED), block diagrams, memory map, pinout | PLL strategy, pin budget, power budget | PARTIAL (docs only) |
 | 2 | RTL | PARTIAL | 22 SystemVerilog files, Verilator lint: **0 errors** | Core execution not verified on hardware | YES (RTL additions, testbenches) |
 | 3 | Firmware | PARTIAL | 8 source files, **COMPILED** with riscv-none-elf-gcc 12.2.0, firmware.elf (36 KB) | Not executed on hardware | YES (firmware enhancements) |
@@ -209,14 +219,3 @@ All claims MUST be labeled:
 - **BLOCKED** — Dependency prevents progress
 
 **Never fabricate:** measurements, test results, IP licenses, tool availability, FPGA demonstrations, ASIC signoff.
-
----
-
-## 8. CHANGE LOG (Most Recent First)
-
-| Date | Agent | Action | Files Changed | Evidence |
-|------|-------|--------|---------------|----------|
-| 2026-11-11 | OpenCode | Full project implementation — RTL, firmware, verification, docs | All 22 RTL files, 8 firmware files, 13 testbenches, scripts, docs | VERIFIED |
-| 2026-11-11 | OpenCode | PWM fix (generate→explicit), CLINT/PLIC port fix, startup.S CSR fix, firmware compile | PWM test PASS, Verilator lint 0 errors, firmware.elf compiled (36 KB) | VERIFIED |
-
----
