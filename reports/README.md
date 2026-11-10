@@ -10,3 +10,4 @@ Project reporting directories organized by phase and discipline.
 | `reports/physical_design/` | Physical design reports |
 
 **Phase 0 - Not Started**
+

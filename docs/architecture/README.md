@@ -15,3 +15,4 @@ This directory holds architecture documentation for the Home-Automation-SoC proj
 **Phase 0 - Not Started**
 
 No architecture documents have been authored yet.
+

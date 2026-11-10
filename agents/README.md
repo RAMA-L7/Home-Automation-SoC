@@ -16,3 +16,4 @@ This directory organizes AI coding agent workspaces for the project.
 **Phase 0 - Not Started**
 
 No agent artifacts have been generated yet.
+

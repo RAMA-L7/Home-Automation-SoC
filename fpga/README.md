@@ -9,3 +9,4 @@ FPGA implementation directories.
 | `fpga/reports/` | FPGA implementation reports |
 
 **Phase 0 - Not Started**
+

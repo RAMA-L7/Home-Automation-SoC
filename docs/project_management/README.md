@@ -15,3 +15,4 @@ This directory holds project management artifacts for the Home-Automation-SoC pr
 **Phase 0 - Not Started**
 
 No project management documents have been authored yet.
+

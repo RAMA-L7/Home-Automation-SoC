@@ -15,3 +15,4 @@ This directory holds requirements documentation for the Home-Automation-SoC proj
 **Phase 0 - Not Started**
 
 No requirements documents have been authored yet.
+

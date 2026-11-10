@@ -33,3 +33,4 @@ This repository has been initialized with the project directory structure, place
 ## Licensing
 
 A LICENSE file is intentionally left blank. Do not select or apply an open-source license without explicit approval from the project owner.
+

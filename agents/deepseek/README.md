@@ -12,3 +12,4 @@ Discipline-specific research workspaces for the DeepSeek agent.
 | `ds06_pcb_research/` | PCB research |
 
 **Phase 0 - Not Started**
+
