@@ -1,0 +1,110 @@
+﻿# .gitattributes - Home-Automation-SoC
+# Establish consistent LF line endings for engineering source files across
+# Windows and Linux hosts. Binary/generated artifacts are marked -text.
+
+# --- Source code: force LF ---
+*.sv         text eol=lf
+*.svh        text eol=lf
+*.v          text eol=lf
+*.vh         text eol=lf
+*.vhd        text eol=lf
+*.vhdl       text eol=lf
+*.c          text eol=lf
+*.h          text eol=lf
+*.cpp        text eol=lf
+*.cc         text eol=lf
+*.cxx        text eol=lf
+*.hpp        text eol=lf
+*.rs         text eol=lf
+*.py         text eol=lf
+*.sh         text eol=lf
+*.bash       text eol=lf
+*.tcl        text eol=lf
+*.perl       text eol=lf
+*.rb         text eol=lf
+*.makefile   text eol=lf
+*.mk         text eol=lf
+Makefile     text eol=lf
+
+# --- Constraint / EDA text files ---
+*.sdc        text eol=lf
+*.xdc        text eol=lf
+*.pdc        text eol=lf
+*.qsys       text eol=lf
+*.ipx        text eol=lf
+
+# --- Documentation and config ---
+*.md         text eol=lf
+*.txt        text eol=lf
+*.rst        text eol=lf
+*.yml        text eol=lf
+*.yaml       text eol=lf
+*.json       text eol=lf
+*.toml       text eol=lf
+*.ini        text eol=lf
+*.cfg        text eol=lf
+*.csv        text eol=lf
+
+# --- Binary / generated artifacts: no line-ending normalization ---
+*.bit        binary
+*.mcs        binary
+*.bin        binary
+*.hex        binary
+*.elf        binary
+*.pof        binary
+*.sof        binary
+*.jed        binary
+*.svf        binary
+*.vcd        binary
+*.vpd        binary
+*.fsdb       binary
+*.wdb        binary
+*.saif       binary
+*.gds        binary
+*.gdsii      binary
+*.oasis      binary
+*.lef        binary
+*.lib        binary
+*.db         binary
+*.vpi        binary
+*.so         binary
+*.dll        binary
+*.a          binary
+*.o          binary
+*.png        binary
+*.jpg        binary
+*.jpeg       binary
+*.gif        binary
+*.bmp        binary
+*.pdf        binary
+*.zip        binary
+*.tar        binary
+*.gz         binary
+*.7z         binary
+
+# --- PCB / CAD binary ---
+*.kicad_pcb  binary
+*.kicad_sch  binary
+*.kicad_sym  binary
+*.kicad_prl  binary
+*.kicad_dru  binary
+*.kicad_mod  binary
+*.brd        binary
+*.pcbdoc     binary
+*.schdoc     binary
+*.gerber     binary
+*.gbr        binary
+*.drl        binary
+*.drd        binary
+*.pos        binary
+*.sql        binary
+*.cmp        binary
+*.wrl        binary
+*.step       binary
+*.stp        binary
+*.igs        binary
+*.x_t        binary
+*.par        binary
+*.net        binary
+*.evt        binary
+*.out        binary
