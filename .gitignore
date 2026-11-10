@@ -1,0 +1,141 @@
+﻿# ---------------------------------------------------------------------------
+# Home-Automation-SoC - .gitignore
+# Covers SystemVerilog, FPGA, ASIC, EDA build outputs, firmware and temp files.
+# ---------------------------------------------------------------------------
+
+# --- General / editor / OS junk ---
+*.swp
+*.swo
+*.swn
+*.bak
+*.tmp
+*.temp
+*~
+.DS_Store
+Thumbs.db
+.idea/
+.vs/
+.vscode/
+*.user
+*.user.*
+*.suo
+*.vcxproj*
+*.filters
+*.pdb
+
+# --- Simulation / waveform artifacts ---
+waveforms/
+*.vcd
+*.vpd
+*.fsdb
+*.wdb
+*.shm
+*.vst
+dump.vcd
+wave*.png
+wave*.svg
+
+# --- EDA build / synthesis outputs ---
+build/
+syn/
+impl/
+fit/
+route/
+report/
+logs/
+*.rpt
+*.timing
+*.area
+*.util
+*.power
+*.lxt
+*.lx2
+*.jed
+*.svf
+*.bit
+*.mcs
+*.bin
+*.pof
+*.sof
+*.hex
+*.elf
+*.rbf
+*.nto
+*.saif
+*.vpi
+*.tcl
+!scripts/**/*.tcl
+
+# --- Mentor / Cadence / Synopsys / Xilinx / Intel tooling ---
+ncsim.log
+ncsim.log.*
+vlog.log
+vlog.pb
+vcs.log
+dve.log
+synopsys*
+novas*
+verdi*
+xcelium*
+modelsim*
+qsim*
+quartus*
+vivado*
+ise*
+spyglass*
+jupiter*
+design_compiler*
+primetime*
+icc2*
+innovus*
+icv*
+redhawk*
+calibre*
+hspice*
+spectre*
+
+# --- Firmware build outputs ---
+firmware/build/
+firmware/obj/
+firmware/*.o
+firmware/*.a
+firmware/*.elf
+firmware/*.hex
+firmware/*.bin
+firmware/*.lst
+firmware/map
+firmware/mem
+firmware/srec
+firmware/depends
+
+# --- IDE / project files ---
+*.ipx
+*.xpr
+*.xise
+*.qpf
+*.qsf
+*.qws
+*.stp
+*.mmi
+*.jtag
+*.cfg
+*.pdc
+*.sdc
+!constraints/**/*.sdc
+
+# --- Temporary / scratch ---
+scratch/
+tmp/
+temp/
+*.log
+*.lgr
+*.tr
+*.out
+*.err
+
+# --- Third-party IP (never commit downloads) ---
+ip/third_party/**
+
+# --- Generated / auto-doc ---
+docs/auto-generated/
+docs/_build/
