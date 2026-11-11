@@ -49,7 +49,7 @@
 | 1 | Architecture | PARTIAL | ADRs (PROPOSED), block diagrams, memory map, pinout | PLL strategy, pin budget, power budget | PARTIAL (docs only) |
 | 2 | RTL | PARTIAL | 22 SystemVerilog files, Verilator lint: **0 errors** | **Two deadlock causes fixed:** (1) riscv_core.sv load/store address now uses dedicated ADD instead of funct3-selected SLT; (2) boot_rom.sv awready/wready handshake fixed. Core synthesizes in Yosys (226 cells, 0 errors). SVA properties documented in formal_properties.sv. Testbench fixes applied to tb_clint.v and tb_plic.v. End-to-end boot not yet verified — Icarus simulation non-functional. | YES (RTL additions, testbenches) |
 | 3 | Firmware | PARTIAL | 8 source files, **COMPILED** with riscv-none-elf-gcc 12.2.0, firmware.elf (36 KB) | Not executed on hardware | YES (firmware enhancements) |
-| 4 | Verification | PARTIAL | 13 Icarus sim tests PASSED, Verilator lint: 0 errors | Full-SoC sim, cocotb, formal proofs blocked by missing tools | PARTIAL (sim only) |
+| 4 | Verification | PARTIAL | 13 Icarus sim tests PASSED, Verilator lint: 0 errors, cocotb 2.1.0 installed | Full-SoC sim blocked by broken Icarus runtime; cocotb available but needs working simulator | PARTIAL (sim only) |
 | 5 | FPGA | PARTIAL | XDC constraints, OpenOCD config, bring-up guide, Vivado Tcl build scripts | Not synthesized — no Vivado | NO |
 | 6 | ASIC | PARTIAL | sky130 PDK downloaded, OpenLane 2 flow scripts | OpenLane not installed, no P&R | PARTIAL (scripts only) |
 | 7 | DFT/signoff | NOT STARTED | Documented as commercial-tool gap | Commercial tool required | NO |
@@ -151,12 +151,12 @@
 
 | Blocker | Impact | What's Needed |
 |---------|--------|---------------|
-| No g++/make | Verilator C++ simulation unavailable | Install g++ and make |
-| No Python/cocotb | cocotb unavailable (Python SSL broken in OSS CAD Suite) | Install Python with SSL, then pip install cocotb |
-| No OpenLane 2 | ASIC P&R blocked | PDK downloaded; OpenLane not installed |
+| No g++/make | Verilator C++ simulation unavailable | Install g++ and make (C drive nearly full, may need D drive) |
+| Python/cocotb | FIXED — Python 3.10 with SSL works, cocotb 2.1.0 installed | None |
+| No OpenLane 2 | ASIC P&R blocked | Not pip-installable; needs source build with many dependencies |
 | No FPGA hardware | Stage 5 limited to constraints | Acquire Nexys A7 or similar |
-| No Vivado installed | Cannot synthesize to FPGA | Install Xilinx Vivado |
-| No KiCad confirmed | PCB limited to documentation | Install KiCad |
+| No Vivado installed | Cannot synthesize to FPGA | Install Xilinx Vivado (proprietary) |
+| No KiCad | PCB limited to documentation | Silent installer failed; needs interactive install or D-drive space |
 | ADRs are PROPOSED | Architecture not approved | Stakeholder approval needed |
 | PLL clock source | No sky130-qualified open PLL IP | External clock generator (Si5351) recommended |
 
