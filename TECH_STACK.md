@@ -32,7 +32,7 @@ ESTIMATED / ASSUMED / UNKNOWN / BLOCKED.
 | Flash controller | QSPI flash, AXI4-Lite | `qspi_flash_ctrl.sv`: single-line READ, **writes rejected** | AXI4-Lite slave | NOT SIMULATED (no pin-level model) | Erase/program/write-enable/busy/readback absent |
 | Audio | Configurable I²S TX+RX | `i2s.sv`: transmitter only | — | `tb_i2s` register-level PASS | No RX path; no serialized-sample scoreboard |
 | Power management | Deep sleep, retention, peripheral wake | Clock gating only; wake = external `wake_ack` handshake | 2-FF sync, wake-wins race, sticky request cleared | MEASURED: `tb_power_mgr` 16/16 checks | No retention/power gating; no peripheral wake detector; no CDC formal |
-| Simulation | Verilator + Icarus | **Icarus 14.0 works** (previous "broken runtime" claim was wrong); Verilator lint only | Icarus 14.0 (devel) s20260301; Verilator 5.053 | MEASURED: `node scripts/eda/run_regression.js` → 14/15 | No C++ model: no `g++`/`make` → Verilator cannot simulate |
+| Simulation | Verilator + Icarus | Icarus 14.0 (devel) s20260301; Verilator 5.053 | MEASURED: `node scripts/eda/run_regression.js` → 14/15 (Icarus) and `scripts/eda/verilator_build_soc.bat` → full-SoC 7/7 (Verilator) | Verilator C++ model now buildable and runnable |
 | Formal | SymbiYosys CDC + properties | `scripts/formal/cdc` contains an `ERROR` file | — | **BLOCKED/FAILED tool run**, not a proof | SymbiYosys not installed; no properties exercised |
 | Synthesis | Yosys | Yosys 0.69+154 installed; **not run on the current filelist this session** | — | UNKNOWN | Generic-cell area/count not measured |
 | FPGA | Vivado + Nexys A7-100T | XDC + bring-up docs only | — | **BLOCKED**: no Vivado, no board | Bitstream, timing, hardware behaviour all absent |
@@ -70,12 +70,15 @@ optional third write-back stage — not a four-stage core.
 | Tool | Version (MEASURED) | State |
 |---|---|---|
 | Icarus Verilog / vvp | 14.0 (devel) s20260301-500-g2e81fcccb-dirty | WORKS |
-| Verilator (lint) | 5.053 devel v5.052-119-g014c9820d | WORKS for lint; no C++ model (no g++/make) |
-| Yosys | 0.69+154 | Available, not run on current filelist |
-| SymbiYosys (`sby`) | — | NOT INSTALLED |
+| Verilator (lint) | 5.053 devel v5.052-119-g014c9820d | WORKS |
+| Verilator (C++ simulation) | 5.053 devel | **WORKS** — MinGW-w64 toolchain + Windows kit shim installed; full SoC boot 7/7 PASS at ~20,000× real time |
+| MinGW-w64 toolchain (g++/ar/make) | g++ 16.1.0, make 4.4.1 (WinLibs MCF UCRT) | WORKS — use `-O2`, not `-Os` (see registry trap 17) |
+| Yosys | 0.69+154 | Available; full-chip synthesis blocked by SV unpacked-array ports in `axi_lite_interconnect.sv` |
+| SymbiYosys (`sby`) | SBY v0.69 | Available in OSS CAD Suite, not yet exercised on this design |
 | Node.js | v26.7.0 | WORKS (assembler + regression runner) |
-| RISC-V GCC | — | NOT FOUND on PATH |
-| cocotb | reported 2.1.0 | Not exercised (needs a simulator driver we do not run) |
+| RISC-V GCC | xPack 12.2.0 at `D:\tools\xpack-riscv-none-elf-gcc-12.2.0-2\bin` | WORKS — firmware builds reproducibly |
+| cocotb | 2.1.0 | Installed (Windows Store Python 3.10); not exercised yet |
+| KiCad | 10.0.8 at `D:\tools\KiCad\10.0\` | WORKS (`kicad-cli --version` → 10.0.8) |
 
 ### 3.1 Testbenches (MEASURED by `node scripts/eda/run_regression.js`)
 

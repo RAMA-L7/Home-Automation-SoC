@@ -40,6 +40,14 @@
 | 2026-11-11 | OpenCode | Priority 4 — Created Vivado Tcl build scripts in fpga/projects/ | build.tcl (full flow), synth.tcl, impl.tcl, bitstream.tcl | DOCUMENTED (templates — Vivado not installed) |
 | 2026-11-11 | OpenCode | Priority 5 — Created ASIC physical design flow scripts in asic/ | config.json (OpenLane 2 config), flow.tcl (synthesis→P&R→STA→GDS), run_asic.sh (runner) | DOCUMENTED (templates — OpenLane 2 not installed, Python SSL broken) |
 | 2026-11-11 | OpenCode | Priority 6 — PCB design in KiCad | NOT STARTED — KiCad not installed, can only document | BLOCKED — KiCad not available |
+| 2026-11-12 | OpenCode | **RESOLVED the "no g++/make" blocker** — installed WinLibs MCF UCRT (g++ 16.1.0, gcc, make 4.4.1, ar, gdb) to D:\tools\mingw64\, created the required `make.exe` alias for `mingw32-make.exe` | Verilator C++ model build + link + run now works | MEASURED |
+| 2026-11-12 | OpenCode | Built a Windows-native Verilator kit shim (D:\tools\patch_verilator_kit.py → D:\tools\verilator-shim\). The OSS CAD Suite `verilator_bin.exe` hardcodes `VERILATOR_ROOT=/yosyshq/share/verilator` and ignores VERILATOR_ROOT/YOSYSHQ_ROOT; the shim provides a cmd.exe-compatible `verilated.mk` | Unblocks Verilator C++ simulation on Windows | VERIFIED |
+| 2026-11-12 | OpenCode | Added scripts/eda/verilator_build.bat, verilator_build_soc.bat, verilator_run.bat | Full-SoC Verilator build: 22 RTL files + tb_boot → Vtb_boot.exe | MEASURED |
+| 2026-11-12 | OpenCode | **Verilator full-SoC boot simulation: 7/7 PASS** — boot ROM, SRAM, GPIO (0xA5A5), MUL/DIV, CSR, PLIC, PWM, power-mgr all pass; 171 UART bytes; RESULT: PASS at 19,965 ms/s (≈20,000× real time) | Independent confirmation of the Icarus regression on a second simulator | MEASURED |
+| 2026-11-12 | OpenCode | **BUG FOUND + FIXED by Verilator:** `timer.sv` write-path `unique case (paddr[11:2])` had no `default` and omitted STATUS (0x0C) — any write to TIMER_STATUS aborted the simulation | Added `10'd3: match_pend <= match_pend & ~pwdata[0];` and `default: ;` | MEASURED |
+| 2026-11-12 | OpenCode | **BUG FOUND + FIXED by Verilator:** `gpio.sv` write-path `unique case` had no `default` and omitted DATA_IN/INT_PEND — writes to those offsets aborted the simulation | Added `default: ;` | MEASURED |
+| 2026-11-12 | OpenCode | Created sim/sim_top/tb_counter.v — minimal Verilator C++ model build/sim smoke test (count = 5, PASS) | Proves the toolchain end-to-end | MEASURED |
+| 2026-11-12 | OpenCode | Updated D:\tools\EDA_TOOL_REGISTRY.md with MinGW toolchain, Verilator kit shim, toolchain traps, and availability matrix | All EDA tools consolidated under D:\tools | DOCUMENTED |
 | 2026-11-11 | Buffy | Phase-2 correction pass: UART pin-level test, watchdog reset controller, exception/trap support, ISA trap program, C firmware build driver, regression harness | 153/153 UART checks PASS; 15/15 reset_ctrl PASS; 47/47 ISA trap checks PASS; 7/7 boot PASS; tb_firmware boots and prints banner + receives 'r' but watchdog pulse not yet observed (wdog pulses 0, 120 ms timeout) | MEASURED |
 | 2026-11-11 | Buffy | Documentation refresh: block diagram (mermaid + ASCII), README/RTE/AGENTS status aligned to measured evidence, keywords for GitHub search | Docs updated; regression still 16/17 | DOCUMENTED |
 
@@ -51,7 +59,7 @@
 | 1 | Architecture | PARTIAL | ADRs (PROPOSED), block diagrams (mermaid + ASCII), memory map, pinout, reset architecture | PLL strategy, pin budget, power budget | PARTIAL (docs only) |
 | 2 | RTL | PARTIAL | 22 SystemVerilog files, Verilator lint: **0 errors**; RV32IM core with exception/trap support; UART LSR fix; watchdog reset controller; per-slot APB isolation; AXI AW/W independence | UART FIFO/parity NOT IMPLEMENTED; flash write/erase NOT IMPLEMENTED; core still ignores rresp/bresp; no misaligned-load fault beyond traps already added | YES (RTL additions, testbenches) |
 | 3 | Firmware | PARTIAL | C firmware builds reproducibly with `build_fw.js` (RISC-V toolchain present) → `build/fw/firmware.elf` + `.bin`/`.srec`; `rom.hex`/`tcm.hex` regenerated; tb_firmware boots and prints banner + RX command | tb_firmware watchdog-pulse observation still OPEN (wdog pulses 0, 120 ms timeout); C firmware RX path was previously dead — now fixed via UART LSR DR bit0 + OE/FE sticky flags | YES (firmware + tb_firmware debug) |
-| 4 | Verification | PARTIAL | Regression PASS 16/17; UART pin-level 153/153; reset_ctrl 15/15; ISA traps 47/47; boot 7/7; power_mgr 16/16; CLINT/PLIC/GPIO/SPI/I2C/PWM/timer/watchdog/I2S/SRAM/debug_jtag PASS | firmware (C demo) entry still FAIL (timeout); no formal; no Verilator C++ model (no g++/make) | PARTIAL (sim only) |
+| 4 | Verification | PARTIAL | Regression PASS 16/17 (Icarus); **Verilator C++ simulation now working** — full-SoC boot 7/7 PASS at ~20,000× real time; UART pin-level 153/153; reset_ctrl 15/15; ISA traps 47/47; boot 7/7; power_mgr 16/16; CLINT/PLIC/GPIO/SPI/I2C/PWM/timer/watchdog/I2S/SRAM/debug_jtag PASS | firmware (C demo) entry still FAIL (timeout); no formal proofs run; no trace/coverage enabled | PARTIAL (sim only) |
 | 5 | FPGA | PARTIAL | XDC constraints, OpenOCD config, bring-up guide, Vivado Tcl build scripts | Not synthesized — no Vivado | NO |
 | 6 | ASIC | PARTIAL | sky130 PDK downloaded, OpenLane 2 flow scripts | OpenLane not installed, no P&R; full-chip Yosys blocked by interconnect unpacked-array ports | PARTIAL (scripts only) |
 | 7 | DFT/signoff | NOT STARTED | Documented as commercial-tool gap | Commercial tool required | NO |
@@ -154,12 +162,12 @@
 
 | Blocker | Impact | What's Needed |
 |---------|--------|---------------|
-| No g++/make | Verilator C++ simulation unavailable | Install g++ and make (C drive nearly full, may need D drive). mingw64 source present at D:\tools\mingw64\ but not built as toolchain. |
+| No g++/make | FIXED — WinLibs MCF UCRT installed at D:\tools\mingw64\ (g++ 16.1.0, make 4.4.1, ar). Verilator C++ simulation now works end-to-end (full SoC 7/7 PASS). | None |
 | Python/cocotb | FIXED — Python 3.10 with SSL works, cocotb 2.1.0 installed | None |
+| KiCad | FIXED — Installed at D:\tools\KiCad\10.0\ (kicad-cli v10.0.8) | None |
 | No OpenLane 2 | ASIC P&R blocked | Not pip-installable; needs source build with many dependencies |
 | No FPGA hardware | Stage 5 limited to constraints | Acquire Nexys A7 or similar |
 | No Vivado installed | Cannot synthesize to FPGA | Install Xilinx Vivado (proprietary) |
-| KiCad | FIXED — Installed at D:\tools\KiCad\10.0\ (kicad-cli v10.0.8) | None |
 | ADRs are PROPOSED | Architecture not approved | Stakeholder approval needed |
 | PLL clock source | No sky130-qualified open PLL IP | External clock generator (Si5351) recommended |
 

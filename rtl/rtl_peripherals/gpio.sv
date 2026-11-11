@@ -110,12 +110,16 @@ module gpio #(
       int_rise_en  <= '0;
       int_fall_en  <= '0;
     end else if (penable && pwrite) begin
+      // A `unique case` without a default aborts the simulation on any
+      // unmapped or read-only offset, so every reachable offset must be
+      // listed and a default must be present.
       unique case (paddr[11:2])
         10'd0: data_out_q <= pwdata[WIDTH-1:0];
         10'd2: oe         <= pwdata[WIDTH-1:0];
         10'd3: int_en     <= pwdata[WIDTH-1:0];
         10'd4: int_rise_en<= pwdata[WIDTH-1:0];
         10'd5: int_fall_en<= pwdata[WIDTH-1:0];
+        default: ;   // DATA_IN / INT_PEND are read-only; reserved ignored
       endcase
     end
   end

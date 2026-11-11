@@ -42,16 +42,20 @@ module timer #(
       match_pend<= 1'b0;
     end else begin
       if (penable && pwrite) begin
+        // A `unique case` without a default aborts the simulation on any
+        // unmapped or read-only offset, so every reachable offset must be
+        // listed and a default must be present.
         unique case (paddr[11:2])
           10'd1: compare <= pwdata[WIDTH-1:0];
           10'd2: begin
             enable  <= pwdata[0];
             int_en  <= pwdata[1];
           end
+          10'd3: match_pend <= match_pend & ~pwdata[0];   // RW1C
+          default: ;   // 0x00 COUNT is read-only; reserved offsets ignored
         endcase
       end
       if (count == compare && enable) match_pend <= 1'b1;
-      if (penable && pwrite && paddr[11:2] == 10'd3) match_pend <= match_pend & ~pwdata[0];
     end
   end
 
