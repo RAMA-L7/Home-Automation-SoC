@@ -65,6 +65,8 @@ logs/
 *.vpi
 *.tcl
 !scripts/**/*.tcl
+!fpga/projects/**/*.tcl
+!asic/**/*.tcl
 
 # --- Mentor / Cadence / Synopsys / Xilinx / Intel tooling ---
 ncsim.log

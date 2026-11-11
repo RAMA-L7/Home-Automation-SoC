@@ -17,6 +17,8 @@
 // Supported: RV32I + M, machine-mode CSRs, synchronous traps (illegal
 // instruction, ECALL, EBREAK) and asynchronous interrupts via mip/mie/mstatus.
 // Not supported (documented): C extension, F/D, atomics, user mode, PMP.
+//
+// Formal verification properties are in reports/verification/formal_properties.sv
 //------------------------------------------------------------------------------
 module riscv_core #(
   parameter XLEN = 32,

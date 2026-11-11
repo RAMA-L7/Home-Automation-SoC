@@ -1,0 +1,102 @@
+{
+  "design": "has_soc",
+  "pdk": "sky130A",
+  "pdk_path": "/tools/pdk/skywater-pdk-main",
+  "top_module": "has_soc",
+  "synthesis_tool": "yosys",
+  "place_tool": "openplace",
+  "route_tool": "openroute",
+  "sta_tool": "opensta",
+
+  "clock_period": 20.0,
+  "clock_port": "clk",
+  "reset_port": "reset_n",
+
+  "synthesis": {
+    "abc_clock_period": 20.0,
+    "abc_buffer_input_delay": 0.0,
+    "abc_buffer_output_delay": 0.0,
+    "strategy": "default"
+  },
+
+  "floorplan": {
+    "die_area": [0, 0, 1000, 1000],
+    "core_area": [50, 50, 950, 950],
+    "pad_global_place": true,
+    "pad_global_routing": true,
+    "macro_place_halo": [20, 20],
+    "macro_place_channel": [40, 40]
+  },
+
+  "placement": {
+    "global_place_iterations": 10,
+    "detailed_place_iterations": 10,
+    "enable_tapcell": true,
+    "enable_endcap": true,
+    "enable_filler": true
+  },
+
+  "cts": {
+    "clock_root": "clk",
+    "clock_buffer": "sky130_fd_sc_hd__clkbuf_1",
+    "max_capacitance": 0.1,
+    "max_transition": 0.1,
+    "min_buf_count": 1,
+    "max_buf_count": 64
+  },
+
+  "routing": {
+    "global_routing_iterations": 10,
+    "detailed_routing_iterations": 10,
+    "enable_fill": true,
+    "via_multiplier": 1.0
+  },
+
+  "signoff": {
+    "drc_tool": "magic",
+    "lvs_tool": "netgen",
+    "sta_tool": "opensta"
+  },
+
+  "outputs": {
+    "gds": "has_soc.gds",
+    "lef": "has_soc.lef",
+    "netlist": "has_soc.v",
+    "sdc": "has_soc.sdc",
+    "spef": "has_soc.spef"
+  },
+
+  "files": [
+    "rtl/rtl_top/has_addr_map.sv",
+    "rtl/rtl_peripherals/clint.sv",
+    "rtl/rtl_peripherals/plic.sv",
+    "rtl/rtl_peripherals/gpio.sv",
+    "rtl/rtl_peripherals/uart.sv",
+    "rtl/rtl_peripherals/i2c_ctrl.sv",
+    "rtl/rtl_peripherals/spi_ctrl.sv",
+    "rtl/rtl_peripherals/pwm.sv",
+    "rtl/rtl_peripherals/timer.sv",
+    "rtl/rtl_peripherals/watchdog.sv",
+    "rtl/rtl_peripherals/i2s.sv",
+    "rtl/rtl_peripherals/power_mgr.sv",
+    "rtl/rtl_peripherals/power_mgr_regs.sv",
+    "rtl/rtl_peripherals/debug_jtag.sv",
+    "rtl/rtl_peripherals/qspi_flash_ctrl.sv",
+    "rtl/rtl_top/boot_rom.sv",
+    "rtl/rtl_top/sram.sv",
+    "rtl/rtl_top/intc_axi.sv",
+    "rtl/rtl_top/axi_lite_interconnect.sv",
+    "rtl/rtl_top/axi_lite_to_apb.sv",
+    "rtl/rtl_top/req_gnt_to_axi_lite.sv",
+    "rtl/rtl_top/riscv_core.sv",
+    "rtl/rtl_top/has_soc.sv"
+  ],
+
+  "notes": [
+    "OpenLane 2 not installed in this environment — scripts are templates",
+    "sky130 PDK downloaded at D:\\tools\\pdk\\skywater-pdk-main\\ but volare not installed",
+    "Python SSL broken — cannot pip install openlane2",
+    "Yosys available but cannot parse unpacked array ports in axi_lite_interconnect.sv line 57",
+    "For ASIC flow, either fix axi_lite_interconnect.sv SV constructs or use a tool that supports them"
+  ]
+}
