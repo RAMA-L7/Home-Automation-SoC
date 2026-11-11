@@ -144,6 +144,7 @@
 - `reports/verification/formal_interconnect.sby` — Formal verification spec
 - `reports/verification/formal_properties.sv` — SVA properties
 - `constraints/timing_constraints/has_soc.sdc` — SDC timing constraints
+- `TECH_STACK.md` — Complete tech stack inventory (languages, tools, versions, status)
 
 ---
 
