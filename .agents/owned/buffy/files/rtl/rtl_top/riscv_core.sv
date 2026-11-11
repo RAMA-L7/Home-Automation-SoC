@@ -17,6 +17,8 @@
 // Supported: RV32I + M, machine-mode CSRs, synchronous traps (illegal
 // instruction, ECALL, EBREAK) and asynchronous interrupts via mip/mie/mstatus.
 // Not supported (documented): C extension, F/D, atomics, user mode, PMP.
+//
+// Formal verification properties are in reports/verification/formal_properties.sv
 //------------------------------------------------------------------------------
 module riscv_core #(
   parameter XLEN = 32,
@@ -124,34 +126,71 @@ module riscv_core #(
   logic [XLEN-1:0] alu_a, alu_b, alu_out;
   logic            cmp_eq, cmp_lt, cmp_ltu;
 
-  assign alu_a = (opcode == OP_LUI) ? 32'd0 : rs1_val;
-  assign alu_b = (opcode == OP_REG)  ? rs2_val :
-                 (opcode == OP_LUI)  ? imm     :
-                 (opcode == OP_AUIPC)? imm     : imm_i;
+  // LUI ignores rs1 and takes imm_u directly.  AUIPC must add imm_u to the PC
+  // (RISC-V spec: rd = pc + imm_u<<12) — this previously selected rs1_val, so
+  // `auipc` produced rs1+imm and every PC-relative address was wrong.
+  assign alu_a = (opcode == OP_LUI)   ? 32'd0 :
+                 (opcode == OP_AUIPC) ? pc    : rs1_val;
+  // `imm` is the per-opcode immediate (imm_i for loads, imm_s for stores,
+  // imm_b/imm_j for branches/jumps).  Using imm_i for a store added
+  // ir[31:20] to rs1 instead of the S-type offset, so every store with a
+  // non-zero offset landed 1..0x7ff bytes off (sw ra,4(sp) -> sp+1).
+  assign alu_b = (opcode == OP_REG)  ? rs2_val : imm;
 
   wire [4:0] shamt = (opcode == OP_REG) ? rs2_val[4:0] : ir[24:20];
 
+  // Only the instructions whose ALU result is an address or an upper immediate
+  // bypass funct3.  OP_IMM must NOT be in this list: funct3 selects ANDI/ORI/
+  // XORI/SLTI/SLLI there, and forcing addition made every `andi` an add, which
+  // broke the UART THRE poll (`andi t6,0x20` never produced 0).
+  wire alu_is_add = (opcode == OP_LOAD) || (opcode == OP_STORE) ||
+                    (opcode == OP_LUI) || (opcode == OP_AUIPC) ||
+                    (opcode == OP_JAL)  || (opcode == OP_JALR) ||
+                    (opcode == OP_BRANCH);
+
+  // Shifts are computed in their own assignments.  Writing the arithmetic
+  // shift inline in a ternary whose other arm is unsigned made the simulators
+  // (and any tool that unifies the conditional's operand types) evaluate it as
+  // a LOGICAL shift: `srai x7,x5,28` of 0xFFFFFFF8 returned 0x0000000F.
+  // Hoisting each result into a typed wire removes the ambiguity.
+  wire signed [XLEN-1:0] alu_a_signed = alu_a;
+  wire signed [XLEN-1:0] alu_b_signed = alu_b;
+  wire [XLEN-1:0] alu_add = alu_a + alu_b;
+  wire [XLEN-1:0] alu_sub = alu_a - alu_b;
+  wire [XLEN-1:0] alu_sll = alu_a << shamt;
+  wire [XLEN-1:0] alu_sra = alu_a_signed >>> shamt;
+  wire [XLEN-1:0] alu_srl = alu_a >> shamt;
+  wire [XLEN-1:0] alu_slt = (alu_a_signed < alu_b_signed) ? 32'd1 : 32'd0;
+  wire [XLEN-1:0] alu_sltu = (alu_a < alu_b) ? 32'd1 : 32'd0;
+  wire [XLEN-1:0] alu_xor = alu_a ^ alu_b;
+  wire [XLEN-1:0] alu_or  = alu_a | alu_b;
+  wire [XLEN-1:0] alu_and = alu_a & alu_b;
+
   always_comb begin
-    alu_out = alu_a + alu_b;
-    case (opcode)
-      OP_LUI:   alu_out = imm_u;
-      OP_AUIPC: alu_out = pc + imm_u;
-      default: begin
-        case (funct3)
-          3'b000: alu_out = (opcode == OP_REG && funct7[5]) ? (alu_a - alu_b)
-                                                            : (alu_a + alu_b);
-          3'b001: alu_out = alu_a << shamt;
-          3'b010: alu_out = ($signed(alu_a) < $signed(alu_b)) ? 32'd1 : 32'd0;
-          3'b011: alu_out = (alu_a < alu_b) ? 32'd1 : 32'd0;
-          3'b100: alu_out = alu_a ^ alu_b;
-          3'b101: alu_out = (funct7[5]) ? ($signed(alu_a) >>> shamt)
-                                        : (alu_a >> shamt);
-          3'b110: alu_out = alu_a | alu_b;
-          3'b111: alu_out = alu_a & alu_b;
-        endcase
-      end
-    endcase
+    if (alu_is_add) begin
+      alu_out = alu_add;
+    end else begin
+      // funct3 selects the ALU operation here (OP_REG and OP_IMM).  The SUB
+      // variant is OP_REG-only: for an I-type instruction funct7[5] is part of
+      // the immediate, so testing it here made `addi sp,sp,-8` subtract twice.
+      case (funct3)
+        3'b000: alu_out = ((opcode == OP_REG) && funct7[5]) ? alu_sub : alu_add;
+        3'b001: alu_out = alu_sll;
+        3'b010: alu_out = alu_slt;
+        3'b011: alu_out = alu_sltu;
+        3'b100: alu_out = alu_xor;
+        3'b101: alu_out = (funct7[5]) ? alu_sra : alu_srl;
+        3'b110: alu_out = alu_or;
+        3'b111: alu_out = alu_and;
+        default: alu_out = alu_add;
+      endcase
+    end
   end
+
+  // LUI/AUIPC override: the result is already in alu_b or pc+imm,
+  // but alu_out = alu_a + alu_b would be wrong for LUI (alu_a=0, alu_b=imm -> OK)
+  // and AUIPC (alu_a=pc, alu_b=imm -> OK). So no override needed.
+  // The alu_is_add path above already handles these correctly.
 
   assign cmp_eq  = (rs1_val == rs2_val);
   assign cmp_lt  = ($signed(rs1_val) < $signed(rs2_val));
@@ -171,7 +210,12 @@ module riscv_core #(
       muldiv_out = (funct3 == 3'b100) ? 32'hFFFF_FFFF :   // DIV  -> -1
                    (funct3 == 3'b101) ? 32'hFFFF_FFFF :   // DIVU -> max
                                        rs1_val;           // REM/REMU -> a
-    else if (rs1_val == 32'h8000_0000 && rs2_val == 32'hFFFF_FFFF)
+    // Signed overflow: only DIV/REM of 0x80000000 / -1 overflow.  The same
+    // operand pattern is an ordinary, non-overflowing unsigned division
+    // (0x80000000 / 0xFFFFFFFF = 0, remainder 0x80000000), which this branch
+    // used to answer with 0x80000000 for DIVU/REMU as well.
+    else if (rs1_val == 32'h8000_0000 && rs2_val == 32'hFFFF_FFFF &&
+             (funct3 == 3'b100 || funct3 == 3'b110))
       muldiv_out = (funct3 == 3'b110) ? 32'd0 : 32'h8000_0000;
     else begin
       case (funct3)
@@ -419,7 +463,7 @@ module riscv_core #(
   //--------------------------------------------------------------------------
   // Data interface
   //--------------------------------------------------------------------------
-  assign data_req   = (state == S_EXEC && is_mem && !exc_take) || (state == S_MEM);
+  assign data_req   = (state == S_EXEC && is_mem && !exc_take);
   assign data_we    = (opcode == OP_STORE);
   assign data_addr  = alu_out;
   assign data_wdata = st_data;

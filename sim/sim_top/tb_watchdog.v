@@ -58,7 +58,7 @@ module tb_watchdog;
   endtask
 
   initial begin
-    $dumpfile("../waveforms/tb_watchdog.vcd");
+    $dumpfile("build/sim/tb_watchdog.vcd");
     $dumpvars(0, tb_watchdog);
 
     presetn = 0;

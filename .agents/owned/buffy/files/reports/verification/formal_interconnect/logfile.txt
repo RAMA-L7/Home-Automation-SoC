@@ -1,0 +1,13 @@
+SBY  1:15:18 [formal_interconnect] Removing directory 'D:\Home-Automation-SoC\reports\verification\formal_interconnect'.
+SBY  1:15:18 [formal_interconnect] Copy 'D:\Home-Automation-SoC\rtl\rtl_top\axi_lite_interconnect.sv' to 'D:\Home-Automation-SoC\reports\verification\formal_interconnect\src\axi_lite_interconnect.sv'.
+SBY  1:15:18 [formal_interconnect] Copy 'D:\Home-Automation-SoC\rtl\rtl_top\has_addr_map.vh' to 'D:\Home-Automation-SoC\reports\verification\formal_interconnect\src\has_addr_map.vh'.
+SBY  1:15:18 [formal_interconnect] engine_0: smtbmc yices2
+SBY  1:15:18 [formal_interconnect] base: starting process "cd formal_interconnect/src& yosys -ql ../model/design.log ../model/design.ys"
+SBY  1:15:19 [formal_interconnect] base: D:/Home-Automation-SoC/rtl/rtl_top/axi_lite_interconnect.sv:57: ERROR: syntax error, unexpected '[', expecting ')' or ',' or '='
+SBY  1:15:19 [formal_interconnect] base: finished (returncode=1)
+SBY  1:15:19 [formal_interconnect] base: task failed. ERROR.
+SBY  1:15:19 [formal_interconnect] summary: Elapsed clock time [H:MM:SS (secs)]: 0:00:00 (0)
+SBY  1:15:19 [formal_interconnect] summary: Elapsed process time unvailable on Windows
+SBY  1:15:19 [formal_interconnect] summary: engine_0 (smtbmc yices2) did not return a status
+SBY  1:15:19 [formal_interconnect] summary: engine_0 did not produce any traces
+SBY  1:15:19 [formal_interconnect] DONE (ERROR, rc=16)

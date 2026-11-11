@@ -13,7 +13,6 @@ module tb_clint;
   reg         wr_en;
   reg  [11:0] wr_addr;
   reg  [31:0] wr_data;
-  reg         rd_en;
   reg  [11:0] rd_addr;
   wire [31:0] rd_data_wire;
   reg  [31:0] rd_data;
@@ -26,7 +25,7 @@ module tb_clint;
   clint dut (
     .clk(clk), .reset_n(reset_n),
     .wr_en(wr_en), .wr_addr(wr_addr), .wr_data(wr_data),
-    .rd_en(rd_en), .rd_addr(rd_addr), .rd_data(rd_data_wire),
+    .rd_addr(rd_addr), .rd_data(rd_data_wire),
     .irq_soft(irq_soft), .irq_timer(irq_timer), .time_out(time_out)
   );
 
@@ -52,20 +51,19 @@ module tb_clint;
     input [11:0] addr;
     output reg [31:0] val;
     begin
-      rd_en = 1; rd_addr = addr;
+      rd_addr = addr;
       @(posedge clk);
       val = rd_data_wire;
-      rd_en = 0;
       @(posedge clk);
     end
   endtask
 
   initial begin
-    $dumpfile("../waveforms/tb_clint.vcd");
+    $dumpfile("build/sim/tb_clint.vcd");
     $dumpvars(0, tb_clint);
 
     reset_n = 0;
-    wr_en = 0; rd_en = 0;
+    wr_en = 0;
     wr_addr = 0; wr_data = 0; rd_addr = 0;
     repeat (10) @(posedge clk);
     reset_n = 1;
@@ -99,11 +97,11 @@ module tb_clint;
 
     repeat (20) @(posedge clk);
 
-    if (errors == 0)
-      $display("TB_CLINT: ALL TESTS PASSED");
-    else
+    if (errors != 0) begin
       $display("TB_CLINT: %0d ERRORS", errors);
-
+      $fatal(1, "TB_CLINT: failed");
+    end
+    $display("TB_CLINT: ALL TESTS PASSED");
     $finish;
   end
 

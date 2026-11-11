@@ -57,7 +57,7 @@ module tb_timer;
   endtask
 
   initial begin
-    $dumpfile("../waveforms/tb_timer.vcd");
+    $dumpfile("build/sim/tb_timer.vcd");
     $dumpvars(0, tb_timer);
 
     presetn = 0;

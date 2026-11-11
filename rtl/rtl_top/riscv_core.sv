@@ -15,8 +15,15 @@
 //   completion for both reads and writes (rdata valid only for reads).
 //
 // Supported: RV32I + M, machine-mode CSRs, synchronous traps (illegal
-// instruction, ECALL, EBREAK) and asynchronous interrupts via mip/mie/mstatus.
+// instruction, ECALL, EBREAK, instruction-address-misaligned, load/store
+// address misaligned, instruction/load/store access fault) and asynchronous
+// interrupts via mip/mie/mstatus.
 // Not supported (documented): C extension, F/D, atomics, user mode, PMP.
+//
+// Access faults: the memory interfaces carry an error flag alongside the
+// completion strobe (instr_err with instr_rvalid, data_err with data_rvalid).
+// Without it a bus error was invisible: the core used the returned data as if
+// the access had succeeded.
 //
 // Formal verification properties are in reports/verification/formal_properties.sv
 //------------------------------------------------------------------------------
@@ -32,6 +39,7 @@ module riscv_core #(
   input  logic                   instr_gnt,
   input  logic [XLEN-1:0]        instr_rdata,
   input  logic                   instr_rvalid,
+  input  logic                   instr_err,    // access fault, with rvalid
   // Data memory interface
   output logic                   data_req,
   output logic                   data_we,
@@ -41,6 +49,7 @@ module riscv_core #(
   input  logic                   data_gnt,
   input  logic [XLEN-1:0]        data_rdata,
   input  logic                   data_rvalid,
+  input  logic                   data_err,     // access fault, with rvalid
   // Interrupts (already individually gated by the interrupt controller)
   input  logic                   irq_irq,     // external (PLIC)
   input  logic                   irq_timer,   // CLINT timer
@@ -126,36 +135,63 @@ module riscv_core #(
   logic [XLEN-1:0] alu_a, alu_b, alu_out;
   logic            cmp_eq, cmp_lt, cmp_ltu;
 
-  assign alu_a = (opcode == OP_LUI) ? 32'd0 : rs1_val;
-  assign alu_b = (opcode == OP_REG)  ? rs2_val :
-                 (opcode == OP_LUI)  ? imm     :
-                 (opcode == OP_AUIPC)? imm     : imm_i;
+  // LUI ignores rs1 and takes imm_u directly.  AUIPC must add imm_u to the PC
+  // (RISC-V spec: rd = pc + imm_u<<12) — this previously selected rs1_val, so
+  // `auipc` produced rs1+imm and every PC-relative address was wrong.
+  assign alu_a = (opcode == OP_LUI)   ? 32'd0 :
+                 (opcode == OP_AUIPC) ? pc    : rs1_val;
+  // `imm` is the per-opcode immediate (imm_i for loads, imm_s for stores,
+  // imm_b/imm_j for branches/jumps).  Using imm_i for a store added
+  // ir[31:20] to rs1 instead of the S-type offset, so every store with a
+  // non-zero offset landed 1..0x7ff bytes off (sw ra,4(sp) -> sp+1).
+  assign alu_b = (opcode == OP_REG)  ? rs2_val : imm;
 
   wire [4:0] shamt = (opcode == OP_REG) ? rs2_val[4:0] : ir[24:20];
 
-  // Loads and stores always use addition for the effective address,
-  // regardless of funct3 (which would otherwise select SLT for LW/SW).
+  // Only the instructions whose ALU result is an address or an upper immediate
+  // bypass funct3.  OP_IMM must NOT be in this list: funct3 selects ANDI/ORI/
+  // XORI/SLTI/SLLI there, and forcing addition made every `andi` an add, which
+  // broke the UART THRE poll (`andi t6,0x20` never produced 0).
   wire alu_is_add = (opcode == OP_LOAD) || (opcode == OP_STORE) ||
                     (opcode == OP_LUI) || (opcode == OP_AUIPC) ||
-                    (opcode == OP_IMM)  || (opcode == OP_JAL)  ||
-                    (opcode == OP_JALR) || (opcode == OP_BRANCH);
+                    (opcode == OP_JAL)  || (opcode == OP_JALR) ||
+                    (opcode == OP_BRANCH);
+
+  // Shifts are computed in their own assignments.  Writing the arithmetic
+  // shift inline in a ternary whose other arm is unsigned made the simulators
+  // (and any tool that unifies the conditional's operand types) evaluate it as
+  // a LOGICAL shift: `srai x7,x5,28` of 0xFFFFFFF8 returned 0x0000000F.
+  // Hoisting each result into a typed wire removes the ambiguity.
+  wire signed [XLEN-1:0] alu_a_signed = alu_a;
+  wire signed [XLEN-1:0] alu_b_signed = alu_b;
+  wire [XLEN-1:0] alu_add = alu_a + alu_b;
+  wire [XLEN-1:0] alu_sub = alu_a - alu_b;
+  wire [XLEN-1:0] alu_sll = alu_a << shamt;
+  wire [XLEN-1:0] alu_sra = alu_a_signed >>> shamt;
+  wire [XLEN-1:0] alu_srl = alu_a >> shamt;
+  wire [XLEN-1:0] alu_slt = (alu_a_signed < alu_b_signed) ? 32'd1 : 32'd0;
+  wire [XLEN-1:0] alu_sltu = (alu_a < alu_b) ? 32'd1 : 32'd0;
+  wire [XLEN-1:0] alu_xor = alu_a ^ alu_b;
+  wire [XLEN-1:0] alu_or  = alu_a | alu_b;
+  wire [XLEN-1:0] alu_and = alu_a & alu_b;
 
   always_comb begin
     if (alu_is_add) begin
-      alu_out = alu_a + alu_b;
+      alu_out = alu_add;
     end else begin
-      // OP_REG only: funct3 selects the ALU operation
+      // funct3 selects the ALU operation here (OP_REG and OP_IMM).  The SUB
+      // variant is OP_REG-only: for an I-type instruction funct7[5] is part of
+      // the immediate, so testing it here made `addi sp,sp,-8` subtract twice.
       case (funct3)
-        3'b000: alu_out = funct7[5] ? (alu_a - alu_b) : (alu_a + alu_b);
-        3'b001: alu_out = alu_a << shamt;
-        3'b010: alu_out = ($signed(alu_a) < $signed(alu_b)) ? 32'd1 : 32'd0;
-        3'b011: alu_out = (alu_a < alu_b) ? 32'd1 : 32'd0;
-        3'b100: alu_out = alu_a ^ alu_b;
-        3'b101: alu_out = (funct7[5]) ? ($signed(alu_a) >>> shamt)
-                                      : (alu_a >> shamt);
-        3'b110: alu_out = alu_a | alu_b;
-        3'b111: alu_out = alu_a & alu_b;
-        default: alu_out = alu_a + alu_b;
+        3'b000: alu_out = ((opcode == OP_REG) && funct7[5]) ? alu_sub : alu_add;
+        3'b001: alu_out = alu_sll;
+        3'b010: alu_out = alu_slt;
+        3'b011: alu_out = alu_sltu;
+        3'b100: alu_out = alu_xor;
+        3'b101: alu_out = (funct7[5]) ? alu_sra : alu_srl;
+        3'b110: alu_out = alu_or;
+        3'b111: alu_out = alu_and;
+        default: alu_out = alu_add;
       endcase
     end
   end
@@ -183,7 +219,12 @@ module riscv_core #(
       muldiv_out = (funct3 == 3'b100) ? 32'hFFFF_FFFF :   // DIV  -> -1
                    (funct3 == 3'b101) ? 32'hFFFF_FFFF :   // DIVU -> max
                                        rs1_val;           // REM/REMU -> a
-    else if (rs1_val == 32'h8000_0000 && rs2_val == 32'hFFFF_FFFF)
+    // Signed overflow: only DIV/REM of 0x80000000 / -1 overflow.  The same
+    // operand pattern is an ordinary, non-overflowing unsigned division
+    // (0x80000000 / 0xFFFFFFFF = 0, remainder 0x80000000), which this branch
+    // used to answer with 0x80000000 for DIVU/REMU as well.
+    else if (rs1_val == 32'h8000_0000 && rs2_val == 32'hFFFF_FFFF &&
+             (funct3 == 3'b100 || funct3 == 3'b110))
       muldiv_out = (funct3 == 3'b110) ? 32'd0 : 32'h8000_0000;
     else begin
       case (funct3)
@@ -277,6 +318,29 @@ module riscv_core #(
   end
 
   //--------------------------------------------------------------------------
+  // Branch / jump target (used by trap detection below)
+  //--------------------------------------------------------------------------
+  logic            branch_taken;
+  logic [XLEN-1:0] pc_next;
+
+  always_comb begin
+    case (funct3)
+      3'b000:  branch_taken = cmp_eq;
+      3'b001:  branch_taken = !cmp_eq;
+      3'b100:  branch_taken = cmp_lt;
+      3'b101:  branch_taken = !cmp_lt;
+      3'b110:  branch_taken = cmp_ltu;
+      3'b111:  branch_taken = !cmp_ltu;
+      default: branch_taken = 1'b0;
+    endcase
+  end
+
+  assign pc_next = (opcode == OP_JAL)  ? (pc + imm_j) :
+                   (opcode == OP_JALR) ? ((rs1_val + imm_i) & ~32'h1) :
+                   (opcode == OP_BRANCH && branch_taken) ? (pc + imm_b) :
+                   (pc + 32'd4);
+
+  //--------------------------------------------------------------------------
   // Trap detection
   //--------------------------------------------------------------------------
   wire meip = mip[IRQ_MEI];
@@ -301,6 +365,13 @@ module riscv_core #(
   logic [XLEN-1:0] exc_cause;
   logic [XLEN-1:0] exc_tval;
 
+  // Misaligned data access: word accesses need bit1 clear, halfword accesses
+  // need bit0 clear.  Previously these were silently byte-rotated by the
+  // load/store shapers, i.e. the core returned the wrong data instead of
+  // raising the architectural exception.  (Assigned at the end of the module,
+  // after is_mem/branch_taken/pc_next exist.)
+  wire mem_misaligned, jump_misaligned;
+
   always_comb begin
     exc_take  = 1'b0;
     exc_cause = '0;
@@ -309,31 +380,22 @@ module riscv_core #(
       if (is_illegal)  begin exc_take = 1'b1; exc_cause = 32'd2;  end
       else if (is_ecall)  begin exc_take = 1'b1; exc_cause = 32'd11; exc_tval = 32'd0; end
       else if (is_ebreak) begin exc_take = 1'b1; exc_cause = 32'd3;  exc_tval = 32'd0; end
+      else if (mem_misaligned) begin
+        exc_take  = 1'b1;
+        exc_cause = (opcode == OP_LOAD) ? 32'd4 : 32'd6;
+        exc_tval  = alu_out;
+      end else if (jump_misaligned) begin
+        exc_take  = 1'b1;
+        exc_cause = 32'd0;
+        exc_tval  = pc_next;
+      end
     end
   end
 
-  //--------------------------------------------------------------------------
-  // Branch / jump target
-  //--------------------------------------------------------------------------
-  logic            branch_taken;
-  logic [XLEN-1:0] pc_next;
-
-  always_comb begin
-    case (funct3)
-      3'b000:  branch_taken = cmp_eq;
-      3'b001:  branch_taken = !cmp_eq;
-      3'b100:  branch_taken = cmp_lt;
-      3'b101:  branch_taken = !cmp_lt;
-      3'b110:  branch_taken = cmp_ltu;
-      3'b111:  branch_taken = !cmp_ltu;
-      default: branch_taken = 1'b0;
-    endcase
-  end
-
-  assign pc_next = (opcode == OP_JAL)  ? (pc + imm_j) :
-                   (opcode == OP_JALR) ? ((rs1_val + imm_i) & ~32'h1) :
-                   (opcode == OP_BRANCH && branch_taken) ? (pc + imm_b) :
-                   (pc + 32'd4);
+  // Completion-time access faults.  Recorded in the cycle the error is
+  // reported so trap entry (one cycle later) can use it.
+  logic            fault_v;
+  logic [XLEN-1:0] fault_cause, fault_tval;
 
   //--------------------------------------------------------------------------
   // Load / store shaping
@@ -414,7 +476,11 @@ module riscv_core #(
     reg_we = 1'b0;
     if (state == S_EXEC && !exc_take) begin
       case (opcode)
-        OP_LUI, OP_AUIPC, OP_JAL, OP_JALR, OP_LOAD,
+        // OP_LOAD is deliberately absent: a load writes back only when its bus
+        // transaction completes (S_MEM).  Including it here wrote the stale
+        // previous bus data into rd first, which a faulting load then left in
+        // place, corrupting the destination register.
+        OP_LUI, OP_AUIPC, OP_JAL, OP_JALR,
         OP_IMM, OP_REG, OP_MISC: reg_we = (rd != 5'd0);
         OP_SYSTEM: reg_we = is_csr && (rd != 5'd0);
         default: reg_we = 1'b0;
@@ -445,14 +511,20 @@ module riscv_core #(
     case (state)
       S_FETCH: begin
         if (irq_take)               state_n = S_TRAP;
-        else if (instr_rvalid)      state_n = S_EXEC;
+        else if (instr_rvalid) begin
+          if (instr_err)            state_n = S_TRAP;
+          else                      state_n = S_EXEC;
+        end
       end
       S_EXEC: begin
         if (exc_take)               state_n = S_TRAP;
         else if (is_mem)            state_n = S_MEM;
         else                        state_n = S_FETCH;
       end
-      S_MEM:  if (data_rvalid)      state_n = S_FETCH;
+      S_MEM:  if (data_rvalid) begin
+                if (data_err)       state_n = S_TRAP;
+                else                state_n = S_FETCH;
+              end
       S_TRAP:                       state_n = S_FETCH;
       default:                      state_n = S_FETCH;
     endcase
@@ -477,6 +549,9 @@ module riscv_core #(
       mcycle    <= 64'd0;
       minstret  <= 64'd0;
       state     <= S_FETCH;
+      fault_v   <= 1'b0;
+      fault_cause <= 32'd0;
+      fault_tval  <= 32'd0;
       for (i = 0; i < 32; i++) rf[i] <= 32'd0;
     end else begin
       state   <= state_n;
@@ -529,17 +604,45 @@ module riscv_core #(
         end
       end
 
-      // Memory completion
+      // Memory completion.  An error completes the transaction but must not
+      // write back data or retire the instruction: pc stays on the faulting
+      // instruction so mepc is correct.
       if (state == S_MEM && data_rvalid) begin
-        if (opcode == OP_LOAD && !exc_take) rf[rd] <= ld_data;
-        pc <= pc + 32'd4;
+        if (opcode == OP_LOAD && !data_err) rf[rd] <= ld_data;
+        if (!data_err) pc <= pc + 32'd4;
+      end
+
+      // Latch the synchronous exception cause.  exc_cause/exc_tval are only
+      // valid while the faulting instruction is in S_EXEC; trap entry happens
+      // one cycle later in S_TRAP, where they would read back as 0 and `ir`.
+      // Before this latch every ecall/ebreak/illegal/misaligned trap logged
+      // mcause = 0 (instruction-address-misaligned) instead of its real cause.
+      if (state == S_EXEC && exc_take) begin
+        fault_v     <= 1'b1;
+        fault_cause <= exc_cause;
+        fault_tval  <= exc_tval;
+      end
+
+      // Record completion-time access faults for the trap entry below.
+      if (state == S_MEM && data_rvalid && data_err) begin
+        fault_v     <= 1'b1;
+        fault_cause <= (opcode == OP_LOAD) ? 32'd5 : 32'd7;
+        fault_tval  <= data_addr;
+      end
+      if (state == S_FETCH && instr_rvalid && instr_err) begin
+        fault_v     <= 1'b1;
+        fault_cause <= 32'd1;
+        fault_tval  <= pc;
       end
 
       // Trap entry
       if (state == S_TRAP) begin
         mepc                 <= pc;
-        mcause               <= irq_take ? irq_cause : exc_cause;
-        mtval                <= irq_take ? 32'd0 : exc_tval;
+        mcause               <= fault_v ? fault_cause :
+                                (irq_take ? irq_cause : exc_cause);
+        mtval                <= fault_v ? fault_tval :
+                                (irq_take ? 32'd0 : exc_tval);
+        fault_v              <= 1'b0;
         mstatus[MSTATUS_MPIE]<= mstatus[MSTATUS_MIE];
         mstatus[MSTATUS_MIE] <= 1'b0;
         mstatus[MSTATUS_MPP] <= PRV_M;
@@ -552,5 +655,20 @@ module riscv_core #(
   // is NOT implemented; see docs/verification and the delivery report.
   assign debug_halted  = debug_req;
   assign debug_running = !debug_req;
+
+  //--------------------------------------------------------------------------
+  // Misalignment detection (declared above, assigned here so every operand is
+  // already declared)
+  //--------------------------------------------------------------------------
+  assign mem_misaligned = is_mem &&
+         ((funct3 == 3'b010) ? (alu_out[1:0] != 2'b00) :
+          (funct3 == 3'b001) ? (alu_out[0] != 1'b0) : 1'b0);
+
+  // On a core without the C extension every computed control-transfer target
+  // must be 4-byte aligned; jalr masked only bit 0, so a 2-byte-aligned target
+  // would fetch the wrong halfword.
+  assign jump_misaligned = ((opcode == OP_JAL) || (opcode == OP_JALR) ||
+                            (opcode == OP_BRANCH && branch_taken)) &&
+                           (pc_next[1:0] != 2'b00);
 
 endmodule

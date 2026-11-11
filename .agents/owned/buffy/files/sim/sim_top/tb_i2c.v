@@ -60,7 +60,7 @@ module tb_i2c;
   endtask
 
   initial begin
-    $dumpfile("../waveforms/tb_i2c.vcd");
+    $dumpfile("build/sim/tb_i2c.vcd");
     $dumpvars(0, tb_i2c);
 
     presetn = 0;

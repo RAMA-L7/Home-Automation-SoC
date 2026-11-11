@@ -58,7 +58,7 @@ module tb_pwm;
   endtask
 
   initial begin
-    $dumpfile("../waveforms/tb_pwm.vcd");
+    $dumpfile("build/sim/tb_pwm.vcd");
     $dumpvars(0, tb_pwm);
 
     presetn = 0;

@@ -1,0 +1,9 @@
+# running in formal_interconnect/src/
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/axi_lite_interconnect.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/has_addr_map.vh
+prep -top axi_lite_interconnect
+
+hierarchy -smtcheck
+rename -witness
+write_jny -no-connections ../model/design.json
+write_rtlil ../model/design.il

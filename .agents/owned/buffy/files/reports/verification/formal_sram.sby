@@ -1,0 +1,14 @@
+[options]
+mode prove
+depth 20
+timeout 60
+
+[engines]
+smtbmc yices2
+
+[script]
+read_verilog -formal D:/Home-Automation-SoC/rtl/rtl_top/sram.sv
+prep -top sram
+
+[files]
+D:/Home-Automation-SoC/rtl/rtl_top/sram.sv

@@ -42,10 +42,23 @@ typedef struct {
     uint32_t reserved[2];
 } __attribute__((packed)) boot_header_t;
 
+/* Memory bounds used by image validation */
+#define SRAM_BASE            0x20000000u
+#define SRAM_SIZE            0x00020000u   /* 128 KB */
+#define SRAM_END             (SRAM_BASE + SRAM_SIZE)
+#define BOOT_RESERVED_TOP    0x00001000u   /* stack + boot metadata kept clear */
+#define SRAM_APP_LIMIT       (SRAM_END - BOOT_RESERVED_TOP)
+#define FW_MAX_IMAGE_SIZE    0x00020000u
+#define SIG_MAX_LEN          512u
+
 /* Boot ROM functions (called from ROM, implemented here) */
-void boot_verify_signature(const uint8_t *image, uint32_t size,
-                           const uint8_t *sig, uint32_t sig_len);
-int boot_validate_header(const boot_header_t *hdr);
+/* Returns 0 only if the image signature was cryptographically verified.
+ * Returns nonzero otherwise.  There is no verifier in this build, so every
+ * call fails: callers must treat nonzero as "do not execute". */
+int boot_verify_signature(const uint8_t *image, uint32_t size,
+                          const uint8_t *sig, uint32_t sig_len);
+/* Header, range, entry and signature-block validation against a partition. */
+int boot_validate_image(const boot_header_t *hdr, uint32_t partition_base);
 void boot_copy_to_sram(const uint8_t *src, uint32_t dst, uint32_t size);
 void boot_jump_to_app(uint32_t entry);
 

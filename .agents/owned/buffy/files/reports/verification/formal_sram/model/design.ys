@@ -1,0 +1,8 @@
+# running in formal_sram/src/
+read_verilog -formal D:/Home-Automation-SoC/rtl/rtl_top/sram.sv
+prep -top sram
+
+hierarchy -smtcheck
+rename -witness
+write_jny -no-connections ../model/design.json
+write_rtlil ../model/design.il

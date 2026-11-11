@@ -62,7 +62,7 @@ module tb_spi;
   endtask
 
   initial begin
-    $dumpfile("../waveforms/tb_spi.vcd");
+    $dumpfile("build/sim/tb_spi.vcd");
     $dumpvars(0, tb_spi);
 
     presetn = 0;

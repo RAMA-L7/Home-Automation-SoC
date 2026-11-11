@@ -1,0 +1,8 @@
+Elapsed clock time [H:MM:SS (secs)]: 0:00:00 (0)
+Elapsed process time unvailable on Windows
+engine_0 (smtbmc yices) did not return a status
+engine_0 did not produce any traces
+engine_1 (smtbmc z3) did not return a status
+engine_1 did not produce any traces
+engine_2 (smtbmc cvc5) did not return a status
+engine_2 did not produce any traces

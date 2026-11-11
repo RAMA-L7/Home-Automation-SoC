@@ -14,6 +14,8 @@
 //------------------------------------------------------------------------------
 module has_soc #(
   parameter BOOT_ROM_FILE  = "",
+  parameter TCM_INIT_FILE  = "",   // simulation only: preload TCM (0x1_0000)
+  parameter SRAM_INIT_FILE = "",   // simulation only: preload SRAM (0x2000_0000)
   parameter int UART_CLK_FREQ = 50_000_000,
   parameter int UART_BAUD     = 115200
 ) (
@@ -60,6 +62,28 @@ module has_soc #(
   import has_addr_map_pkg::*;
 
   //--------------------------------------------------------------------------
+  // Reset controller
+  //--------------------------------------------------------------------------
+  // The watchdog's reset output is a level held until software pets it, which
+  // cannot happen while it is holding the SoC in reset.  reset_ctrl converts
+  // a timeout into a bounded pulse and resets the watchdog with it, so the
+  // device recovers instead of deadlocking.
+  logic rst_sys_n;
+  logic wdog_timeout;
+  logic wdog_timeout_raw_n;
+  logic wdog_timeout_pulse_n;
+
+  reset_ctrl u_reset_ctrl (
+    .clk              (clk),
+    .reset_n          (reset_n),
+    .wdog_timeout     (wdog_timeout),
+    .rst_sys_n        (rst_sys_n),
+    .wdog_reset_n_out (wdog_timeout_pulse_n)
+  );
+
+  assign wdog_reset_n_out = wdog_timeout_pulse_n;
+
+  //--------------------------------------------------------------------------
   // Clock gating
   //--------------------------------------------------------------------------
   logic core_clk_en, periph_clk_en;
@@ -68,8 +92,8 @@ module has_soc #(
   // Gate with a latch-based ICG model: enable is sampled on the low phase so
   // no glitch is produced on the gated clock.
   logic core_clk_en_q, periph_clk_en_q;
-  always_ff @(negedge clk or negedge reset_n)
-    if (!reset_n) begin
+  always_ff @(negedge clk or negedge rst_sys_n)
+    if (!rst_sys_n) begin
       core_clk_en_q   <= 1'b1;
       periph_clk_en_q <= 1'b1;
     end else begin
@@ -86,20 +110,22 @@ module has_soc #(
   //--------------------------------------------------------------------------
   logic         instr_req, instr_gnt, instr_rvalid;
   logic [31:0]  instr_addr, instr_rdata;
-  logic         data_req, data_we, data_gnt, data_rvalid;
+  logic         data_req, data_we, data_gnt, data_rvalid, data_err;
   logic [31:0]  data_addr, data_wdata, data_rdata;
   logic [3:0]   data_wstrb;
+  logic         instr_err;
 
   logic         irq_ext, irq_timer, irq_soft;
 
   riscv_core #(.RESET_PC(ADDR_BOOT_ROM_BASE)) core (
     .clk          (core_clk),
-    .reset_n      (reset_n),
+    .reset_n      (rst_sys_n),
     .instr_req    (instr_req),
     .instr_addr   (instr_addr),
     .instr_gnt    (instr_gnt),
     .instr_rdata  (instr_rdata),
     .instr_rvalid (instr_rvalid),
+    .instr_err    (instr_err),
     .data_req     (data_req),
     .data_we      (data_we),
     .data_addr    (data_addr),
@@ -108,6 +134,7 @@ module has_soc #(
     .data_gnt     (data_gnt),
     .data_rdata   (data_rdata),
     .data_rvalid  (data_rvalid),
+    .data_err     (data_err),
     .irq_irq      (irq_ext),
     .irq_timer    (irq_timer),
     .irq_soft     (irq_soft),
@@ -155,6 +182,11 @@ module has_soc #(
                         sel_tcm  ? tcm_i_rdata  :
                         sel_sram ? sram_i_rdata : 32'h0000_0000;
 
+  // A fetch outside every instruction region is an instruction access fault
+  // (mcause 1), not a zero instruction: the core now raises the architectural
+  // exception instead of executing an illegal-opcode trap with mtval = 0.
+  assign instr_err    = fault_rvalid;
+
   //--------------------------------------------------------------------------
   // Data path: req/gnt -> AXI4-Lite master
   //--------------------------------------------------------------------------
@@ -177,6 +209,7 @@ module has_soc #(
     .gnt       (data_gnt),
     .rdata     (data_rdata),
     .rvalid    (data_rvalid),
+    .err       (data_err),
     .m_awvalid (m_awvalid),
     .m_awready (m_awready),
     .m_awaddr  (m_awaddr),
@@ -284,7 +317,7 @@ module has_soc #(
   //--------------------------------------------------------------------------
   // TCM (slave 1)
   //--------------------------------------------------------------------------
-  sram #(.ADDR_WIDTH(15), .MEM_FILE("")) tcm_inst (
+  sram #(.ADDR_WIDTH(15), .MEM_FILE(TCM_INIT_FILE)) tcm_inst (
     .clk      (core_clk),
     .reset_n  (reset_n),
     .awvalid  (s_awvalid[1]), .awaddr(s_awaddr[1][14:0]), .awready(s_awready[1]),
@@ -301,7 +334,7 @@ module has_soc #(
   //--------------------------------------------------------------------------
   // SRAM (slave 2)
   //--------------------------------------------------------------------------
-  sram #(.ADDR_WIDTH(18), .MEM_FILE("")) sram_inst (
+  sram #(.ADDR_WIDTH(18), .MEM_FILE(SRAM_INIT_FILE)) sram_inst (
     .clk      (core_clk),
     .reset_n  (reset_n),
     .awvalid  (s_awvalid[2]), .awaddr(s_awaddr[2][17:0]), .awready(s_awready[2]),
@@ -399,62 +432,76 @@ module has_soc #(
   logic [31:0] prdata_timer, prdata_wdog, prdata_i2s, prdata_pwr;
   logic [8:0]  apb_sel;
 
+  // Each peripheral is only allowed to see the APB ACCESS phase for its own
+  // 4 KB slot.  Without the per-slot gate every peripheral decodes every
+  // access: a UART THR write has paddr[11:2]==0, which the power-manager
+  // register block took as its own control register and set sleep_req, so the
+  // first transmitted character gated off core_clk and froze the whole SoC.
   gpio #(.WIDTH(16)) gpio_inst (
-    .pclk(periph_clk), .presetn(reset_n), .penable(penable), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[0]), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_gpio), .pready(), .pslverr(),
     .gpio(gpio), .irq(gpio_irq));
 
   uart #(.CLK_FREQ(UART_CLK_FREQ), .BAUD(UART_BAUD)) uart_inst (
-    .pclk(periph_clk), .presetn(reset_n), .penable(penable), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[1]), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_uart), .pready(), .pslverr(),
     .uart_tx(uart_tx), .uart_rx(uart_rx), .irq(uart_irq));
 
   i2c_ctrl i2c_inst (
-    .pclk(periph_clk), .presetn(reset_n), .penable(penable), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[2]), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_i2c), .pready(), .pslverr(),
     .i2c_scl(i2c_scl), .i2c_sda(i2c_sda), .irq(i2c_irq));
 
   spi_ctrl spi_inst (
-    .pclk(periph_clk), .presetn(reset_n), .penable(penable), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[3]), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_spi), .pready(), .pslverr(),
     .spi_sck(spi_sck), .spi_mosi(spi_mosi), .spi_miso(spi_miso),
     .spi_cs_n(spi_cs_n), .irq(spi_irq));
 
   pwm pwm_inst (
-    .pclk(periph_clk), .presetn(reset_n), .penable(penable), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[4]), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_pwm), .pready(), .pslverr(),
     .pwm_out(pwm_out), .irq(pwm_irq));
 
   timer timer_inst (
-    .pclk(periph_clk), .presetn(reset_n), .penable(penable), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[5]), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_timer), .pready(), .pslverr(),
     .irq(timer_irq));
 
+  // The watchdog must keep counting while the SoC is asleep, otherwise sleep
+  // silently disables the reset path it exists to provide.  It therefore runs
+  // on the ungated base clock; its APB port is still only reachable while the
+  // peripheral clock is running.
   watchdog wdog_inst (
-    .pclk(periph_clk), .presetn(reset_n), .penable(penable), .pwrite(pwrite),
+    .pclk(clk), .presetn(rst_sys_n), .penable(penable & apb_sel[6]), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_wdog), .pready(), .pslverr(),
-    .irq(wdog_irq), .reset_n_out(wdog_reset_n_out));
+    .irq(wdog_irq), .reset_n_out(wdog_timeout_raw_n));
+
+  // The watchdog is reset by the system reset so that a timeout releases it
+  // (CTRL back to 0, disabled) once the pulse has been applied.
+  assign wdog_timeout = ~wdog_timeout_raw_n;
 
   i2s i2s_inst (
-    .pclk(periph_clk), .presetn(reset_n), .penable(penable), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[7]), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_i2s), .pready(), .pslverr(),
     .i2s_bclk(i2s_bclk), .i2s_lrclk(i2s_lrclk),
     .i2s_dout(i2s_dout), .i2s_din(i2s_din), .irq(i2s_irq));
 
-  logic pm_sleep_req;
+  logic pm_sleep_req, pm_wake_event;
   power_mgr_regs pwr_inst (
-    .pclk(periph_clk), .presetn(reset_n), .penable(penable), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[8]), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_pwr), .pready(), .pslverr(),
-    .irq(pwr_irq), .sleep_req_o(pm_sleep_req));
+    .irq(pwr_irq), .sleep_req_o(pm_sleep_req),
+    .wake_clear(pm_wake_event));
 
   // APB address decode: one 4 KB slot per peripheral.  Each peripheral sees
   // paddr[11:2] as its local register index because every slot is 4 KB aligned.
@@ -484,8 +531,17 @@ module has_soc #(
                   apb_sel[7] ? prdata_i2s   :
                   apb_sel[8] ? prdata_pwr   : 32'd0;
 
+  // APB completion contract:
+  //  - exactly one selected slot per transfer (one-hot `apb_sel`);
+  //  - an unmapped slot completes with PSLVERR instead of hanging the bridge;
+  //  - partial-strobe writes are REJECTED with PSLVERR.  No peripheral decodes
+  //    PSTRB (it is an unused port in all nine), so accepting a partial write
+  //    would silently turn `sb`/`sh` into a full-word register write.  A
+  //    rejected access has no side effect, which is the safe failure mode.
+  wire apb_partial_write = pwrite && (pstrb != 4'b1111);
+
   assign pready  = (apb_sel != 9'd0);
-  assign pslverr = (apb_sel == 9'd0);
+  assign pslverr = (apb_sel == 9'd0) || (penable && apb_partial_write);
 
   // PLIC source map: 0=uart 1=spi 2=i2c 3=gpio 4=pwm 5=timer 6=wdog 7=i2s
   assign periph_irq = {i2s_irq, wdog_irq, timer_irq, pwm_irq,
@@ -500,12 +556,13 @@ module has_soc #(
   //--------------------------------------------------------------------------
   power_mgr pwr_mgr (
     .clk          (clk),
-    .reset_n      (reset_n),
+    .reset_n      (rst_sys_n),
     .sleep_req    (pm_sleep_req),
     .core_clk_en  (core_clk_en),
     .periph_clk_en(periph_clk_en),
     .wake_req     (wake_req),
-    .wake_ack     (wake_ack)
+    .wake_ack     (wake_ack),
+    .wake_event   (pm_wake_event)
   );
 
   debug_jtag jtag_inst (

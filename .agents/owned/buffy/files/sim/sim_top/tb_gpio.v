@@ -58,7 +58,7 @@ module tb_gpio;
   endtask
 
   initial begin
-    $dumpfile("../waveforms/tb_gpio.vcd");
+    $dumpfile("build/sim/tb_gpio.vcd");
     $dumpvars(0, tb_gpio);
 
     presetn = 0;

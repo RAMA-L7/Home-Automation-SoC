@@ -63,12 +63,26 @@ module axi_lite_to_apb #(
   logic [3:0]            wstrb_q;
   logic [1:0]            resp_q;
 
-  logic aw_ok, w_ok, ar_ok;
+  // AW and W may arrive in different cycles (the request/grant adapter always
+  // does), so each channel is latched on its own and the transaction starts
+  // when both have been seen.  Without this the write never left B_IDLE and
+  // every APB store hung the core in its memory state.
+  logic                  have_aw, have_w;
+  logic [ADDR_WIDTH-1:0] awaddr_q;
 
-  // Accept AW/W as soon as both are visible while idle (single outstanding).
+  // APB guarantees PRDATA is valid during ACCESS only, so it must be captured
+  // at the end of ACCESS.  Driving s_rdata straight from the peripheral's
+  // combinational prdata returned 0 (most peripherals gate it on penable),
+  // which made every APB read-back fail.
+  logic [DATA_WIDTH-1:0] rdata_q;
+
+  logic aw_ok, w_ok, ar_ok;
+  logic wr_complete;
+
   assign aw_ok = s_awvalid & s_awready;
   assign w_ok  = s_wvalid  & s_wready;
   assign ar_ok = s_arvalid & s_arready;
+  assign wr_complete = (have_aw | aw_ok) & (have_w | w_ok);
 
   assign s_awready = (state == B_IDLE);
   assign s_wready  = (state == B_IDLE);
@@ -78,8 +92,9 @@ module axi_lite_to_apb #(
     state_n = state;
     unique case (state)
       B_IDLE: begin
-        if (aw_ok && w_ok)      state_n = B_SETUP;
-        else if (ar_ok)         state_n = B_SETUP;
+        if (wr_complete)                       state_n = B_SETUP;
+        else if (ar_ok && !have_aw && !have_w && !aw_ok && !w_ok)
+                                               state_n = B_SETUP;
       end
       B_SETUP:                  state_n = B_ACCESS;
       B_ACCESS:  if (pready) begin
@@ -100,23 +115,34 @@ module axi_lite_to_apb #(
       wdata_q <= '0;
       wstrb_q <= '0;
       resp_q  <= 2'b00;
+      rdata_q <= '0;
+      have_aw <= 1'b0;
+      have_w  <= 1'b0;
+      awaddr_q <= '0;
     end else begin
       state <= state_n;
 
       if (state == B_IDLE) begin
-        if (aw_ok && w_ok) begin
-          wr_q    <= 1'b1;
-          addr_q  <= s_awaddr;
-          wdata_q <= s_wdata;
-          wstrb_q <= s_wstrb;
-        end else if (ar_ok) begin
+        // Latch whichever half of the write has arrived.
+        if (aw_ok) begin awaddr_q <= s_awaddr; have_aw <= 1'b1; end
+        if (w_ok)  begin wdata_q  <= s_wdata; wstrb_q <= s_wstrb; have_w <= 1'b1; end
+
+        if (wr_complete) begin
+          // Both halves present: start the APB cycle and free the latches.
+          wr_q     <= 1'b1;
+          addr_q   <= aw_ok ? s_awaddr : awaddr_q;
+          have_aw  <= 1'b0;
+          have_w   <= 1'b0;
+        end else if (ar_ok && !have_aw && !have_w && !aw_ok && !w_ok) begin
           wr_q    <= 1'b0;
           addr_q  <= s_araddr;
         end
       end
 
-      if (state == B_ACCESS && pready)
-        resp_q <= pslverr ? 2'b10 : 2'b00;
+      if (state == B_ACCESS && pready) begin
+        resp_q  <= pslverr ? 2'b10 : 2'b00;
+        rdata_q <= prdata;
+      end
     end
   end
 
@@ -129,7 +155,7 @@ module axi_lite_to_apb #(
   assign s_bvalid = (state == B_WRESP);
   assign s_bresp  = resp_q;
   assign s_rvalid = (state == B_RRESP);
-  assign s_rdata  = prdata;
+  assign s_rdata  = rdata_q;
   assign s_rresp  = resp_q;
 
 endmodule

@@ -114,6 +114,11 @@ module tb_boot;
     if (reset_n && pwm_out[0]) pwm_high = pwm_high + 1;
   end
 
+  // Icarus right-justifies a string literal in a packed vector and stores the
+  // characters in reverse byte order, so byte 0 of the literal is the LAST
+  // character.  Character j of the text is therefore at byte (len-1-j);
+  // indexing straight up from the LSB made this search for the reversed
+  // string and it never matched.
   function integer contains(input [8*32-1:0] needle);
     integer k, m, len, hit;
     begin
@@ -124,7 +129,7 @@ module tb_boot;
       for (k = 0; k + len <= nchars && k < MAXCHARS - 32; k = k + 1) begin
         hit = 1;
         for (m = 0; m < len; m = m + 1)
-          if (rxbuf[k + m] != needle[m*8 +: 8]) hit = 0;
+          if (rxbuf[k + m] != needle[(len - 1 - m)*8 +: 8]) hit = 0;
         if (hit) contains = 1;
       end
     end
@@ -146,7 +151,7 @@ module tb_boot;
     $display("\n[tb] total UART bytes: %0d", nchars);
     if (nchars == 0) begin
       $display("[tb] RESULT: FAIL - no UART output, core did not boot");
-      $finish;
+      $fatal(1, "[tb] no UART output");
     end
 
     pass_count = 0;
@@ -166,12 +171,25 @@ module tb_boot;
     $display("[tb] gpio pins captured: %s", gpio_seen ? "yes" : "no");
     $display("[tb] pwm_out[0] high cycles: %0d", pwm_high);
 
-    if (contains("RESULT: ALL TESTS PASSED") && !fail_count && gpio_seen)
+    // A failing simulation must fail the process: $finish alone leaves vvp/
+    // CI with exit status 0, which made a failed boot look like a pass.
+    if (contains("RESULT: ALL TESTS PASSED") && !fail_count && gpio_seen &&
+        pass_count == 7) begin
       $display("[tb] RESULT: PASS");
-    else
+      $finish;
+    end else begin
       $display("[tb] RESULT: FAIL");
+      $fatal(1, "[tb] boot test failed (pass=%0d/7, fail_lines=%0d, gpio=%0d)",
+             pass_count, fail_count, gpio_seen);
+    end
+  end
 
-    $finish;
+  // Watchdog: a hung core must end the run with a nonzero status, not sit
+  // until the harness timeout.
+  initial begin
+    #40_000_000;
+    $display("[tb] RESULT: FAIL - timeout");
+    $fatal(1, "[tb] simulation timeout");
   end
 
 endmodule

@@ -21,4 +21,5 @@ rtl/rtl_top/axi_lite_interconnect.sv
 rtl/rtl_top/axi_lite_to_apb.sv
 rtl/rtl_top/req_gnt_to_axi_lite.sv
 rtl/rtl_top/riscv_core.sv
+rtl/rtl_top/reset_ctrl.sv
 rtl/rtl_top/has_soc.sv

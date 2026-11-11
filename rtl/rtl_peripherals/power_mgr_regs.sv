@@ -19,7 +19,11 @@ module power_mgr_regs (
   output logic         pready,
   output logic         pslverr,
   output logic         irq,
-  output logic         sleep_req_o
+  output logic         sleep_req_o,
+  // Clears the sticky sleep request when the power manager acknowledges a
+  // wake.  Without this, a sleep request that software did not explicitly
+  // clear would put the SoC straight back to sleep after P_WAKE.
+  input  logic         wake_clear
 );
 
   logic sleep_req, wake_en;
@@ -30,7 +34,9 @@ module power_mgr_regs (
       sleep_req <= 1'b0; wake_en <= 1'b0; in_sleep <= 1'b0;
     end else begin
       in_sleep <= sleep_req;
-      if (penable && pwrite) begin
+      if (wake_clear) begin
+        sleep_req <= 1'b0;
+      end else if (penable && pwrite) begin
         if (paddr[11:2] == 10'd0) sleep_req <= pwdata[0];
         if (paddr[11:2] == 10'd2) wake_en   <= pwdata[0];
       end

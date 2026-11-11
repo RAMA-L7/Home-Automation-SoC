@@ -13,7 +13,6 @@ module tb_plic;
   reg         wr_en;
   reg  [11:0] wr_addr;
   reg  [31:0] wr_data;
-  reg         rd_en;
   reg  [11:0] rd_addr;
   wire [31:0] rd_data_wire;
   reg  [31:0] rd_data;
@@ -25,7 +24,7 @@ module tb_plic;
   plic #(.NUM_SOURCES(8)) dut (
     .clk(clk), .reset_n(reset_n),
     .wr_en(wr_en), .wr_addr(wr_addr), .wr_data(wr_data),
-    .rd_en(rd_en), .rd_addr(rd_addr), .rd_data(rd_data_wire),
+    .rd_addr(rd_addr), .rd_data(rd_data_wire),
     .ext_irq(ext_irq), .irq_out(irq_out)
   );
 
@@ -51,20 +50,19 @@ module tb_plic;
     input [11:0] addr;
     output reg [31:0] val;
     begin
-      rd_en = 1; rd_addr = addr;
+      rd_addr = addr;
       @(posedge clk);
       val = rd_data_wire;
-      rd_en = 0;
       @(posedge clk);
     end
   endtask
 
   initial begin
-    $dumpfile("../waveforms/tb_plic.vcd");
+    $dumpfile("build/sim/tb_plic.vcd");
     $dumpvars(0, tb_plic);
 
     reset_n = 0;
-    wr_en = 0; rd_en = 0;
+    wr_en = 0;
     wr_addr = 0; wr_data = 0; rd_addr = 0;
     ext_irq = 8'd0;
     repeat (10) @(posedge clk);
@@ -108,11 +106,11 @@ module tb_plic;
 
     repeat (20) @(posedge clk);
 
-    if (errors == 0)
-      $display("TB_PLIC: ALL TESTS PASSED");
-    else
+    if (errors != 0) begin
       $display("TB_PLIC: %0d ERRORS", errors);
-
+      $fatal(1, "TB_PLIC: failed");
+    end
+    $display("TB_PLIC: ALL TESTS PASSED");
     $finish;
   end
 

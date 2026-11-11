@@ -1,0 +1,12 @@
+SBY  1:00:46 [formal_sram] Removing directory 'D:\Home-Automation-SoC\reports\verification\formal_sram'.
+SBY  1:00:46 [formal_sram] Copy 'D:\Home-Automation-SoC\rtl\rtl_top\sram.sv' to 'D:\Home-Automation-SoC\reports\verification\formal_sram\src\sram.sv'.
+SBY  1:00:46 [formal_sram] engine_0: smtbmc yices2
+SBY  1:00:46 [formal_sram] base: starting process "cd formal_sram/src& yosys -ql ../model/design.log ../model/design.ys"
+SBY  1:00:46 [formal_sram] base: D:/Home-Automation-SoC/rtl/rtl_top/sram.sv:16: ERROR: syntax error, unexpected TOK_ID, expecting ')' or ',' or '='
+SBY  1:00:46 [formal_sram] base: finished (returncode=1)
+SBY  1:00:46 [formal_sram] base: task failed. ERROR.
+SBY  1:00:46 [formal_sram] summary: Elapsed clock time [H:MM:SS (secs)]: 0:00:00 (0)
+SBY  1:00:46 [formal_sram] summary: Elapsed process time unvailable on Windows
+SBY  1:00:46 [formal_sram] summary: engine_0 (smtbmc yices2) did not return a status
+SBY  1:00:46 [formal_sram] summary: engine_0 did not produce any traces
+SBY  1:00:46 [formal_sram] DONE (ERROR, rc=16)

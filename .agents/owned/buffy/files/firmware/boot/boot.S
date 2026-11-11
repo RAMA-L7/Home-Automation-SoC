@@ -184,7 +184,7 @@ csr_fail:
 t_plic:
     li   t0, PLIC_BASE
     li   t1, 2
-    sw   t1, 0x014(t0)           // prio(source 6) = 2  (0x004 + 4*5)
+    sw   t1, 0x018(t0)           // prio(source 6) = 2  (0x004 + 4*(6-1))
     li   t1, 0x00000020
     sw   t1, PLIC_EN(t0)         // enable source 6
     li   t1, 0
@@ -256,6 +256,19 @@ t_pwr:
     sw   t1, 0x08(t0)            // wake_en = 1
     lw   t2, 0x08(t0)
     bne  t2, t1, pwr_fail
+
+    // Peripheral-address isolation.  Every earlier subtest drove a different
+    // APB slot (GPIO, UART, PWM, timer).  PM_CTRL must still read 0 and GPIO
+    // must still hold its own value: before each peripheral's ACCESS phase was
+    // qualified by its slot, a UART THR write (paddr[11:2]==0) also landed in
+    // PM_CTRL and set sleep_request, gating the core clock.
+    lw   t2, 0x00(t0)
+    bnez t2, pwr_fail
+    li   t0, GPIO_BASE
+    lw   t2, GPIO_OUT(t0)
+    li   t3, 0x0000A5A5
+    bne  t2, t3, pwr_fail
+
     la   a0, msg_ok_pwr
     call puts
     addi s0, s0, 1
@@ -366,13 +379,14 @@ puts_done:
     ret
 
 // putc: a0 = byte; polls THRE (LSR bit 5)
+// Uses only t0/t1 so callers may keep loop state in t4/t5 (puthex does).
 putc:
-    li   t5, UART_BASE
+    li   t0, UART_BASE
 putc_wait:
-    lw   t6, UART_LSR(t5)
-    andi t6, t6, 0x20
-    beqz t6, putc_wait
-    sw   a0, UART_THR(t5)
+    lw   t1, UART_LSR(t0)
+    andi t1, t1, 0x20
+    beqz t1, putc_wait
+    sw   a0, UART_THR(t0)
     ret
 
 // puthex: a0 = value, prints 8 hex digits

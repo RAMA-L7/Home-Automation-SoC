@@ -267,16 +267,19 @@ module axi_lite_interconnect #(
   //--------------------------------------------------------------------------
   // Master-side response drivers
   //--------------------------------------------------------------------------
+  // NOTE: these must be ternaries, not `cond && value`.  A logical AND with a
+  // vector returns a single bit, which turned every read into 0x00000001 and
+  // every response code into 0/1.  That silently corrupted all data reads.
   assign m_bvalid = (state == IC_WR_RESP) &&
                     (txn_decode_err ? 1'b1 : s_bvalid[txn_sel]);
-  assign m_bresp  = (state == IC_WR_RESP) &&
-                    (txn_decode_err ? 2'b11 : s_bresp[txn_sel]);
+  assign m_bresp  = (state == IC_WR_RESP) ?
+                    (txn_decode_err ? 2'b11 : s_bresp[txn_sel]) : 2'b00;
 
   assign m_rvalid = (state == IC_RD_RESP) &&
                     (txn_decode_err ? 1'b1 : s_rvalid[txn_sel]);
-  assign m_rdata  = (state == IC_RD_RESP) &&
-                    (txn_decode_err ? 32'h0 : s_rdata[txn_sel]);
-  assign m_rresp  = (state == IC_RD_RESP) &&
-                    (txn_decode_err ? 2'b11 : s_rresp[txn_sel]);
+  assign m_rdata  = (state == IC_RD_RESP) ?
+                    (txn_decode_err ? 32'h0 : s_rdata[txn_sel]) : 32'h0;
+  assign m_rresp  = (state == IC_RD_RESP) ?
+                    (txn_decode_err ? 2'b11 : s_rresp[txn_sel]) : 2'b00;
 
 endmodule

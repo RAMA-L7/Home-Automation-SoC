@@ -326,12 +326,10 @@ function sizeOfLine(line, symbols) {
   return { size: 4 };
 }
 
-function build(text, baseAddr) {
-  const raw = text.split(/\r?\n/);
-
-  // ---- pass 1: labels and addresses -------------------------------------
-  const symbols = {};
-  SYM = symbols;
+// One label/address sweep.  Kept as a function because the sweep is repeated
+// until the symbol table stops changing (see build() below).
+function pass1(raw, baseAddr, seed) {
+  const symbols = { ...seed };
   let pc = baseAddr;
   for (const sourceLine of raw) {
     let line = clean(sourceLine);
@@ -346,11 +344,40 @@ function build(text, baseAddr) {
     if (!line) continue;
 
     const li = isLiLine(line);
-    if (li) { pc += 8; continue; }
+    if (li) {
+      // `li`/`la` are 1 word (fits in an I-type immediate) or 2.  Charging a
+      // flat 2 words here shifts every later label relative to what pass 2
+      // emits, which is how labels used to resolve into the string table.
+      let n;
+      try { n = liWords(immVal(li.expr, symbols), 0).length; }
+      catch (e) { n = 2; }        // forward reference: assume the longer form
+      pc += n * 4;
+      continue;
+    }
 
     const r = sizeOfLine(line, symbols);
     if (r.org !== undefined) pc = r.org;
     else pc += r.size;
+  }
+  return symbols;
+}
+
+function build(text, baseAddr) {
+  const raw = text.split(/\r?\n/);
+
+  // ---- pass 1: labels and addresses -------------------------------------
+  // Iterated: an `li` whose value is a later label is assumed to be 2 words on
+  // the first sweep and is re-measured once that label is known.  Two or three
+  // sweeps are normally enough; the limit only guards against a cycle.
+  let symbols = {};
+  SYM = symbols;
+  let pc = baseAddr;
+  for (let iter = 0; iter < 8; iter++) {
+    const next = pass1(raw, baseAddr, symbols);
+    const stable = JSON.stringify(next) === JSON.stringify(symbols);
+    symbols = next;
+    SYM = symbols;
+    if (stable) break;
   }
 
   // ---- pass 2: emit ------------------------------------------------------

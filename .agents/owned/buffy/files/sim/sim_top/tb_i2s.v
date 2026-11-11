@@ -63,7 +63,7 @@ module tb_i2s;
   endtask
 
   initial begin
-    $dumpfile("../waveforms/tb_i2s.vcd");
+    $dumpfile("build/sim/tb_i2s.vcd");
     $dumpvars(0, tb_i2s);
 
     presetn = 0;

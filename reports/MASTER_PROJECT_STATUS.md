@@ -6,6 +6,24 @@
 **Agent:** OpenCode (model: nemotron-3.5-super-vl-free)
 **External Host:** Home Assistant + Claude-based voice assistant (cloud requests, speech processing) — off-chip.
 
+> **CORRECTION BANNER — 2026-11-11 (Buffy, independent re-review).** The stage
+> table below predates the current evidence and is superseded where it disagrees
+> with `TECH_STACK.md` and `reports/INDEPENDENT_REVIEW_2026-11-11.md`:
+>
+> - "13 Icarus sim tests PASSED" was not supported: nine of those testbenches
+>   aborted at `$dumpfile("../waveforms/…")` (missing directory) and still exited
+>   0; two did not compile at all. They now run and pass, and a strict runner
+>   (`scripts/eda/run_regression.js`) reports 14/15 with exit status 1 because no
+>   UART protocol test exists.
+> - "compiled with riscv32-unknown-elf-gcc 12.2.0" is **UNVERIFIED**: no RISC-V
+>   toolchain is installed here and `firmware/build/firmware.elf` contains no
+>   toolchain metadata. The C firmware has not been rebuilt.
+> - Stage 2 warning count is 14, not 279 (Verilator 5.053, 0 errors).
+> - Stage 4 "COMPLETE"-style wording applies to simulation only; there is no
+>   synthesis, formal, timing, FPGA or ASIC evidence.
+> - Secure boot and OTA are not implemented as security features: boot fails
+>   closed (no verifier) and OTA returns unsupported.
+
 ---
 
 ## Evidence Labeling Policy

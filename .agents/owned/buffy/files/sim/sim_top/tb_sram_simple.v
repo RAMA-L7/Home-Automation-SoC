@@ -83,7 +83,7 @@ module tb_sram_simple;
   endtask
 
   initial begin
-    $dumpfile("../waveforms/tb_sram.vcd");
+    $dumpfile("build/sim/tb_sram.vcd");
     $dumpvars(0, tb_sram_simple);
 
     reset_n = 0;

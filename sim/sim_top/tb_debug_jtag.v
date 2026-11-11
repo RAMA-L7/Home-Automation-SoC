@@ -27,7 +27,7 @@ module tb_debug_jtag;
   integer errors = 0;
 
   initial begin
-    $dumpfile("../waveforms/tb_debug_jtag.vcd");
+    $dumpfile("build/sim/tb_debug_jtag.vcd");
     $dumpvars(0, tb_debug_jtag);
 
     reset_n = 0;

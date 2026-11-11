@@ -10,6 +10,9 @@
 //   * gnt is asserted for one cycle when the request is accepted.
 //   * rvalid is asserted for one cycle when the transaction completes,
 //     for BOTH reads and writes.  rdata is valid only for reads.
+//   * err is asserted with rvalid when the slave returned SLVERR or DECERR.
+//     Without it the master could not distinguish a failed access from a
+//     successful one and used whatever data came back.
 //
 // The previous implementation deasserted gnt and asserted rvalid in a way that
 // could never satisfy a master waiting for completion, and it drove AWVALID
@@ -31,6 +34,7 @@ module req_gnt_to_axi_lite #(
   output logic                   gnt,
   output logic [DATA_WIDTH-1:0]  rdata,
   output logic                   rvalid,
+  output logic                   err,
   //------------------ AXI4-Lite master side ------------------
   output logic                   m_awvalid,
   input  logic                   m_awready,
@@ -108,6 +112,7 @@ module req_gnt_to_axi_lite #(
       wstrb_q    <= '0;
       rdata      <= '0;
       rvalid     <= 1'b0;
+      err        <= 1'b0;
     end else begin
       state <= state_n;
 
@@ -119,6 +124,9 @@ module req_gnt_to_axi_lite #(
       end
 
       rvalid <= (state == A_RD_R && r_fire) || (state == A_WR_B && b_fire);
+      // AXI response bits: 2'b10 = SLVERR, 2'b11 = DECERR, bit[1] set for both.
+      err    <= (state == A_RD_R && r_fire && m_rresp[1]) ||
+                (state == A_WR_B && b_fire && m_bresp[1]);
       if (state == A_RD_R && r_fire) rdata <= m_rdata;
     end
   end

@@ -1,276 +1,137 @@
 # Home-Automation-SoC — Tech Stack
 
-**Project:** Low-power residential home automation RISC-V SoC  
-**Target:** QFN-64 package, SkyWater 130nm (sky130) ASIC / Nexys A7-100T FPGA  
-**Document Version:** 1.0  
-**Date:** 2026-11-11
+**Project:** Low-power residential home-automation RISC-V SoC
+**Target:** QFN-64 package, SkyWater 130nm (sky130) ASIC / Nexys A7-100T FPGA
+**Document version:** 2.0 — rewritten 2026-11-11 after independent review
+**Reviewed revision:** `2a0c42cc` + uncommitted working-tree fixes
+
+This document separates four things that were previously mixed together:
+what is **intended**, what is **actually implemented**, what is **pinned**, and
+what has **evidence**. Evidence labels: VERIFIED / DOCUMENTED / MEASURED /
+ESTIMATED / ASSUMED / UNKNOWN / BLOCKED.
+
+> Nothing in this project is FPGA- or silicon-verified. Simulation evidence
+> covers RTL and a hand-written assembly smoke ROM only. The C firmware has not
+> been rebuilt or executed here.
 
 ---
 
-## 1. Overview
+## 1. Master matrix
 
-| Layer | Technology | Version | Purpose |
-|-------|-----------|---------|---------|
-| ISA | RISC-V RV32IMC | — | Base + Multiply + Compressed extensions |
-| Processor Core | Ibex | — | 4-stage, machine mode + user mode, PMP |
-| HDL | SystemVerilog | IEEE 1800-2017 | RTL design entry |
-| Bus (CPU-to-Mem) | AXI4-Lite | — | 32-bit data, single outstanding |
-| Bus (Peripheral) | APB | — | Via AXI4-Lite-to-APB bridge |
-| Firmware Language | C / Assembly | C11 / GNU AS | Bare-metal + Zephyr RTOS |
-| Build System | Make / Ninja | — | RTL lint, firmware, simulation |
-| Simulation | Verilator / Icarus | 5.053 / 14.0 | RTL functional verification |
-| Formal | SymbiYosys | — | CDC, reset, bus property checking |
-| Synthesis | Yosys | 0.69+154 | RTL-to-gates synthesis |
-| FPGA Toolchain | Xilinx Vivado | WebPACK | Nexys A7-100T synthesis/impl |
-| ASIC Toolchain | OpenLane 2 / OpenROAD | — | sky130 P&R (not installed) |
-| PDK | SkyWater 130nm | sky130A | ASIC target process |
-| PCB | KiCad | 10.0.8 | Schematic + layout |
-| Version Control | Git | — | Source control, GitHub |
-| CI/CD | GitHub Actions | — | (planned, not configured) |
-
----
-
-## 2. RTL Design (22 SystemVerilog Files)
-
-### 2.1 Top-Level / SoC Integration (`rtl/rtl_top/`)
-
-| File | Function | Status |
-|------|----------|--------|
-| `has_soc.sv` | Top-level SoC integration | DONE |
-| `has_addr_map.sv` | Address map package | DONE |
-| `boot_rom.sv` | 16 KB secure boot ROM (instruction + AXI ports) | DONE |
-| `sram.sv` | 128 KB SRAM (AXI4-Lite slave + instruction port) | DONE |
-| `riscv_core.sv` | RV32IMC multi-cycle core | DONE |
-| `axi_lite_interconnect.sv` | 1-master × 6-slave AXI4-Lite interconnect | DONE |
-| `axi_lite_to_apb.sv` | AXI4-Lite → APB bridge | DONE |
-| `req_gnt_to_axi_lite.sv` | Ibex req/gnt → AXI4-Lite adapter | DONE |
-| `intc_axi.sv` | CLINT/PLIC bus mux (single AXI slave) | DONE |
-
-### 2.2 Peripherals (`rtl/rtl_peripherals/`)
-
-| File | Function | Interface | Status |
-|------|----------|-----------|--------|
-| `gpio.sv` | 16-bit GPIO with interrupt | APB | DONE |
-| `uart.sv` | UART 115200 baud (TX/RX) | APB | DONE |
-| `i2c_ctrl.sv` | I²C master controller | APB | DONE |
-| `spi_ctrl.sv` | SPI master controller (mode 0) | APB | DONE |
-| `pwm.sv` | 4-channel PWM, 16-bit period/duty | APB | DONE |
-| `timer.sv` | General-purpose timer | APB | DONE |
-| `watchdog.sv` | Watchdog timer with reset | APB | DONE |
-| `i2s.sv` | I²S transmitter | APB | DONE |
-| `qspi_flash_ctrl.sv` | QSPI flash controller (single-line READ) | APB | DONE |
-| `clint.sv` | CLINT (mtime, mtimecmp, msip) | Register port | DONE |
-| `plic.sv` | PLIC (8 sources, 1 context) | Register port | DONE |
-| `power_mgr.sv` | Power manager (clock gating, sleep) | Register port | DONE |
-| `power_mgr_regs.sv` | Power manager APB registers | APB | DONE |
-| `debug_jtag.sv` | JTAG debug TAP | JTAG | DONE (stub) |
+| Component | Intended choice | Actual implementation | Pinned version / configuration | Verification evidence | Remaining gap |
+|---|---|---|---|---|---|
+| Processor core | Ibex RV32IMC, 2-stage (+ optional 3rd writeback), machine+user mode, PMP | **Custom `rtl/rtl_top/riscv_core.sv`**: 4-state multi-cycle, RV32IM, machine mode only | In-tree source, no upstream commit | MEASURED: `tb_isa` 24/24 directed checks; `tb_boot` 7/7 full-SoC subtests | Ibex integration not started (ADR PROPOSED). Custom core has no C ext, no user mode, no PMP, no atomics, no F/D |
+| ISA | RV32IMC | **RV32IM** — compressed instructions unimplemented | `-march=rv32im -mabi=ilp32` (corrected from `rv32imc`) | MEASURED: directed test covers RV32I ALU/load-store/branch/jump + M mul/div | No rv32imc; no Zicsr/Zifencei statement against an external toolchain |
+| Bus (CPU↔memory) | AXI4-Lite, 32-bit | AXI4-Lite via `req_gnt_to_axi_lite` adapter, 1 master × 6 slaves | 1 outstanding transaction | MEASURED: full-SoC boot through ROM/TCM/SRAM/QSPI/APB/INTC | No AXI assertions/protocol checker; backpressure not exercised |
+| Bus (peripherals) | APB | AXI4-Lite→APB bridge, 9 × 4 KB slots | 1 slot per peripheral, one-hot select | MEASURED: per-slot `penable` gating; isolation check in `tb_boot`; unmapped → PSLVERR | Byte strobes rejected (PSLVERR) rather than supported; no APB protocol SVA |
+| Boot ROM | 16 KB secure boot ROM | `boot_rom.sv` 16 KB, loaded from hex in simulation | `BOOT_ROM_FILE` parameter | MEASURED: boot executes from ROM at reset | ROM image is a diagnostic smoke image, not a production secure ROM |
+| Firmware actually simulated | C firmware | **`firmware/boot/boot.S`** — hand-written assembly, assembled by `scripts/fw/as.js` | 171 UART bytes of output | MEASURED: `tb_boot` PASS | C firmware in `firmware/bare_metal/` is NOT the image under test |
+| C firmware build | riscv32-unknown-elf-gcc 12.2.0 | Sources present; **not built in this environment** | `scripts/fw_build/build_fw.py`, `-march=rv32im` | **BLOCKED**: no RISC-V toolchain on PATH | `firmware/build/firmware.elf` is a valid RV32 ELF (e_machine 243) but carries no toolchain/version metadata — the 12.2.0 claim is UNVERIFIED |
+| Secure boot | Fail-closed signature verification | Header/bounds/entry/CRC validated; **signature verification always fails** → recovery | No crypto library linked | VERIFIED by inspection; **not executed** (no compiler) | No RSA/ECDSA verifier, no trust anchor, no key handling |
+| OTA | A/B update with authentication | **Explicit unsupported stub** returning -1 | — | VERIFIED by inspection | No flash program/erase, no transport, no recovery policy |
+| Flash controller | QSPI flash, AXI4-Lite | `qspi_flash_ctrl.sv`: single-line READ, **writes rejected** | AXI4-Lite slave | NOT SIMULATED (no pin-level model) | Erase/program/write-enable/busy/readback absent |
+| Audio | Configurable I²S TX+RX | `i2s.sv`: transmitter only | — | `tb_i2s` register-level PASS | No RX path; no serialized-sample scoreboard |
+| Power management | Deep sleep, retention, peripheral wake | Clock gating only; wake = external `wake_ack` handshake | 2-FF sync, wake-wins race, sticky request cleared | MEASURED: `tb_power_mgr` 16/16 checks | No retention/power gating; no peripheral wake detector; no CDC formal |
+| Simulation | Verilator + Icarus | **Icarus 14.0 works** (previous "broken runtime" claim was wrong); Verilator lint only | Icarus 14.0 (devel) s20260301; Verilator 5.053 | MEASURED: `node scripts/eda/run_regression.js` → 14/15 | No C++ model: no `g++`/`make` → Verilator cannot simulate |
+| Formal | SymbiYosys CDC + properties | `scripts/formal/cdc` contains an `ERROR` file | — | **BLOCKED/FAILED tool run**, not a proof | SymbiYosys not installed; no properties exercised |
+| Synthesis | Yosys | Yosys 0.69+154 installed; **not run on the current filelist this session** | — | UNKNOWN | Generic-cell area/count not measured |
+| FPGA | Vivado + Nexys A7-100T | XDC + bring-up docs only | — | **BLOCKED**: no Vivado, no board | Bitstream, timing, hardware behaviour all absent |
+| ASIC | OpenLane 2 / OpenROAD, sky130A | Template scripts only | — | **BLOCKED**: tools not installed | PDK/cells/macros unpinned; no synthesis, P&R, STA, DRC/LVS, power |
+| PCB | KiCad schematic + layout | Schematic *prose* + candidate BOM | KiCad 10.0.8 reported installed | UNVERIFIED | No native schematic/layout, no ERC/DRC, no footprints |
+| RTOS | Zephyr LTS | Not integrated | If selected, pin an exact release (3.7 is an LTS) | NOT STARTED | — |
+| License | — | `LICENSE` is an explicit placeholder; **no license applied** | — | VERIFIED | Owner approval required before any license text |
 
 ---
 
-## 3. Firmware Stack
+## 2. CPU and ISA decision (recorded)
 
-### 3.1 Bare-Metal (`firmware/bare_metal/`)
+- The architecture records propose **Ibex** (`docs/architecture/PROCESSOR_SELECTION.md`,
+  ADR PROPOSED). Ibex is **not** integrated. The SoC instantiates the in-tree
+  custom core.
+- The custom core implements **RV32IM, machine mode only**. It has no compressed
+  instructions, no user mode, no PMP, no atomics, no F/D, and no debug module
+  (the JTAG TAP is a stub).
+- Consequence, now enforced: compiler flags must be `-march=rv32im -mabi=ilp32`.
+  Building `rv32imc` for this core produces code that traps on its first 16-bit
+  instruction. `scripts/fw_build/build_fw.py`, `build_fw.bat` and the `main.c`
+  header comment were corrected.
+- Keeping the custom core is a deliberate, documented architecture change with a
+  verification burden: it must be validated against the ISA specification by
+  tests that do not share its own assembler (see `sim/sim_top/tb_isa.v`, whose
+  instruction words are hand-encoded).
 
-| File | Function |
-|------|----------|
-| `startup.S` | Reset vector, .data/.bss initialization |
-| `linker.ld` | Memory map sections |
-| `main.c` | Blink LED + UART console example |
-| `drivers.h` / `drivers.c` | GPIO, UART, timer, watchdog, PMIC drivers |
-| `boot.h` / `boot.c` | Secure boot (header validation, signature, SRAM copy, jump) |
-| `host_comm.c` | UART protocol to Home Assistant |
-| `ota.c` | Over-the-air firmware update |
-
-### 3.2 Boot Firmware (`firmware/boot/`)
-
-| File | Function |
-|------|----------|
-| `boot.S` | Boot assembly: SRAM tests, GPIO, MUL/DIV, CSRs, PLIC interrupt, PWM, power-mgr, UART report |
-
-### 3.3 Toolchain
-
-| Component | Tool | Version | Notes |
-|-----------|------|---------|-------|
-| Compiler | riscv-none-elf-gcc | 12.2.0 | Not on PATH — needs installation |
-| Assembler | riscv-none-elf-as | 12.2.0 | Part of GCC toolchain |
-| Linker | riscv-none-elf-ld | 12.2.0 | Part of GCC toolchain |
-| Objcopy | riscv-none-elf-objcopy | 12.2.0 | ELF → BIN conversion |
-| RV32IM Assembler | as.js | Custom | Dependency-free JS assembler (no GCC needed) |
-
-### 3.4 RTOS (Planned)
-
-| Component | Tool | Version | Status |
-|-----------|------|---------|--------|
-| RTOS | Zephyr | 3.6+ LTS | Planned, not integrated |
-| Crypto | Mbed TLS PSA | 3.5+ | Planned for secure boot/OTA |
+**Accuracy note on Ibex (if adopted):** Ibex is a two-stage pipeline with an
+optional third write-back stage — not a four-stage core.
 
 ---
 
-## 4. Verification Stack
+## 3. Verification stack as measured
 
-### 4.1 Simulation
+| Tool | Version (MEASURED) | State |
+|---|---|---|
+| Icarus Verilog / vvp | 14.0 (devel) s20260301-500-g2e81fcccb-dirty | WORKS |
+| Verilator (lint) | 5.053 devel v5.052-119-g014c9820d | WORKS for lint; no C++ model (no g++/make) |
+| Yosys | 0.69+154 | Available, not run on current filelist |
+| SymbiYosys (`sby`) | — | NOT INSTALLED |
+| Node.js | v26.7.0 | WORKS (assembler + regression runner) |
+| RISC-V GCC | — | NOT FOUND on PATH |
+| cocotb | reported 2.1.0 | Not exercised (needs a simulator driver we do not run) |
 
-| Tool | Version | Purpose | Status |
-|------|---------|---------|--------|
-| Icarus Verilog | 14.0 | RTL simulation (broken runtime) | PARTIAL — compiler works, runtime broken |
-| Verilator | 5.053 | Lint + C++ model (no C++ compiler) | PARTIAL — lint works, no C++ build |
-| cocotb | 2.1.0 | Python-based cosimulation | INSTALLED (needs working simulator) |
-| Python | 3.10 (Windows Store) | Test scripts, cocotb | INSTALLED, SSL works |
+### 3.1 Testbenches (MEASURED by `node scripts/eda/run_regression.js`)
 
-### 4.2 Formal Verification
+| Testbench | Scope | Result |
+|---|---|---|
+| `tb_isa.v` | Directed RV32IM against `riscv_core` | **PASS** 24/24 checks |
+| `tb_boot.v` | Full SoC, ROM image, UART banner, GPIO, PWM | **PASS** 7/7 subtests |
+| `tb_power_mgr.v` | Sleep/wake FSM + registers | **PASS** 16/16 checks |
+| `tb_clint.v`, `tb_plic.v` | INTC register port | **PASS** |
+| `tb_gpio/spi/i2c/pwm/timer/watchdog/i2s/sram/debug_jtag` | Peripheral register level | **PASS** |
+| UART pin-level (TX/RX timing, overflow) | — | **MISSING** — this is why the runner exits 1 |
+| `sim/tb/*` (legacy duplicates) | — | STALE: `tb_uart.v` does not compile; not used |
 
-| Tool | Version | Purpose | Status |
-|------|---------|---------|--------|
-| Yosys | 0.69+154 | RTL synthesis, formal prep | WORKS |
-| SymbiYosys | — | CDC, reset, property checking | NOT INSTALLED |
-| Sby (SymbiYosys runner) | — | Formal flow orchestrator | NOT INSTALLED |
-
-### 4.3 Testbenches (`sim/sim_top/`)
-
-| File | DUT | Status |
-|------|-----|--------|
-| `tb_sram_simple.v` | SRAM | PASS |
-| `tb_gpio.v` | GPIO | PASS |
-| `tb_timer.v` | Timer | PASS |
-| `tb_watchdog.v` | Watchdog | PASS |
-| `tb_pwm.v` | PWM | PASS |
-| `tb_i2c.v` | I²C | PASS |
-| `tb_spi.v` | SPI | PASS |
-| `tb_i2s.v` | I²S | PASS |
-| `tb_clint.v` | CLINT | FIXED (register port) |
-| `tb_plic.v` | PLIC | FIXED (register port) |
-| `tb_power_mgr.v` | Power Mgr | PASS |
-| `tb_debug_jtag.v` | Debug JTAG | PASS |
-| `tb_boot.v` | Full SoC boot | NOT RUNNABLE (Icarus broken) |
-| `tb_has_soc.v` | Top-level SoC | HANDSHAKE ISSUES |
-| `tb_integration.v` | Integration | EXISTS |
+Suite result: **14 / 15 pass, exit status 1** because the UART requirement has no
+test. Register read-back alone is not protocol qualification; only the boot test
+exercises real serial traffic.
 
 ---
 
-## 5. FPGA Stack
+## 4. Scripts
 
-| Component | Tool | Version | Target | Status |
-|-----------|------|---------|--------|--------|
-| FPGA Board | Digilent Nexys A7-100T | — | Artix-7 XC7A100TCSG324-1 | Not available |
-| Synthesis | Xilinx Vivado | WebPACK | — | NOT INSTALLED |
-| Constraints | XDC | — | `nexys_a7.xdc` | DONE |
-| Timing | SDC | — | `has_soc.sdc` | DONE |
-| Bitstream | Vivado | — | `.bit` | NOT GENERATED |
-| Debug | OpenOCD | — | JTAG | Config exists |
-| Bring-up | Tcl scripts | — | `fpga/projects/` | DONE (templates) |
-
----
-
-## 6. ASIC Physical Design Stack
-
-| Component | Tool | Version | Status |
-|-----------|------|---------|--------|
-| PDK | SkyWater 130nm | sky130A | DOWNLOADED (not installed via volare) |
-| Synthesis | Yosys | 0.69+154 | WORKS (partial — SV array port issue) |
-| P&R | OpenLane 2 | — | NOT INSTALLED (not pip-installable) |
-| P&R | OpenROAD | — | NOT INSTALLED |
-| STA | OpenSTA | — | NOT INSTALLED |
-| DRC | Magic | — | NOT INSTALLED |
-| LVS | Netgen | — | NOT INSTALLED |
-| Flow Scripts | Tcl + JSON | — | `asic/` directory — DONE (templates) |
+| Path | Purpose |
+|---|---|
+| `scripts/fw/as.js` | Assembler for `firmware/boot/boot.S` (produces `build/fw/boot.hex`) |
+| `scripts/fw_build/build_fw.py`, `build_fw.bat` | C firmware build (**toolchain missing**); scripts live here, not `scripts/fw/` |
+| `scripts/fw_build/flash_fw.py`, `flash_fw.bat` | Flash programming (**not functional**) |
+| `scripts/eda/run_regression.js` | Strict regression runner (build + run + marker check + exit status) |
+| `scripts/eda/Makefile.*`, `run_*_sim.py` | Legacy simulator wrappers, unqualified |
+| `scripts/formal/` | SymbiYosys configs; contains a failed-run `ERROR` file |
+| `scripts/agents/lock.js` | Multi-agent file ownership |
 
 ---
 
-## 7. PCB Stack
+## 5. Known environment facts
 
-| Component | Tool | Version | Status |
-|-----------|------|---------|--------|
-| Schematic | KiCad | 10.0.8 | INSTALLED (winget) |
-| Layout | KiCad | 10.0.8 | INSTALLED |
-| Schematic Doc | Markdown | — | `board/schematics/has_soc_sch.md` |
-| BOM | CSV | — | `board/bom/bom.csv` |
-| Gerbers | — | — | NOT GENERATED |
+- **OpenLane 2 is not installed here.** "OpenLane is not pip-installable" is not a
+  valid general statement; the accurate record is: not installed, installation
+  not attempted, no supported-procedure (Nix/Docker) run performed.
+- The PDK is reported downloaded but is not configured for any tool.
+- OSS CAD Suite lives at `D:\tools\oss-cad-suite` (outside this repository).
 
 ---
 
-## 8. Development Tooling
+## 6. Licensing
 
-| Component | Tool | Version | Location | Status |
-|-----------|------|---------|----------|--------|
-| Git | Git | — | Source control | WORKS |
-| GitHub | GitHub CLI | `gh` | Repo management | WORKS (authenticated as RAMA-L7) |
-| Python | Python 3.10 | Windows Store | Test scripts | WORKS (SSL OK) |
-| pip | pip 26.0.1 | — | Package manager | WORKS |
-| cocotb | cocotb | 2.1.0 | Cosimulation | INSTALLED |
-| Node.js | Node | — | JS assembler (`as.js`) | NOT CONFIRMED |
-| Make | GNU Make | — | Build system | NOT INSTALLED |
-| g++/gcc | GNU Compiler | — | Verilator C++ model | NOT INSTALLED |
-| CMake | CMake | — | Build system | NOT INSTALLED |
-| Ninja | Ninja | — | Build system | NOT INSTALLED |
+`LICENSE` is an explicit placeholder stating that no license has been selected.
+No license (MIT, Apache-2.0, or otherwise) has been applied. The previous
+"License: MIT" claim in this document was incorrect and has been removed. Adding
+a license requires the project owner's explicit approval.
 
 ---
 
-## 9. Scripts (`scripts/`)
-
-| Directory | Purpose |
-|-----------|---------|
-| `scripts/eda/` | EDA tool scripts (Makefile.icarus, Makefile.verilator, run scripts) |
-| `scripts/formal/` | SymbiYosys formal verification configs |
-| `scripts/fw/` | Firmware build/flash scripts (`as.js`, `build_fw.py`, `flash_fw.py`) |
-| `scripts/agents/` | Agent coordination (lock.js, snapshots) |
-
----
-
-## 10. Constraints (`constraints/`)
-
-| File | Purpose |
-|------|---------|
-| `constraints/timing_constraints/has_soc.sdc` | SDC timing constraints |
-| `constraints/pin_constraints/` | Pin constraints |
-| `constraints/pin_assignment_qfn64.csv` | QFN-64 pin assignment |
-
----
-
-## 11. Reports (`reports/`)
-
-| Directory | Purpose |
-|-----------|---------|
-| `reports/verification/` | Verification results, formal specs, SVA properties |
-| `reports/MASTER_PROJECT_STATUS.md` | Project stage tracking |
-| `reports/FINAL_PROJECT_DELIVERY_REPORT.md` | Delivery classification |
-
----
-
-## 12. Toolchain Installation Summary
-
-### Already Working
-| Tool | How Installed | Location |
-|------|--------------|----------|
-| Git | System | PATH |
-| GitHub CLI (`gh`) | System | PATH, authenticated as RAMA-L7 |
-| Python 3.10 | Windows Store | `C:\Users\...\PythonSoftwareFoundation...` |
-| pip | Bundled with Python | WORKS |
-| cocotb | `pip install cocotb` | 2.1.0 |
-| Yosys | OSS CAD Suite | `D:\tools\oss-cad-suite\bin\yosys.exe` |
-| Icarus Verilog | OSS CAD Suite | `D:\tools\oss-cad-suite\bin\iverilog.exe` |
-| KiCad | winget | 10.0.8 |
-| Verilator | OSS CAD Suite | `D:\tools\oss-cad-suite\bin\verilator_bin.exe` |
-
-### Missing / Blocked
-| Tool | Blocker | Needed For |
-|------|---------|------------|
-| riscv-none-elf-gcc | Not on PATH, not installed | Firmware compilation |
-| g++ / make | Not installed | Verilator C++ model build |
-| OpenLane 2 | Not pip-installable | ASIC P&R flow |
-| OpenROAD | Not installed | ASIC P&R flow |
-| OpenSTA | Not installed | STA sign-off |
-| Vivado | Proprietary, not installed | FPGA synthesis/impl |
-| SymbiYosys | Not installed | Formal verification |
-| volare | Not installed | PDK version management |
-
----
-
-## 13. Repository
+## 7. Repository
 
 | Item | Value |
-|------|-------|
-| GitHub URL | https://github.com/RAMA-L7/Home-Automation-SoC |
-| Visibility | Public |
+|---|---|
+| GitHub | https://github.com/RAMA-L7/Home-Automation-SoC |
 | Branch | `main` |
-| Latest Tag | `v0.3.0-build-scripts` |
-| License | MIT (LICENSE file) |
+| Revision reviewed | `2a0c42cc` (working tree adds this session's fixes) |

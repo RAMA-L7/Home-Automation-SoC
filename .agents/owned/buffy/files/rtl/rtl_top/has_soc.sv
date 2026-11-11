@@ -399,62 +399,72 @@ module has_soc #(
   logic [31:0] prdata_timer, prdata_wdog, prdata_i2s, prdata_pwr;
   logic [8:0]  apb_sel;
 
+  // Each peripheral is only allowed to see the APB ACCESS phase for its own
+  // 4 KB slot.  Without the per-slot gate every peripheral decodes every
+  // access: a UART THR write has paddr[11:2]==0, which the power-manager
+  // register block took as its own control register and set sleep_req, so the
+  // first transmitted character gated off core_clk and froze the whole SoC.
   gpio #(.WIDTH(16)) gpio_inst (
-    .pclk(periph_clk), .presetn(reset_n), .penable(penable), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(reset_n), .penable(penable & apb_sel[0]), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_gpio), .pready(), .pslverr(),
     .gpio(gpio), .irq(gpio_irq));
 
   uart #(.CLK_FREQ(UART_CLK_FREQ), .BAUD(UART_BAUD)) uart_inst (
-    .pclk(periph_clk), .presetn(reset_n), .penable(penable), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(reset_n), .penable(penable & apb_sel[1]), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_uart), .pready(), .pslverr(),
     .uart_tx(uart_tx), .uart_rx(uart_rx), .irq(uart_irq));
 
   i2c_ctrl i2c_inst (
-    .pclk(periph_clk), .presetn(reset_n), .penable(penable), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(reset_n), .penable(penable & apb_sel[2]), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_i2c), .pready(), .pslverr(),
     .i2c_scl(i2c_scl), .i2c_sda(i2c_sda), .irq(i2c_irq));
 
   spi_ctrl spi_inst (
-    .pclk(periph_clk), .presetn(reset_n), .penable(penable), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(reset_n), .penable(penable & apb_sel[3]), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_spi), .pready(), .pslverr(),
     .spi_sck(spi_sck), .spi_mosi(spi_mosi), .spi_miso(spi_miso),
     .spi_cs_n(spi_cs_n), .irq(spi_irq));
 
   pwm pwm_inst (
-    .pclk(periph_clk), .presetn(reset_n), .penable(penable), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(reset_n), .penable(penable & apb_sel[4]), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_pwm), .pready(), .pslverr(),
     .pwm_out(pwm_out), .irq(pwm_irq));
 
   timer timer_inst (
-    .pclk(periph_clk), .presetn(reset_n), .penable(penable), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(reset_n), .penable(penable & apb_sel[5]), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_timer), .pready(), .pslverr(),
     .irq(timer_irq));
 
+  // The watchdog must keep counting while the SoC is asleep, otherwise sleep
+  // silently disables the reset path it exists to provide.  It therefore runs
+  // on the ungated base clock; its APB port is still only reachable while the
+  // peripheral clock is running.
   watchdog wdog_inst (
-    .pclk(periph_clk), .presetn(reset_n), .penable(penable), .pwrite(pwrite),
+    .pclk(clk), .presetn(reset_n), .penable(penable & apb_sel[6]), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_wdog), .pready(), .pslverr(),
     .irq(wdog_irq), .reset_n_out(wdog_reset_n_out));
 
   i2s i2s_inst (
-    .pclk(periph_clk), .presetn(reset_n), .penable(penable), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(reset_n), .penable(penable & apb_sel[7]), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_i2s), .pready(), .pslverr(),
     .i2s_bclk(i2s_bclk), .i2s_lrclk(i2s_lrclk),
     .i2s_dout(i2s_dout), .i2s_din(i2s_din), .irq(i2s_irq));
 
-  logic pm_sleep_req;
+  logic pm_sleep_req, pm_wake_event;
   power_mgr_regs pwr_inst (
-    .pclk(periph_clk), .presetn(reset_n), .penable(penable), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(reset_n), .penable(penable & apb_sel[8]), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_pwr), .pready(), .pslverr(),
-    .irq(pwr_irq), .sleep_req_o(pm_sleep_req));
+    .irq(pwr_irq), .sleep_req_o(pm_sleep_req),
+    .wake_clear(pm_wake_event));
 
   // APB address decode: one 4 KB slot per peripheral.  Each peripheral sees
   // paddr[11:2] as its local register index because every slot is 4 KB aligned.
@@ -484,8 +494,17 @@ module has_soc #(
                   apb_sel[7] ? prdata_i2s   :
                   apb_sel[8] ? prdata_pwr   : 32'd0;
 
+  // APB completion contract:
+  //  - exactly one selected slot per transfer (one-hot `apb_sel`);
+  //  - an unmapped slot completes with PSLVERR instead of hanging the bridge;
+  //  - partial-strobe writes are REJECTED with PSLVERR.  No peripheral decodes
+  //    PSTRB (it is an unused port in all nine), so accepting a partial write
+  //    would silently turn `sb`/`sh` into a full-word register write.  A
+  //    rejected access has no side effect, which is the safe failure mode.
+  wire apb_partial_write = pwrite && (pstrb != 4'b1111);
+
   assign pready  = (apb_sel != 9'd0);
-  assign pslverr = (apb_sel == 9'd0);
+  assign pslverr = (apb_sel == 9'd0) || (penable && apb_partial_write);
 
   // PLIC source map: 0=uart 1=spi 2=i2c 3=gpio 4=pwm 5=timer 6=wdog 7=i2s
   assign periph_irq = {i2s_irq, wdog_irq, timer_irq, pwm_irq,
@@ -505,7 +524,8 @@ module has_soc #(
     .core_clk_en  (core_clk_en),
     .periph_clk_en(periph_clk_en),
     .wake_req     (wake_req),
-    .wake_ack     (wake_ack)
+    .wake_ack     (wake_ack),
+    .wake_event   (pm_wake_event)
   );
 
   debug_jtag jtag_inst (

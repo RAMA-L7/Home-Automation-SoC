@@ -3,7 +3,8 @@
  * Stage 3 Firmware
  *
  * Minimal example: blink GPIO LED, respond to UART commands.
- * Built with: riscv32-unknown-elf-gcc -march=rv32imc -mabi=ilp32
+ * Built with: riscv32-unknown-elf-gcc -march=rv32im -mabi=ilp32
+ * (rv32im: the in-tree core implements no compressed instructions)
  *----------------------------------------------------------------------------*/
 
 #include <stdint.h>
@@ -93,11 +94,18 @@ static void uart_print_hex(uint32_t v)
 
 /*------------------------------------------------------------------------------
  * Delay loop (blocking)
+ *
+ * Pets the watchdog periodically: a long delay can exceed one timeout period,
+ * and the previous version let the dog fire in the middle of its own blink
+ * delay (1,000,000 cycles ~ 20 ms at 50 MHz), so the firmware reset itself
+ * in a loop instead of running.
  *----------------------------------------------------------------------------*/
 static void delay(volatile uint32_t cycles)
 {
-    while (cycles--)
-        ;
+    while (cycles--) {
+        if ((cycles & 0xFFFFu) == 0u)
+            REG_WDOG_LOAD = 1000000u;
+    }
 }
 
 /*------------------------------------------------------------------------------
@@ -122,14 +130,14 @@ int main(void)
 
     /* Announce boot */
     uart_puts("\r\n=== Home-Automation-SoC Firmware ===\r\n");
-    uart_puts("Core: RV32IMC\r\n");
+    uart_puts("Core: RV32IM\r\n");
     uart_puts("SRAM: 128 KB @ 0x2000_0000\r\n");
     uart_puts("Boot: Complete\r\n");
     uart_puts("Ready for commands.\r\n");
 
     /* Main loop */
     for (;;) {
-        /* Blink LED every ~500K cycles */
+        /* Blink LED every ~250K cycles (well inside the watchdog period) */
         led_state = !led_state;
         if (led_state)
             REG_GPIO_DATA_OUT |= (1u << 0);
@@ -163,7 +171,7 @@ int main(void)
             }
         }
 
-        delay(500000u);
+        delay(50000u);
     }
 
     return 0;

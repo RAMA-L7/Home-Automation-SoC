@@ -28,12 +28,12 @@
 | Metric | Target | Condition | Verification |
 |--------|--------|-----------|--------------|
 | **SRAM Access Latency** | 1 cycle (read), 1 cycle (write) | 50 MHz, no contention | RTL sim, STA |
-| **SRAM Throughput** | 200 MB/s (32-bit @ 50 MHz) | Sequential access | RTL sim |
+| **SRAM Throughput** | 200 MB/s bus ceiling (32-bit @ 50 MHz, back-to-back) | Sequential access; sustained rate is lower because the current core is multi-cycle | RTL sim |
 | **TCM Access Latency** | 0 cycles (combinational) | Core pipeline direct | RTL sim |
 | **TCM Throughput** | 200 MB/s (32-bit @ 50 MHz) | Zero wait states | RTL sim |
 | **Boot ROM Latency** | 1 cycle | 50 MHz | RTL sim |
-| **QSPI Flash (XIP, SDR)** | 50 MB/s | 50 MHz, 1-bit | FW benchmark |
-| **QSPI Flash (XIP, DDR)** | 100 MB/s | 50 MHz DDR, 4-bit | FW benchmark |
+| **QSPI Flash (XIP, SDR)** | ≤ 6.25 MB/s (was 50 MB/s — arithmetically impossible) | 50 MHz, 1-bit SDR: 1 bit × 50 Mbit/s = 6.25 MB/s **before** command/dummy overhead | FW benchmark |
+| **QSPI Flash (XIP, DDR)** | 50 MB/s (was 100 MB/s) | 50 MHz DDR, 4-bit: 4 × 2 × 50 Mbit/s = 400 Mbit/s = 50 MB/s | FW benchmark |
 | **Boot ROM Verify Time** | < 100 ms | ECDSA-P256 + SHA-256 | HW measurement |
 
 ### 1.3 Bus and Interconnect Performance
@@ -55,8 +55,8 @@
 | Interface | Metric | Target | Condition |
 |-----------|--------|--------|-----------|
 | **UART0/1** | Max Baud Rate | 3 Mbps | 1.8V domain, 50 MHz ref |
-| **UART0/1** | TX Throughput | ≥ 2.5 Mbps sustained | FIFO + interrupt |
-| **UART0/1** | RX Throughput | ≥ 2.5 Mbps sustained | FIFO + interrupt |
+| **UART0/1** | TX Throughput | ≥ 2.5 Mbps sustained | **Requires a TX FIFO — the implemented `uart.sv` has single-byte holding registers and no FIFO** |
+| **UART0/1** | RX Throughput | ≥ 2.5 Mbps sustained | **Requires an RX FIFO — not implemented** |
 | **I²C0** | Max Speed | 1 Mbps (Fast+) | 400 kHz typical |
 | **I²C0** | Bus Capacitance | ≤ 400 pF | Standard |
 | **SPI0 (Flash)** | Max Frequency | 50 MHz DDR | 4-bit Quad |
@@ -71,14 +71,14 @@
 |-----------|--------|--------|-----------|
 | **GPIO** | Toggle Rate | ≥ 25 MHz | Output mode, no load |
 | **GPIO** | Interrupt Latency | ≤ 100 ns | Edge detect → PLIC |
-| **PWM** | Frequency Range | 1 Hz – 1 MHz | 16-bit resolution |
-| **PWM** | Duty Resolution | 16-bit (65,536 steps) | At 1 MHz: 15 ns steps |
+| **PWM** | Frequency Range | 1 Hz – 763 Hz **at 16-bit resolution** (1 MHz achievable only at ≈6-bit) | 16-bit counters need 65,536 source clocks per period: 50 MHz / 65,536 ≈ 763 Hz. "16-bit at 1 MHz" is arithmetically impossible with a 50 MHz clock |
+| **PWM** | Duty Resolution | 16-bit (65,536 steps) up to 763 Hz | At 1 MHz the maximum resolution is ⌊log2(50)⌋ = 5–6 bits |
 | **PWM** | Jitter | < 1 ns | Cycle-to-cycle |
 | **Timer0/1** | Resolution | 32-bit @ 25 MHz | 40 ns ticks |
 | **Timer0/1** | Max Period | 171 s | 32-bit @ 25 MHz |
-| **LPTIM** | Resolution | 32-bit @ 32 kHz | 30.5 µs ticks |
-| **LPTIM** | Max Period | 36 hours | 32-bit @ 32 kHz |
-| **LPTIM** | Wake Accuracy | ±1 tick | Deep sleep exit |
+| **LPTIM** | Resolution | 32-bit @ 32 kHz | **Not implemented** — no low-power timer or 32 kHz domain exists in the RTL |
+| **LPTIM** | Max Period | 36 hours | **Not implemented** |
+| **LPTIM** | Wake Accuracy | ±1 tick | **Not implemented**; sleep is entered by software and exited only by the external `wake_ack` handshake |
 
 ---
 

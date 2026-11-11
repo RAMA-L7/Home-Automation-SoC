@@ -19,7 +19,10 @@ TOOLCHAIN_PREFIX = os.environ.get("RISCV_GCC_PREFIX", "riscv32-unknown-elf-")
 
 # Compiler flags
 CFLAGS = [
-    f"-march=rv32imc",
+    # rv32im (NOT rv32imc): rtl/rtl_top/riscv_core.sv does not implement the
+    # compressed extension, so rv32imc code would trap on its first 16-bit
+    # instruction.  The core also has no user mode, PMP or F/D.
+    f"-march=rv32im",
     f"-mabi=ilp32",
     "-nostdlib", "-nostartfiles", "-ffreestanding",
     "-Wall", "-Wextra", "-O2", "-g",
