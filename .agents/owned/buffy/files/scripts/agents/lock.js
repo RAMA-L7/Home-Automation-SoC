@@ -174,6 +174,10 @@ const slug = (agent) => agent.replace(/[^\w.-]+/g, '_');
 const manifestFile = (agent) => path.join(OWNED, slug(agent), 'manifest.json');
 const mirrorOf = (agent, rel) => path.join(OWNED, slug(agent), 'files', rel);
 
+// The bookkeeping tree (.agents/) is not project content: mirroring it would
+// snapshot our own locks and mirrors, so verify would always report drift.
+const isBookkeeping = (rel) => rel === '.agents' || rel.startsWith('.agents/');
+
 function snapshot(agent, targets) {
   ensureDirs();
   const manifest = readJson(manifestFile(agent), { agent, files: {} });
@@ -181,6 +185,7 @@ function snapshot(agent, targets) {
   for (const target of targets) {
     for (const abs of walk(target)) {
       const rel = norm(abs);
+      if (isBookkeeping(rel)) continue;
       const dst = mirrorOf(agent, rel);
       fs.mkdirSync(path.dirname(dst), { recursive: true });
       fs.copyFileSync(abs, dst);
@@ -190,6 +195,14 @@ function snapshot(agent, targets) {
   }
   manifest.agent = agent;
   manifest.updated = new Date().toISOString();
+  // Drop any bookkeeping entries recorded by an older version of this tool.
+  for (const rel of Object.keys(manifest.files)) {
+    if (isBookkeeping(rel)) {
+      delete manifest.files[rel];
+      fs.rmSync(mirrorOf(agent, rel), { force: true });
+      fs.rmSync(path.join(OWNED, slug(agent), 'files', '.agents'), { recursive: true, force: true });
+    }
+  }
   fs.writeFileSync(manifestFile(agent), JSON.stringify(manifest, null, 2));
   console.log(`${n} file(s) snapshotted for ${agent}`);
   return 0;
@@ -200,6 +213,7 @@ function verify(agent) {
   if (!manifest) { console.log(`no snapshot for ${agent}`); return 2; }
   let bad = 0;
   for (const [rel, meta] of Object.entries(manifest.files)) {
+    if (isBookkeeping(rel)) continue;
     const abs = path.join(ROOT, rel);
     if (!fs.existsSync(abs)) {
       console.log(`MISSING   ${rel}`);

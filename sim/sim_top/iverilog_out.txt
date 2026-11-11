@@ -1,0 +1,1 @@
+D:\\Home-Automation-SoC\\rtl\\rtl_top\\*.sv: Invalid argument

@@ -131,27 +131,37 @@ module riscv_core #(
 
   wire [4:0] shamt = (opcode == OP_REG) ? rs2_val[4:0] : ir[24:20];
 
+  // Loads and stores always use addition for the effective address,
+  // regardless of funct3 (which would otherwise select SLT for LW/SW).
+  wire alu_is_add = (opcode == OP_LOAD) || (opcode == OP_STORE) ||
+                    (opcode == OP_LUI) || (opcode == OP_AUIPC) ||
+                    (opcode == OP_IMM)  || (opcode == OP_JAL)  ||
+                    (opcode == OP_JALR) || (opcode == OP_BRANCH);
+
   always_comb begin
-    alu_out = alu_a + alu_b;
-    case (opcode)
-      OP_LUI:   alu_out = imm_u;
-      OP_AUIPC: alu_out = pc + imm_u;
-      default: begin
-        case (funct3)
-          3'b000: alu_out = (opcode == OP_REG && funct7[5]) ? (alu_a - alu_b)
-                                                            : (alu_a + alu_b);
-          3'b001: alu_out = alu_a << shamt;
-          3'b010: alu_out = ($signed(alu_a) < $signed(alu_b)) ? 32'd1 : 32'd0;
-          3'b011: alu_out = (alu_a < alu_b) ? 32'd1 : 32'd0;
-          3'b100: alu_out = alu_a ^ alu_b;
-          3'b101: alu_out = (funct7[5]) ? ($signed(alu_a) >>> shamt)
-                                        : (alu_a >> shamt);
-          3'b110: alu_out = alu_a | alu_b;
-          3'b111: alu_out = alu_a & alu_b;
-        endcase
-      end
-    endcase
+    if (alu_is_add) begin
+      alu_out = alu_a + alu_b;
+    end else begin
+      // OP_REG only: funct3 selects the ALU operation
+      case (funct3)
+        3'b000: alu_out = funct7[5] ? (alu_a - alu_b) : (alu_a + alu_b);
+        3'b001: alu_out = alu_a << shamt;
+        3'b010: alu_out = ($signed(alu_a) < $signed(alu_b)) ? 32'd1 : 32'd0;
+        3'b011: alu_out = (alu_a < alu_b) ? 32'd1 : 32'd0;
+        3'b100: alu_out = alu_a ^ alu_b;
+        3'b101: alu_out = (funct7[5]) ? ($signed(alu_a) >>> shamt)
+                                      : (alu_a >> shamt);
+        3'b110: alu_out = alu_a | alu_b;
+        3'b111: alu_out = alu_a & alu_b;
+        default: alu_out = alu_a + alu_b;
+      endcase
+    end
   end
+
+  // LUI/AUIPC override: the result is already in alu_b or pc+imm,
+  // but alu_out = alu_a + alu_b would be wrong for LUI (alu_a=0, alu_b=imm -> OK)
+  // and AUIPC (alu_a=pc, alu_b=imm -> OK). So no override needed.
+  // The alu_is_add path above already handles these correctly.
 
   assign cmp_eq  = (rs1_val == rs2_val);
   assign cmp_lt  = ($signed(rs1_val) < $signed(rs2_val));
@@ -419,7 +429,7 @@ module riscv_core #(
   //--------------------------------------------------------------------------
   // Data interface
   //--------------------------------------------------------------------------
-  assign data_req   = (state == S_EXEC && is_mem && !exc_take) || (state == S_MEM);
+  assign data_req   = (state == S_EXEC && is_mem && !exc_take);
   assign data_we    = (opcode == OP_STORE);
   assign data_addr  = alu_out;
   assign data_wdata = st_data;

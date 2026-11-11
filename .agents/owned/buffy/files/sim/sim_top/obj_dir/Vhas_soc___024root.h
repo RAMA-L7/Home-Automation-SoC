@@ -1,0 +1,311 @@
+// Verilated -*- C++ -*-
+// DESCRIPTION: Verilator output: Design internal header
+// See Vhas_soc.h for the primary calling header
+
+#ifndef VERILATED_VHAS_SOC___024ROOT_H_
+#define VERILATED_VHAS_SOC___024ROOT_H_  // guard
+
+#include "verilated.h"
+
+
+class Vhas_soc__Syms;
+
+class alignas(VL_CACHE_LINE_BYTES) Vhas_soc___024root final {
+  public:
+
+    // DESIGN-SPECIFIC STATE
+    // Anonymous structures to workaround compiler member-count bugs
+    struct {
+        VL_IN8(clk,0,0);
+        VL_IN8(reset_n,0,0);
+        VL_IN8(jtag_tck,0,0);
+        VL_IN8(jtag_tms,0,0);
+        VL_IN8(jtag_tdi,0,0);
+        VL_OUT8(jtag_tdo,0,0);
+        VL_IN8(jtag_trst_n,0,0);
+        VL_OUT8(uart_tx,0,0);
+        VL_IN8(uart_rx,0,0);
+        VL_OUT8(spi_sck,0,0);
+        VL_OUT8(spi_mosi,0,0);
+        VL_IN8(spi_miso,0,0);
+        VL_OUT8(spi_cs_n,0,0);
+        VL_INOUT8(i2c_scl,0,0);
+        VL_INOUT8(i2c_sda,0,0);
+        VL_OUT8(pwm_out,3,0);
+        VL_OUT8(i2s_bclk,0,0);
+        VL_OUT8(i2s_lrclk,0,0);
+        VL_OUT8(i2s_dout,0,0);
+        VL_IN8(i2s_din,0,0);
+        VL_OUT8(qspi_sck,0,0);
+        VL_OUT8(qspi_cs_n,0,0);
+        VL_INOUT8(qspi_io,3,0);
+        VL_OUT8(wdog_reset_n_out,0,0);
+        VL_OUT8(wake_req,0,0);
+        VL_IN8(wake_ack,0,0);
+        CData/*0:0*/ has_soc__DOT__core_clk;
+        CData/*0:0*/ has_soc__DOT__data_req;
+        CData/*0:0*/ has_soc__DOT__data_gnt;
+        CData/*0:0*/ has_soc__DOT__data_rvalid;
+        CData/*3:0*/ has_soc__DOT__data_wstrb;
+        CData/*0:0*/ has_soc__DOT__m_awvalid;
+        CData/*0:0*/ has_soc__DOT__m_awready;
+        CData/*0:0*/ has_soc__DOT__m_wvalid;
+        CData/*0:0*/ has_soc__DOT__m_wready;
+        CData/*0:0*/ has_soc__DOT__m_arvalid;
+        CData/*0:0*/ has_soc__DOT__m_arready;
+        CData/*5:0*/ has_soc__DOT__s_awready;
+        CData/*5:0*/ has_soc__DOT__s_wready;
+        CData/*5:0*/ has_soc__DOT__s_bvalid;
+        CData/*5:0*/ has_soc__DOT__s_arready;
+        CData/*5:0*/ has_soc__DOT__s_rvalid;
+        CData/*0:0*/ has_soc__DOT__pclk;
+        CData/*0:0*/ has_soc__DOT__presetn;
+        CData/*0:0*/ has_soc__DOT____Vcellout__tcm_inst__arready;
+        CData/*0:0*/ has_soc__DOT____Vcellinp__tcm_inst__arvalid;
+        CData/*0:0*/ has_soc__DOT____Vcellout__tcm_inst__wready;
+        CData/*0:0*/ has_soc__DOT____Vcellinp__tcm_inst__wvalid;
+        CData/*0:0*/ has_soc__DOT____Vcellout__tcm_inst__awready;
+        CData/*0:0*/ has_soc__DOT____Vcellinp__tcm_inst__awvalid;
+        CData/*0:0*/ has_soc__DOT____Vcellout__sram_inst__arready;
+        CData/*0:0*/ has_soc__DOT____Vcellinp__sram_inst__arvalid;
+        CData/*0:0*/ has_soc__DOT____Vcellout__sram_inst__wready;
+        CData/*0:0*/ has_soc__DOT____Vcellinp__sram_inst__wvalid;
+        CData/*0:0*/ has_soc__DOT____Vcellout__sram_inst__awready;
+        CData/*0:0*/ has_soc__DOT____Vcellinp__sram_inst__awvalid;
+        CData/*0:0*/ has_soc__DOT____Vcellinp__apb_bridge__s_awvalid;
+        CData/*0:0*/ has_soc__DOT____Vcellinp__clint_inst__wvalid;
+        CData/*0:0*/ has_soc__DOT____Vcellinp__clint_inst__awvalid;
+        CData/*0:0*/ has_soc__DOT__core__DOT__fetch_valid;
+        CData/*1:0*/ has_soc__DOT__core__DOT__state;
+        CData/*0:0*/ has_soc__DOT__jtag_inst__DOT__tck_sync1;
+        CData/*0:0*/ has_soc__DOT__jtag_inst__DOT__tck_sync2;
+        CData/*0:0*/ has_soc__DOT__jtag_inst__DOT__tms_sync;
+    };
+    struct {
+        CData/*0:0*/ has_soc__DOT__jtag_inst__DOT__tdi_sync;
+        CData/*0:0*/ has_soc__DOT__jtag_inst__DOT__tck_rise;
+        CData/*3:0*/ has_soc__DOT__jtag_inst__DOT__state;
+        CData/*0:0*/ has_soc__DOT__pwrmgr_inst__DOT__sleep_req;
+        CData/*0:0*/ has_soc__DOT__pwrmgr_inst__DOT__wake_en;
+        CData/*0:0*/ has_soc__DOT__pwrmgr_inst__DOT__in_sleep;
+        CData/*0:0*/ has_soc__DOT__i2s_inst__DOT__enable;
+        CData/*0:0*/ has_soc__DOT__wdog_inst__DOT__enable;
+        CData/*0:0*/ has_soc__DOT__wdog_inst__DOT__expired;
+        CData/*0:0*/ has_soc__DOT__timer_inst__DOT__enable;
+        CData/*0:0*/ has_soc__DOT__timer_inst__DOT__int_en;
+        CData/*0:0*/ has_soc__DOT__timer_inst__DOT__match_pend;
+        CData/*3:0*/ has_soc__DOT__pwm_inst__DOT__enable;
+        CData/*1:0*/ has_soc__DOT__pwm_inst__DOT__unnamedblk1__DOT__ch_idx;
+        CData/*0:0*/ has_soc__DOT__pwm_inst__DOT__unnamedblk1__DOT__reg_sel;
+        CData/*0:0*/ has_soc__DOT__spi_inst__DOT__enable;
+        CData/*7:0*/ has_soc__DOT__spi_inst__DOT__tx_data;
+        CData/*7:0*/ has_soc__DOT__spi_inst__DOT__rx_data;
+        CData/*0:0*/ has_soc__DOT__spi_inst__DOT__busy;
+        CData/*0:0*/ has_soc__DOT__i2c_inst__DOT__enable;
+        CData/*6:0*/ has_soc__DOT__i2c_inst__DOT__slave_addr;
+        CData/*7:0*/ has_soc__DOT__i2c_inst__DOT__rx_data;
+        CData/*0:0*/ has_soc__DOT__i2c_inst__DOT__busy;
+        CData/*0:0*/ has_soc__DOT__i2c_inst__DOT__ack_received;
+        CData/*7:0*/ has_soc__DOT__uart_inst__DOT__thr;
+        CData/*7:0*/ has_soc__DOT__uart_inst__DOT__rbr;
+        CData/*7:0*/ has_soc__DOT__uart_inst__DOT__ier;
+        CData/*7:0*/ has_soc__DOT__uart_inst__DOT__iir;
+        CData/*7:0*/ has_soc__DOT__uart_inst__DOT__lcr;
+        CData/*7:0*/ has_soc__DOT__uart_inst__DOT__mcr;
+        CData/*7:0*/ has_soc__DOT__uart_inst__DOT__spr;
+        CData/*0:0*/ has_soc__DOT__uart_inst__DOT__dlab;
+        CData/*0:0*/ has_soc__DOT__uart_inst__DOT__tx_busy;
+        CData/*7:0*/ has_soc__DOT__uart_inst__DOT__tx_shift;
+        CData/*3:0*/ has_soc__DOT__uart_inst__DOT__tx_bits;
+        CData/*7:0*/ has_soc__DOT__uart_inst__DOT__rx_shift;
+        CData/*3:0*/ has_soc__DOT__uart_inst__DOT__rx_bits;
+        CData/*0:0*/ has_soc__DOT__uart_inst__DOT__rx_data_ready;
+        CData/*0:0*/ has_soc__DOT__uart_inst__DOT__thre;
+        CData/*7:0*/ has_soc__DOT__plic_inst__DOT__priority0;
+        CData/*7:0*/ has_soc__DOT__plic_inst__DOT__priority1;
+        CData/*7:0*/ has_soc__DOT__plic_inst__DOT__priority2;
+        CData/*7:0*/ has_soc__DOT__plic_inst__DOT__priority3;
+        CData/*3:0*/ has_soc__DOT__plic_inst__DOT__enable;
+        CData/*7:0*/ has_soc__DOT__plic_inst__DOT__threshold;
+        CData/*3:0*/ has_soc__DOT__plic_inst__DOT__pending;
+        CData/*1:0*/ has_soc__DOT__apb_bridge__DOT__state;
+        CData/*0:0*/ has_soc__DOT__apb_bridge__DOT__wr_trans;
+        CData/*0:0*/ has_soc__DOT__apb_bridge__DOT__aw_fire;
+        CData/*0:0*/ has_soc__DOT__apb_bridge__DOT__ar_fire;
+        CData/*3:0*/ has_soc__DOT__sram_inst__DOT__wstrb_q;
+        CData/*0:0*/ has_soc__DOT__sram_inst__DOT__write_d;
+        CData/*0:0*/ has_soc__DOT__sram_inst__DOT__read_d;
+        CData/*3:0*/ has_soc__DOT__tcm_inst__DOT__wstrb_q;
+        CData/*0:0*/ has_soc__DOT__tcm_inst__DOT__write_d;
+        CData/*0:0*/ has_soc__DOT__tcm_inst__DOT__read_d;
+        CData/*2:0*/ has_soc__DOT__axi_ic__DOT__b_src;
+        CData/*0:0*/ has_soc__DOT__axi_ic__DOT__b_decode_err;
+        CData/*2:0*/ has_soc__DOT__axi_ic__DOT__r_src;
+        CData/*0:0*/ has_soc__DOT__axi_ic__DOT__r_decode_err;
+        CData/*0:0*/ has_soc__DOT__rom_inst__DOT__req_q;
+        CData/*1:0*/ has_soc__DOT__data_adapter__DOT__state;
+        CData/*0:0*/ has_soc__DOT__data_adapter__DOT__is_write_q;
+        CData/*0:0*/ has_soc__DOT__data_adapter__DOT__aw_fire;
+    };
+    struct {
+        CData/*0:0*/ has_soc__DOT__data_adapter__DOT__w_fire;
+        CData/*0:0*/ has_soc__DOT__data_adapter__DOT__ar_fire;
+        CData/*0:0*/ has_soc__DOT__data_adapter__DOT__r_fire;
+        CData/*0:0*/ has_soc__DOT__data_adapter__DOT__b_fire;
+        CData/*1:0*/ has_soc__DOT__pwr_mgr__DOT__state;
+        CData/*0:0*/ __VdfgRegularize_h6e95ff9d_0_1;
+        CData/*0:0*/ __VdfgRegularize_h6e95ff9d_0_2;
+        CData/*0:0*/ __VdfgRegularize_h6e95ff9d_0_5;
+        CData/*3:0*/ __VdfgRegularize_h6e95ff9d_0_16;
+        CData/*0:0*/ __VdfgRegularize_h6e95ff9d_0_24;
+        CData/*0:0*/ __Vdly__has_soc__DOT____Vcellout__sram_inst__awready;
+        CData/*0:0*/ __Vdly__has_soc__DOT____Vcellout__sram_inst__wready;
+        CData/*0:0*/ __Vdly__has_soc__DOT____Vcellout__tcm_inst__awready;
+        CData/*0:0*/ __Vdly__has_soc__DOT____Vcellout__tcm_inst__wready;
+        CData/*1:0*/ __Vdly__has_soc__DOT__data_adapter__DOT__state;
+        CData/*0:0*/ __Vdly__has_soc__DOT__timer_inst__DOT__match_pend;
+        CData/*1:0*/ __Vdly__has_soc__DOT__apb_bridge__DOT__state;
+        CData/*0:0*/ __Vtrigprevexpr___TOP__clk__0;
+        CData/*0:0*/ __Vtrigprevexpr___TOP__reset_n__0;
+        CData/*0:0*/ __Vtrigprevexpr___TOP__jtag_tck__0;
+        CData/*0:0*/ __Vtrigprevexpr___TOP__jtag_tms__0;
+        CData/*0:0*/ __Vtrigprevexpr___TOP__jtag_tdi__0;
+        CData/*0:0*/ __Vtrigprevexpr___TOP__jtag_trst_n__0;
+        CData/*0:0*/ __Vtrigprevexpr___TOP__uart_rx__0;
+        CData/*0:0*/ __Vtrigprevexpr___TOP__spi_miso__0;
+        CData/*0:0*/ __Vtrigprevexpr___TOP__i2s_din__0;
+        CData/*0:0*/ __Vtrigprevexpr___TOP__wake_ack__0;
+        CData/*0:0*/ __VicoDidInit;
+        CData/*0:0*/ __Vtrigprevexpr___TOP__has_soc__DOT__core_clk__0;
+        CData/*0:0*/ __Vtrigprevexpr___TOP__reset_n__1;
+        CData/*0:0*/ __Vtrigprevexpr___TOP__clk__1;
+        CData/*0:0*/ __Vtrigprevexpr___TOP__has_soc__DOT__pclk__0;
+        CData/*0:0*/ __Vtrigprevexpr___TOP__has_soc__DOT__presetn__0;
+        VL_INOUT16(gpio,15,0);
+        SData/*9:0*/ has_soc__DOT__apb_sel;
+        SData/*15:0*/ has_soc__DOT__i2s_inst__DOT__tx_sample;
+        SData/*15:0*/ has_soc__DOT__uart_inst__DOT__baud_cnt;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__data_out_q;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__oe;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__int_en;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__int_rise_en;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__int_fall_en;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__int_pend;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__gpio_in_sync1;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__gpio_in_sync2;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__gpio_in_prev;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__gpio__out__strong__out0;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__gpio__out__strong__out1;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__gpio__out__strong__out2;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__gpio__out__strong__out3;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__gpio__out__strong__out4;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__gpio__out__strong__out5;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__gpio__out__strong__out6;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__gpio__out__strong__out7;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__gpio__out__strong__out8;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__gpio__out__strong__out9;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__gpio__out__strong__out10;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__gpio__out__strong__out11;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__gpio__out__strong__out12;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__gpio__out__strong__out13;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__gpio__out__strong__out14;
+        SData/*15:0*/ has_soc__DOT__gpio_inst__DOT__gpio__out__strong__out15;
+        SData/*14:0*/ has_soc__DOT__tcm_inst__DOT__waddr_q;
+        SData/*14:0*/ has_soc__DOT__tcm_inst__DOT__raddr_q;
+    };
+    struct {
+        SData/*15:0*/ has_soc__DOT__rom_inst__DOT__addr_q;
+        SData/*15:0*/ __Vdly__has_soc__DOT__gpio_inst__DOT__int_pend;
+        VL_IN(ext_irq,31,0);
+        IData/*31:0*/ has_soc__DOT__data_rdata;
+        IData/*31:0*/ has_soc__DOT__core__DOT__pc;
+        IData/*31:0*/ has_soc__DOT__core__DOT__fetch_instr;
+        IData/*31:0*/ has_soc__DOT__core__DOT__rs1_val;
+        IData/*31:0*/ has_soc__DOT__core__DOT__alu_b;
+        IData/*31:0*/ has_soc__DOT__core__DOT__alu_out;
+        IData/*31:0*/ has_soc__DOT__core__DOT__csr_mcycle;
+        IData/*31:0*/ has_soc__DOT__core__DOT__csr_minstret;
+        IData/*31:0*/ has_soc__DOT__core__DOT__next_pc;
+        IData/*31:0*/ has_soc__DOT__jtag_inst__DOT__dr;
+        IData/*31:0*/ has_soc__DOT__jtag_inst__DOT__ir;
+        IData/*31:0*/ has_soc__DOT__wdog_inst__DOT__load;
+        IData/*31:0*/ has_soc__DOT__wdog_inst__DOT__count;
+        IData/*31:0*/ has_soc__DOT__timer_inst__DOT__count;
+        IData/*31:0*/ has_soc__DOT__timer_inst__DOT__compare;
+        IData/*31:0*/ has_soc__DOT__clint_inst__DOT__msip;
+        IData/*31:0*/ has_soc__DOT__apb_bridge__DOT__trans_addr;
+        IData/*31:0*/ has_soc__DOT__apb_bridge__DOT__trans_wdata;
+        IData/*31:0*/ has_soc__DOT__qspi_ctrl__DOT__unnamedblk1__DOT__i;
+        IData/*17:0*/ has_soc__DOT__sram_inst__DOT__waddr_q;
+        IData/*31:0*/ has_soc__DOT__sram_inst__DOT__wdata_q;
+        IData/*17:0*/ has_soc__DOT__sram_inst__DOT__raddr_q;
+        IData/*31:0*/ has_soc__DOT__sram_inst__DOT__unnamedblk1__DOT__word_idx;
+        IData/*31:0*/ has_soc__DOT__tcm_inst__DOT__wdata_q;
+        IData/*31:0*/ has_soc__DOT__tcm_inst__DOT__unnamedblk1__DOT__word_idx;
+        IData/*31:0*/ has_soc__DOT__axi_ic__DOT____VlemCall_27__addr_region;
+        IData/*31:0*/ has_soc__DOT__axi_ic__DOT____VlemCall_26__addr_region;
+        IData/*31:0*/ has_soc__DOT__axi_ic__DOT____VlemCall_25__addr_region;
+        IData/*31:0*/ has_soc__DOT__axi_ic__DOT____VlemCall_24__addr_region;
+        IData/*31:0*/ has_soc__DOT__axi_ic__DOT____VlemCall_23__addr_region;
+        IData/*31:0*/ has_soc__DOT__axi_ic__DOT____VlemCall_22__addr_region;
+        IData/*31:0*/ has_soc__DOT__axi_ic__DOT____VlemCall_21__addr_region;
+        IData/*31:0*/ has_soc__DOT__axi_ic__DOT____VlemCall_13__addr_region;
+        IData/*31:0*/ has_soc__DOT__axi_ic__DOT____VlemCall_12__addr_region;
+        IData/*31:0*/ has_soc__DOT__axi_ic__DOT____VlemCall_11__addr_region;
+        IData/*31:0*/ has_soc__DOT__axi_ic__DOT____VlemCall_10__addr_region;
+        IData/*31:0*/ has_soc__DOT__axi_ic__DOT____VlemCall_9__addr_region;
+        IData/*31:0*/ has_soc__DOT__axi_ic__DOT____VlemCall_8__addr_region;
+        IData/*31:0*/ has_soc__DOT__axi_ic__DOT____VlemCall_7__addr_region;
+        IData/*31:0*/ has_soc__DOT__data_adapter__DOT__addr_q;
+        IData/*31:0*/ __Vfunc_addr_region__11__a;
+        IData/*31:0*/ __Vfunc_addr_region__12__a;
+        IData/*31:0*/ __Vfunc_addr_region__13__a;
+        IData/*31:0*/ __Vfunc_addr_region__14__a;
+        IData/*31:0*/ __Vfunc_addr_region__15__a;
+        IData/*31:0*/ __Vfunc_addr_region__16__a;
+        IData/*31:0*/ __Vfunc_addr_region__17__a;
+        IData/*31:0*/ __Vfunc_addr_region__25__a;
+        IData/*31:0*/ __Vfunc_addr_region__26__a;
+        IData/*31:0*/ __Vfunc_addr_region__27__a;
+        IData/*31:0*/ __Vfunc_addr_region__28__a;
+        IData/*31:0*/ __Vfunc_addr_region__29__a;
+        IData/*31:0*/ __Vfunc_addr_region__30__a;
+        IData/*31:0*/ __Vfunc_addr_region__31__a;
+        IData/*31:0*/ __VdfgRegularize_h6e95ff9d_0_15;
+        IData/*31:0*/ __Vdly__has_soc__DOT__core__DOT__pc;
+        IData/*31:0*/ __Vdly__has_soc__DOT__wdog_inst__DOT__count;
+        IData/*31:0*/ __Vdly__has_soc__DOT__timer_inst__DOT__count;
+        IData/*31:0*/ __Vtrigprevexpr___TOP__ext_irq__0;
+        QData/*63:0*/ has_soc__DOT__clint_inst__DOT__mtime;
+        VlUnpacked<IData/*31:0*/, 6> has_soc__DOT__s_rdata;
+    };
+    struct {
+        VlUnpacked<IData/*31:0*/, 32> has_soc__DOT__core__DOT__rf;
+        VlUnpacked<SData/*15:0*/, 4> has_soc__DOT__pwm_inst__DOT__period;
+        VlUnpacked<SData/*15:0*/, 4> has_soc__DOT__pwm_inst__DOT__duty;
+        VlUnpacked<SData/*15:0*/, 4> has_soc__DOT__pwm_inst__DOT__counter;
+        VlUnpacked<IData/*31:0*/, 1024> has_soc__DOT__qspi_ctrl__DOT__flash_mem;
+        VlUnpacked<IData/*31:0*/, 65536> has_soc__DOT__sram_inst__DOT__mem;
+        VlUnpacked<IData/*31:0*/, 8192> has_soc__DOT__tcm_inst__DOT__mem;
+        VlUnpacked<IData/*31:0*/, 16384> has_soc__DOT__rom_inst__DOT__mem;
+        VlUnpacked<QData/*63:0*/, 1> __VstlTriggered;
+        VlUnpacked<QData/*63:0*/, 2> __VicoTriggered;
+        VlUnpacked<QData/*63:0*/, 1> __VactTriggered;
+        VlUnpacked<QData/*63:0*/, 1> __VnbaTriggered;
+    };
+    VlNBACommitQueue<VlUnpacked<IData/*31:0*/, 1024>, false, IData/*31:0*/, 1> __VdlyCommitQueuehas_soc__DOT__qspi_ctrl__DOT__flash_mem;
+
+    // INTERNAL VARIABLES
+    Vhas_soc__Syms* vlSymsp;
+    const char* vlNamep;
+
+    // CONSTRUCTORS
+    Vhas_soc___024root(Vhas_soc__Syms* symsp, const char* namep);
+    ~Vhas_soc___024root();
+    VL_UNCOPYABLE(Vhas_soc___024root);
+
+    // INTERNAL METHODS
+};
+
+
+#endif  // guard

@@ -347,7 +347,11 @@ irq_ext_isr:
 // Subroutines
 //------------------------------------------------------------------------------
 // puts: a0 = NUL-terminated string
+// Saves ra because it calls putc (a nested call would otherwise destroy it).
 puts:
+    addi sp, sp, -8
+    sw   ra, 4(sp)
+    sw   t4, 0(sp)
     mv   t4, a0
 puts_loop:
     lbu  a0, 0(t4)
@@ -356,6 +360,9 @@ puts_loop:
     addi t4, t4, 1
     j    puts_loop
 puts_done:
+    lw   t4, 0(sp)
+    lw   ra, 4(sp)
+    addi sp, sp, 8
     ret
 
 // putc: a0 = byte; polls THRE (LSR bit 5)
@@ -370,6 +377,11 @@ putc_wait:
 
 // puthex: a0 = value, prints 8 hex digits
 puthex:
+    addi sp, sp, -16
+    sw   ra, 12(sp)
+    sw   t4, 8(sp)
+    sw   t5, 4(sp)
+    sw   t6, 0(sp)
     mv   t4, a0
     li   t5, 8
 puthex_loop:
@@ -386,6 +398,11 @@ puthex_emit:
     slli t4, t4, 4
     addi t5, t5, -1
     bnez t5, puthex_loop
+    lw   t6, 0(sp)
+    lw   t5, 4(sp)
+    lw   t4, 8(sp)
+    lw   ra, 12(sp)
+    addi sp, sp, 16
     ret
 
 //------------------------------------------------------------------------------

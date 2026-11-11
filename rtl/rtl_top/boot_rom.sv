@@ -80,8 +80,8 @@ module boot_rom #(
   ax_state_e ax_state;
   logic [ADDR_WIDTH-1:0] ax_raddr_q;
 
-  assign awready = (ax_state == AX_IDLE) & ~arvalid & ~awvalid;
-  assign wready  = (ax_state == AX_IDLE) & ~arvalid & ~awvalid;
+  assign awready = (ax_state == AX_IDLE) & ~arvalid;
+  assign wready  = (ax_state == AX_IDLE) & ~arvalid;
   assign arready = (ax_state == AX_IDLE) & ~awvalid;
 
   always_ff @(posedge clk or negedge reset_n) begin

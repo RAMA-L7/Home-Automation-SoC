@@ -51,6 +51,12 @@ module plic #(
         pending[i] <= ext_irq[i] | (pending[i] & ~claimed[i]);
         if (claimed[i] && !ext_irq[i]) claimed[i] <= 1'b0;
       end
+
+      // Claim (read of 0x208) masks the source until it deasserts.  Kept in
+      // this process so `claimed` has exactly one driver; the assignment below
+      // wins over the clear above in procedural order.
+      if (wr_en && wr_addr == 12'h208 && claim_id != 3'd0)
+        claimed[claim_id - 3'd1] <= 1'b1;
     end
   end
 
@@ -68,7 +74,6 @@ module plic #(
       else case (wr_addr)
         12'h200: enable    <= wr_data[NUM_SOURCES-1:0];
         12'h204: threshold <= wr_data[7:0];
-        12'h208: if (claim_id != 3'd0) claimed[claim_id - 3'd1] <= 1'b1;
         default: ;
       endcase
     end
