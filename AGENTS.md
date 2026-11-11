@@ -154,12 +154,12 @@
 
 | Blocker | Impact | What's Needed |
 |---------|--------|---------------|
-| No g++/make | Verilator C++ simulation unavailable | Install g++ and make (C drive nearly full, may need D drive) |
+| No g++/make | Verilator C++ simulation unavailable | Install g++ and make (C drive nearly full, may need D drive). mingw64 source present at D:\tools\mingw64\ but not built as toolchain. |
 | Python/cocotb | FIXED — Python 3.10 with SSL works, cocotb 2.1.0 installed | None |
 | No OpenLane 2 | ASIC P&R blocked | Not pip-installable; needs source build with many dependencies |
 | No FPGA hardware | Stage 5 limited to constraints | Acquire Nexys A7 or similar |
 | No Vivado installed | Cannot synthesize to FPGA | Install Xilinx Vivado (proprietary) |
-| No KiCad | PCB limited to documentation | Silent installer failed; needs interactive install or D-drive space |
+| KiCad | FIXED — Installed at D:\tools\KiCad\10.0\ (kicad-cli v10.0.8) | None |
 | ADRs are PROPOSED | Architecture not approved | Stakeholder approval needed |
 | PLL clock source | No sky130-qualified open PLL IP | External clock generator (Si5351) recommended |
 
