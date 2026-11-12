@@ -1,0 +1,17 @@
+# Home-Automation-SoC — watchdog pet/arm/reset proof
+# Usage: sby -f watchdog.sby            (or: node scripts/formal/run_formal.js)
+[options]
+mode prove
+depth 14
+
+[engines]
+smtbmc boolector
+
+[script]
+read_verilog -sv -formal watchdog.sv
+read_verilog -sv -formal watchdog_fv.sv
+prep -top watchdog_fv
+
+[files]
+../../rtl/rtl_peripherals/watchdog.sv
+watchdog_fv.sv

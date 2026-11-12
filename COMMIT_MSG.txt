@@ -1,4 +1,9 @@
-Remove Python bytecode cache from tracking; ignore __pycache__
+Add formal verification properties for reset_ctrl and watchdog
+
+Also includes the other agent's in-progress work in scripts/formal/:
+  reset_ctrl_fv.sv  - formal properties for the watchdog reset controller
+  watchdog.sby      - SymbiYosys configuration for the watchdog
+  watchdog_fv.sv    - formal properties for the watchdog timer
 
 Agent: OpenCode (nemotron-3.5-super-vl-free)
 Date: 2026-11-12

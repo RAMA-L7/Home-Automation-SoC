@@ -1,0 +1,17 @@
+# Home-Automation-SoC — reset controller bounded-pulse proof
+# Usage: sby -f reset_ctrl.sby          (or: node scripts/formal/run_formal.js)
+[options]
+mode prove
+depth 20
+
+[engines]
+smtbmc boolector
+
+[script]
+read_verilog -sv -formal reset_ctrl.sv
+read_verilog -sv -formal reset_ctrl_fv.sv
+prep -top reset_ctrl_fv
+
+[files]
+../../rtl/rtl_top/reset_ctrl.sv
+reset_ctrl_fv.sv
