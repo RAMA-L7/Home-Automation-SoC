@@ -56,27 +56,20 @@ module watchdog_fv (
     assert (reset_n_out == ~(dut.expired && dut.reset_en));
 
   // A2 — no expiry without an enabled counter.
-  property p_no_expiry_when_idle;
-    @(posedge pclk) disable iff (!presetn) $rose(dut.expired) |-> $past(dut.enable);
-  endproperty
-  assert property (p_no_expiry_when_idle);
+  always @(posedge pclk) if (presetn)
+    assert property ($rose(dut.expired) |-> $past(dut.enable));
 
   // A3 — a pet reloads the counter to the written value.
-  property p_pet_reloads;
-    @(posedge pclk) disable iff (!presetn) sel_load |=> (dut.count == $past(pwdata));
-  endproperty
-  assert property (p_pet_reloads);
+  always @(posedge pclk) if (presetn)
+    assert property (sel_load |=> (dut.count == $past(pwdata)));
 
   // A4 — irq is the sticky expired flag.
   always @(posedge pclk)
     assert (irq == dut.expired);
 
   // A5 — a matching KEY write locks CTRL until the next reset.
-  property p_key_locks;
-    @(posedge pclk) disable iff (!presetn)
-      (sel_key && pwdata == 32'h5A5A_0001) |=> dut.locked;
-  endproperty
-  assert property (p_key_locks);
+  always @(posedge pclk) if (presetn)
+    assert property ((sel_key && pwdata == 32'h5A5A_0001) |=> dut.locked);
 
   // Non-vacuity: every property above must be exercised.
   always @(posedge pclk) begin
