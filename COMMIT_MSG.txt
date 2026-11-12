@@ -1,4 +1,0 @@
-Track the other agent's in-progress formal watchdog properties
-
-Agent: OpenCode (nemotron-3.5-super-vl-free)
-Date: 2026-11-12
