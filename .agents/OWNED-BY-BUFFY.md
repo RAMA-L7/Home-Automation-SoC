@@ -15,29 +15,74 @@ struct ProjectOverview {
   process: "SkyWater 130nm (sky130) — PDK downloaded, OpenLane not installed",
 }
 ---
-plain-language summary of the latest session:
-- Re-ran the regression: PASS 16/17, with `firmware (C demo)` the one FAIL
-  (tb_firmware boots, prints the banner, receives UART 'r', but watchdog
-  pulse still not observed; wdog pulses 0, 120 ms timeout).
-- Rewrote SYSTEM_BLOCK_DIAGRAM.md as Mermaid + ASCII that matches the
-  implemented RTL, plus an explicit NOT IMPLEMENTED list.
-- Refreshed README.md and AGENTS.md so status, evidence, commands, and
-  GitHub-searchable keywords all match measured reality.
-- Wrote resume.md as a one-paragraph redo/index for onboarding.
-- Mirrored SESSION LOG 4 into this .agents/OWNED-BY-BUFFY.md file.
-- All changes are documentation only this session; no RTL/firmware/tb fix
-  was made that would convert the firmware FAIL into PASS.
-- Working tree uncommitted on top of 2a0c42c; LICENSE still a placeholder.
+plain-language summary of the latest session (2026-11-12, session 5):
+- Closed the last regression failure. Regression is now PASS 17/17 (exit 0).
+- Root cause 1 (firmware): main.c armed the watchdog with CTRL=0x01, i.e. counter
+  enable only. Bit 1 is reset-enable, so reset_n_out could never assert and the
+  SoC never reset. Now armed with WDOG_CTRL_ARMED (0b11) via named constants,
+  and delay() pets every 4,096 cycles (the old 0xFFFF mask was unreachable in a
+  50,000-cycle delay).
+- Root cause 2 (bench): tb_firmware compared all 16 GPIO bits, but GPIO[15:1]
+  are high-Z, so `!=` was X and no LED edge was ever counted. It now counts
+  two-state edges of GPIO[0].
+- Measured in the C demo: watchdog expiry at 20.005 ms, 16-cycle rst_sys_n pulse
+  from reset_ctrl, firmware reboots from the boot ROM, GPIO0 blinks again.
+  35.7 ms of simulated time, ~1 min wall clock.
+- Still NOT proven: image authentication (boot.c fails closed by design), flash
+  programming, OTA, retention across reset, CDC/formal.
+- LICENSE is still an explicit placeholder.
 - Toolchain present: /d/tools/xpack-riscv-none-elf-gcc-12.2.0-2/bin
   (gcc 12.2.0; readelf/objdump 2.38). C firmware build uses
   scripts/fw_build/build_fw.js; Python is not available.
-- Icarus 14.0 simulates; Verilator 5.053 is lint-only here (no g++/make).
-- Owned files changed since snapshot: 11 of 228.
+- Icarus 14.0 simulates; Verilator 5.053 is lint-only here.
 ---
 
 AGENTS.md session log being mirrored below:
 
+## 13. SESSION LOG 5 — Buffy (closing the last regression failure)
+
+Agent: Buffy (model: DeepSeek V4.1 Flash) — session of 2026-11-12.
+
+Scope I took: make the one remaining failing regression entry,
+`firmware (C demo)`, actually pass — or record honestly why it cannot.
+
+Two independent causes:
+1. Firmware armed the watchdog without its reset output: main.c wrote
+   REG_WDOG_CTRL = 0x01. Bit 0 enables the counter, bit 1 (reset_en) gates
+   reset_n_out = ~(expired && reset_en). With only bit 0 the counter expired and
+   raised irq, but reset_n_out stayed high, so reset_ctrl never saw a timeout and
+   wdog_reset_n never pulsed. Now armed with WDOG_CTRL_ARMED (enable |
+   reset-enable) through named constants, and delay() pets every 4,096 cycles.
+2. The bench could not count LED edges: it compared all 16 GPIO bits while
+   GPIO[15:1] are high-Z, and `!=` on a vector containing z is x, so the
+   condition was false for every real edge. It now counts two-state edges of
+   GPIO[0] and traces rst_sys_n transitions with the watchdog state.
+
+Measured result:
+
+  export PATH="/d/tools/oss-cad-suite/lib:/d/tools/oss-cad-suite/bin:$PATH"
+  node scripts/eda/run_regression.js
+
+  PASS 17 / 17        (exit 0)
+
+  [fw] 20005090000 watchdog reset asserted
+  [rst] 20005090000 rst_sys_n=0 timeout=1 en=1 ld=1000000 cnt=0 exp=1
+  [fw] 20005410000 watchdog reset released
+  [rst] 20005410000 rst_sys_n=1 timeout=0 en=0 ld=0 cnt=0 exp=0
+  [fw] 35721390000 blink observation done: gpio toggles 2
+  [fw] RESULT: PASS
+
+Still NOT proven: image authentication (boot.c fails closed by design), flash
+programming, OTA, retention across reset, CDC/formal verification.
+
+Files changed: firmware/bare_metal/main.c, sim/sim_top/tb_firmware.v, build/fw/*
+(regenerated), README.md, AGENTS.md, resume.md, .agents/OWNED-BY-BUFFY.md.
+
+---
+
 ## 12. SESSION LOG 4 — Buffy (documentation refresh)
+
+> Superseded by Section 13: the 16/17 result below was accurate then, it is 17/17 now.
 
 Agent: Buffy (model: Solar Pro4) — session of 2026-11-11 (fourth), continuing
 from a paused Phase-2 run where `tb_firmware.v` still timed out at 120 ms with
