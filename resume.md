@@ -8,7 +8,7 @@ the in-tree custom `riscv_core.sv` (RV32IM, machine mode only), not Ibex — Ibe
 remains a PROPOSED architecture decision.
 
 WHAT IS PROVEN IN SIMULATION (MEASURED)
-- Regression suite `node scripts/eda/run_regression.js`: PASS 16/17.
+- Regression suite `node scripts/eda/run_regression.js`: PASS 17/17, exit 0.
 - isa: 24/24 directed RV32IM checks + 47/47 trap-program checks (all 7
   synchronous exception causes + recovery + no-invalid-writeback).
 - boot: full-SoC boot from ROM, UART banner, PLIC interrupt, GPIO + PWM: 7/7.
@@ -16,18 +16,17 @@ WHAT IS PROVEN IN SIMULATION (MEASURED)
   THR-drop fix, div_eff clamp and RX-counter fix).
 - reset_ctrl: watchdog internal-reset pulse controller 15/15 PASS.
 - power_mgr sleep/wake: 16/16 PASS.
+- firmware (C demo): PASS. The compiled C image runs on the RTL SoC end to end —
+  boot ROM -> TCM image -> UART banner -> host 'r' command received and echoed ->
+  watchdog (armed CTRL=0b11, no longer petted) expires at 20.005 ms -> reset_ctrl
+  emits a bounded 16-cycle rst_sys_n pulse -> firmware reboots from ROM and
+  blinks GPIO0 again. Diagnostic demo only: no image authentication, no flash
+  programming, no secure boot.
 - clint, plic, gpio, spi, i2c, pwm, timer, watchdog, i2s, sram, debug_jtag:
   all PASS at register level.
 - Verilator lint: 0 errors.
 
 WHAT FAILS / IS BLOCKED
-- firmware (C demo): tb_firmware.v boots the C image, prints the full banner
-  (=== Home-Automation-SoC Firmware ===, Core: RV32IM, SRAM: 128 KB @
-  0x2000_0000, Boot: Complete, Ready for commands.), receives the UART `r`
-  command and echoes Cmd: r / Reboot requested, but does NOT observe a watchdog
-  reset pulse within the 120 ms hang guard (wdog pulses 0). Open item is the
-  integration/observation in tb_firmware.v; the block-level pieces are already
-  proven separately.
 - Not implemented and must not be described as working: UART FIFO/parity,
   I2S RX, flash write/erase, OTA, crypto accelerators, retention/deep-sleep
   power gating, peripheral wake detector, formal proofs, FPGA/ASIC/PCB evidence.
@@ -55,7 +54,8 @@ KEY FILES
   power_mgr.sv, power_mgr_regs.sv, clint.sv, plic.sv, gpio.sv, spi_ctrl.sv,
   i2c_ctrl.sv, pwm.sv, timer.sv, i2s.sv, qspi_flash_ctrl.sv, debug_jtag.sv
 - Buses: req_gnt_to_axi_lite.sv, axi_lite_interconnect.sv, axi_lite_to_apb.sv
-- Testbenches: sim/sim_top/tb_*.v (tb_firmware.v is the open FAIL case)
+- Testbenches: sim/sim_top/tb_*.v (tb_firmware.v is the slowest: ~1 min wall clock,
+  35.7 ms of simulated SoC time)
 - Firmware: firmware/bare_metal/main.c + drivers/boot/host_comm/ota, plus
   firmware/boot/boot.S (the diagnostic smoke image that currently passes).
 - Build: scripts/fw_build/build_fw.js, gen_fw_mem.js; scripts/fw/as.js;
@@ -67,7 +67,7 @@ KEY FILES
 SEARCH KEYWORDS
 RV32IM, QFN-64, SkyWater 130nm, sky130, Icarus Verilog 14.0, Verilator 5.053,
 Yosys 0.69, RISC-V GCC 12.2.0, AXI4-Lite, APB, PLIC, CLINT, UART 115200,
-watchdog reset controller, reset_ctrl, tb_firmware, regression PASS 16/17,
+watchdog reset controller, reset_ctrl, tb_firmware, regression PASS 17/17,
 fail-closed secure boot, OTA unsupported, QSPI read-only, custom RISC-V core.
 
 LICENSING

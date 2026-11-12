@@ -385,12 +385,25 @@ Expected output ends with:
     compared all 16 GPIO bits, where the high-Z pins made `!=` evaluate to X so LED edges were never counted
 - Documentation refresh: block diagram (mermaid + ASCII), README/RTE/AGENTS status aligned to measured evidence
 
-### Session 5 — OpenCode (Current)
+### Session 5 — OpenCode
 - Python SSL fixed — cocotb 2.1.0 installed successfully
 - KiCad 10.0.8 installed via winget (silent installer failed, interactive install needed)
 - Created TECH_STACK.md — complete tech stack inventory
 - Updated AGENTS.md blocker table with accurate status
 - Created professional README.md with Mermaid block diagram, searchable keywords, complete work log
+
+### Session 6 — Buffy (DeepSeek V4.1 Flash)
+- Closed the last regression failure: `firmware (C demo)` now PASSES, suite is **PASS 17/17**
+- Root cause 1 (firmware): `main.c` armed the watchdog with `CTRL = 0x01` (counter enable only).
+  Bit 1 is the reset-enable, so `reset_n_out` could never assert and the SoC never reset.
+  Now armed with `CTRL = 0b11` via named `WDOG_CTRL_*` constants, and `delay()` pets every
+  4,096 cycles (the old `0xFFFF` mask was unreachable for a 50,000-cycle delay)
+- Root cause 2 (bench): `tb_firmware.v` counted LED edges with a 16-bit `!=` compare while
+  GPIO[15:1] are high-Z, so the result was X and no edge was ever counted; it now counts
+  two-state edges of GPIO[0]
+- `tb_firmware.v` now traces `rst_sys_n` transitions with the watchdog state, and its
+  simulation guard moved to 90 ms (measured run needs 35.7 ms)
+- README / AGENTS / `resume.md` re-aligned to the measured 17/17 result
 
 ---
 
@@ -426,4 +439,4 @@ Expected output ends with:
 
 ---
 
-*Last updated: 2026-11-11 | Agent: OpenCode (nemotron-3.5-super-vl-free)*
+*Last updated: 2026-11-12 | Agent: Buffy (DeepSeek V4.1 Flash)*

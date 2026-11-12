@@ -1,0 +1,19 @@
+Update docs for firmware C-demo PASS (regression 17/17)
+
+The watchdog-pulse fix in firmware/bare_metal/main.c and
+sim/sim_top/tb_firmware.v is now reflected in the documentation:
+
+- resume.md: regression is now PASS 17/17 (exit 0); the firmware (C demo)
+  entry is documented as passing - the compiled C image runs end to end on
+  the RTL SoC (boot ROM -> TCM image -> UART banner -> host 'r' command
+  received and echoed -> watchdog armed CTRL=0b11 and no longer petted
+  expires at 20.005 ms -> reset_ctrl emits a bounded 16-cycle rst_sys_n
+  pulse -> firmware reboots from ROM and blinks GPIO0 again). It is a
+  diagnostic demo only: no image authentication, no flash programming,
+  no secure boot.
+- AGENTS.md and README.md: stage status and blocker tables updated to
+  reflect the 17/17 regression result.
+
+Agent: Buffy (DeepSeek V4.1 Flash Slow)
+Co-committed by: OpenCode (nemotron-3.5-super-vl-free)
+Date: 2026-11-12

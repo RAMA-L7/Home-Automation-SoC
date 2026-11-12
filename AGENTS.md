@@ -51,7 +51,8 @@
 | 2026-11-12 | OpenCode | Created sim/sim_top/tb_counter.v — minimal Verilator C++ model build/sim smoke test (count = 5, PASS) | Proves the toolchain end-to-end | MEASURED |
 | 2026-11-12 | OpenCode | Updated D:\tools\EDA_TOOL_REGISTRY.md with MinGW toolchain, Verilator kit shim, toolchain traps, and availability matrix | All EDA tools consolidated under D:\tools | DOCUMENTED |
 | 2026-11-11 | Buffy | Phase-2 correction pass: UART pin-level test, watchdog reset controller, exception/trap support, ISA trap program, C firmware build driver, regression harness | 153/153 UART checks PASS; 15/15 reset_ctrl PASS; 47/47 ISA trap checks PASS; 7/7 boot PASS; tb_firmware boots and prints banner + receives 'r' but watchdog pulse not yet observed (wdog pulses 0, 120 ms timeout) | MEASURED |
-| 2026-11-11 | Buffy | Documentation refresh: block diagram (mermaid + ASCII), README/RTE/AGENTS status aligned to measured evidence, keywords for GitHub search | Docs updated; regression still 16/17 | DOCUMENTED |
+| 2026-11-11 | Buffy | Documentation refresh: block diagram (mermaid + ASCII), README/RTE/AGENTS status aligned to measured evidence, keywords for GitHub search | Docs updated; regression was 16/17 at that point | DOCUMENTED |
+| 2026-11-12 | Buffy | **Closed the last regression failure.** Root cause 1: `firmware/bare_metal/main.c` armed the watchdog with `CTRL = 0x01` (counter enable only) so `reset_n_out` could never assert; now armed with `0b11` via named `WDOG_CTRL_*` constants and `delay()` pets every 4,096 cycles. Root cause 2: `tb_firmware.v` counted LED edges with a 16-bit `!=` while GPIO[15:1] are high-Z, so the compare was X and no edge counted; it now counts two-state edges of GPIO[0] and traces `rst_sys_n` transitions | Regression **PASS 17 / 17, exit 0**; C demo reaches watchdog reset at 20.005 ms, reboots and blinks again | MEASURED |
 
 ## 2. STAGE STATUS (READ BEFORE WORKING)
 
@@ -60,8 +61,8 @@
 | 0 | Requirements | COMPLETE | `docs/requirements/system_requirements.md` — measurable targets | None | NO |
 | 1 | Architecture | PARTIAL | ADRs (PROPOSED), block diagrams (mermaid + ASCII), memory map, pinout, reset architecture | PLL strategy, pin budget, power budget | PARTIAL (docs only) |
 | 2 | RTL | PARTIAL | 22 SystemVerilog files, Verilator lint: **0 errors**; RV32IM core with exception/trap support; UART LSR fix; watchdog reset controller; per-slot APB isolation; AXI AW/W independence | UART FIFO/parity NOT IMPLEMENTED; flash write/erase NOT IMPLEMENTED; core still ignores rresp/bresp; no misaligned-load fault beyond traps already added | YES (RTL additions, testbenches) |
-| 3 | Firmware | PARTIAL | C firmware builds reproducibly with `build_fw.js` (RISC-V toolchain present) → `build/fw/firmware.elf` + `.bin`/`.srec`; `rom.hex`/`tcm.hex` regenerated; tb_firmware boots and prints banner + RX command | tb_firmware watchdog-pulse observation still OPEN (wdog pulses 0, 120 ms timeout); C firmware RX path was previously dead — now fixed via UART LSR DR bit0 + OE/FE sticky flags | YES (firmware + tb_firmware debug) |
-| 4 | Verification | PARTIAL | Regression PASS 16/17 (Icarus); **Verilator C++ simulation now working** — full-SoC boot 7/7 PASS at ~20,000× real time; UART pin-level 153/153; reset_ctrl 15/15; ISA traps 47/47; boot 7/7; power_mgr 16/16; CLINT/PLIC/GPIO/SPI/I2C/PWM/timer/watchdog/I2S/SRAM/debug_jtag PASS | firmware (C demo) entry still FAIL (timeout); no formal proofs run; no trace/coverage enabled | PARTIAL (sim only) |
+| 3 | Firmware | PARTIAL | C firmware builds reproducibly with `build_fw.js` (RISC-V toolchain present) → `build/fw/firmware.elf` + `.bin`/`.srec`; `rom.hex`/`tcm.hex` regenerated; **C demo PASSES on the RTL SoC**: banner, UART RX, watchdog arm/pet, starve → internal reset → reboot + LED blink | No OTA, no flash write, no authenticated image; watchdog demo is diagnostic only | YES (firmware features) |
+| 4 | Verification | PARTIAL | Regression **PASS 17/17** (Icarus), including the C firmware demo; **Verilator C++ simulation** — full-SoC boot 7/7 PASS at ~20,000× real time; UART pin-level 153/153; reset_ctrl 15/15; ISA traps 47/47; boot 7/7; power_mgr 16/16; CLINT/PLIC/GPIO/SPI/I2C/PWM/timer/watchdog/I2S/SRAM/debug_jtag PASS | No formal proofs run; no trace/coverage; no CDC verification | PARTIAL (sim only) |
 | 5 | FPGA | PARTIAL | XDC constraints, OpenOCD config, bring-up guide, Vivado Tcl build scripts | Not synthesized — no Vivado | NO |
 | 6 | ASIC | PARTIAL | sky130 PDK downloaded, OpenLane 2 v2.0.0b16 installed (D:\tools\venv-openlane2\), Magic 8.3.105, Netgen 6.2.2401, KLayout 0.30.13, OpenROAD, OpenSTA 3.1.0, volare 0.20.6, bazelisk | End-to-end flow NOT_TESTED — needs a volare-enabled sky130A PDK and an OpenROAD build the flow can drive; full-chip Yosys blocked by interconnect unpacked-array ports | PARTIAL (scripts only) |
 | 7 | DFT/signoff | NOT STARTED | Documented as commercial-tool gap | Commercial tool required | NO |
@@ -590,6 +591,10 @@ impossible and are now stated correctly).
 
 ## 12. SESSION LOG 4 — Buffy (documentation refresh)
 
+> **Superseded for status purposes by Section 13.** The regression result below
+> (16/17 with `firmware (C demo)` FAIL) was accurate for that session; it is now
+> 17/17. Section 12 is kept as history, not as the current state.
+
 `Agent: Buffy (model: Solar Pro4)` — session of 2026-11-11 (fourth), continuing
 from a paused Phase-2 run where `tb_firmware.v` still timed out at 120 ms with
 `wdog pulses 0`.
@@ -663,3 +668,76 @@ controller`, `reset_ctrl`, `tb_firmware`, `regression PASS 16/17`,
 
 `docs/architecture/SYSTEM_BLOCK_DIAGRAM.md`,
 `README.md`, `AGENTS.md`. Nothing committed.
+
+---
+
+## 13. SESSION LOG 5 — Buffy (closing the last regression failure)
+
+`Agent: Buffy (model: DeepSeek V4.1 Flash)` — session of 2026-11-12.
+
+**Scope I took:** make the one remaining failing regression entry,
+`firmware (C demo)`, actually pass — or record honestly why it cannot.
+
+### 13.1 The failure had two independent causes
+
+1. **Firmware armed the watchdog without its reset output.** `main.c` wrote
+   `REG_WDOG_CTRL = 0x01`. In `watchdog.sv`, bit 0 enables the counter and bit 1
+   (`reset_en`) gates `reset_n_out = ~(expired && reset_en)`. With only bit 0 set
+   the counter expired and raised `irq`, but the reset output stayed high forever,
+   so `reset_ctrl` never saw a timeout and `wdog_reset_n` never pulsed. The
+   firmware now arms with `WDOG_CTRL_ARMED` (enable | reset-enable) through named
+   constants, and `delay()` pets every 4,096 cycles — the previous `0xFFFF` mask
+   was unreachable inside a 50,000-cycle delay.
+2. **The bench could not count LED edges.** `tb_firmware.v` compared all 16 GPIO
+   bits (`gpio != gpio_prev`). Only GPIO[0] is driven; GPIO[15:1] are high-Z, and
+   `!=` on a vector containing `z` evaluates to `x`, so the condition was false for
+   every real edge. It now counts two-state edges of GPIO[0]
+   (`(gpio[0] ^ gpio0_prev) === 1'b1`).
+
+A third, purely observational point: the bench's simulation guard was 120 ms while
+its post-reset window was too short to see two blinks. `delay()` costs ~5 clock
+cycles per source cycle on this multi-cycle core, so one blink is ~250k cycles. The
+window is now 1.5M cycles and the guard 90 ms.
+
+### 13.2 Measured result (this session)
+
+```bash
+export PATH="/d/tools/oss-cad-suite/lib:/d/tools/oss-cad-suite/bin:$PATH"
+node scripts/eda/run_regression.js
+```
+
+```
+PASS 17 / 17        (exit 0)
+```
+
+`tb_firmware.v` alone, with the trace enabled in its log:
+
+```
+[fw] 20005090000 watchdog reset asserted
+[rst] 20005090000 rst_sys_n=0 timeout=1 en=1 ld=1000000 cnt=0 exp=1
+[fw] 20005410000 watchdog reset released; waiting for the rebooted banner
+[rst] 20005410000 rst_sys_n=1 timeout=0 en=0 ld=0 cnt=0 exp=0
+[fw] 35721390000 blink observation done: gpio toggles 2
+[fw] watchdog reset pulses: 1
+[fw] RESULT: PASS
+```
+
+So the demonstrator now proves, in one run: boot ROM → TCM image → UART banner →
+host `r` received and echoed → watchdog expiry at 20.005 ms → 16-cycle bounded
+`rst_sys_n` pulse from `reset_ctrl` → firmware reboots from the boot ROM → GPIO0
+blinks again. Runtime: 35.7 ms of simulated SoC time, ~1 min of wall clock, so the
+entry is the slowest in the suite.
+
+### 13.3 What this still does NOT prove
+
+- No image authentication: `boot.c` fails closed on purpose (no signature verifier
+  is linked), so the demo is not a secure-boot demonstration.
+- No flash programming, no OTA, no power-domain retention across the reset.
+- The watchdog reset is proven for this single-clock-domain configuration; nothing
+  here is a CDC or formal proof.
+
+### 13.4 Files changed this session
+
+`firmware/bare_metal/main.c`, `sim/sim_top/tb_firmware.v`, `build/fw/*`
+(regenerated `firmware.elf`/`.bin`/`.srec`, `rom.hex`, `tcm.hex`), `README.md`,
+`AGENTS.md`, `resume.md`, `.agents/OWNED-BY-BUFFY.md`.
