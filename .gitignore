@@ -129,6 +129,8 @@ firmware/depends
 scratch/
 tmp/
 temp/
+__pycache__/
+*.pyc
 *.log
 *.lgr
 *.tr
