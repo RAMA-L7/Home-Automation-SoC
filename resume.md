@@ -42,11 +42,24 @@ TOOLCHAIN / HOW TO RUN
 - Assemble boot ROM image: node scripts/fw/as.js firmware/boot/boot.S build/fw/boot.hex build/fw/boot.lst
 - Run regression: node scripts/eda/run_regression.js
 - Harness self-test: node scripts/eda/run_regression.js --self-test
-- Icarus 14.0 (devel) simulates; Verilator 5.053 lints but cannot build a C++
-  model here (no g++/make); Yosys 0.69+154 is installed but full-chip synthesis
-  is blocked by unpacked-array ports in the interconnect; SymbiYosys/Vivado/
-  OpenLane/OpenROAD/Magic/Netgen and a host C++ compiler are absent. No Python
-  either — firmware build uses build_fw.js, not build_fw.py.
+- All EDA tools are consolidated under D:\tools (WSL: /mnt/d/tools); read
+  D:\tools\EDA_TOOL_REGISTRY.md for exact paths, versions and workarounds.
+  31 tools verified by D:\tools\verify_tools.bat / verify_tools_wsl.sh.
+- Icarus 14.0 (devel) simulates. Verilator 5.053 works for lint AND C++
+  simulation: MinGW-w64 g++ 16.1.0 + make 4.4.1 at D:\tools\mingw64 (build with
+  -O2, not -Os) plus the Windows kit shim D:\tools\verilator-shim.
+- Yosys 0.69+154 (native) and 0.70 (WASM) present; core-only synthesis ran
+  (226 cells, 0 errors); full-chip synthesis is blocked by unpacked-array ports
+  in the interconnect. SymbiYosys SBY v0.69 is available, but no property has
+  been proven — scripts/formal/cdc still holds a failed-run ERROR file.
+- OpenLane 2 v2.0.0b16 (D:\tools\venv-openlane2), OpenROAD, OpenSTA 3.1.0,
+  Magic 8.3.105, Netgen 6.2.2401, KLayout, volare 0.20.6 are installed, but no
+  ASIC flow has been run: the sky130A PDK is not volare-enabled.
+- KiCad 10.0.8 at D:\tools\KiCad\10.0 (kicad-cli 10.0.8) — no project files yet.
+- Vivado is proprietary and absent, and there is no FPGA board, so FPGA work is
+  limited to constraints and Tcl scripts.
+- No usable `python` on PATH (Windows Store stub only) — firmware build uses
+  build_fw.js, not build_fw.py. A working interpreter is at D:\tools\venv.
 
 KEY FILES
 - RTL top: rtl/rtl_top/has_soc.sv, riscv_core.sv, reset_ctrl.sv, filelist.f

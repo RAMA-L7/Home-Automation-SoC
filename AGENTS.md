@@ -14,7 +14,8 @@
 **External Host:** Home Assistant + Claude-based voice assistant (off-chip)  
 **Core:** RISC-V RV32IMC  
 **Package Target:** QFN-64  
-**Process Target:** SkyWater 130nm (sky130) — PDK downloaded, OpenLane not installed
+**Process Target:** SkyWater 130nm (sky130) — PDK downloaded, OpenLane 2 installed but no flow executed
+**Toolchain:** every EDA tool lives under `D:\tools`; read `D:\tools\EDA_TOOL_REGISTRY.md` first
 
 ---
 
@@ -42,6 +43,11 @@
 | 2026-11-12 | OpenCode | Updated D:\tools\EDA_TOOL_REGISTRY.md: renumbered Section 2 to 2.1-2.29, added 8 new tool entries (2.18-2.25), new quick-reference commands, 6 new traps (24-29), expanded availability matrix, extended agent-to-tool map | All EDA tools now documented under D:\tools per project policy | DOCUMENTED |
 | 2026-11-12 | OpenCode | Priority 5 — Created ASIC physical design flow scripts in asic/ | config.json (OpenLane 2 config), flow.tcl (synthesis→P&R→STA→GDS), run_asic.sh (runner) | DOCUMENTED (templates — OpenLane 2 not installed, Python SSL broken) |
 | 2026-11-11 | OpenCode | Priority 6 — PCB design in KiCad | NOT STARTED — KiCad not installed, can only document | BLOCKED — KiCad not available |
+| 2026-11-12 | OpenCode | **ASCII block diagram rewritten and made generated.** Added `scripts/docs/gen_block_diagram.py` (character-grid renderer with measured column widths and a self-check that fails on any text overflow) and `scripts/docs/sync_readme_diagram.py` (injects the art into README.md between markers). Output also written to `docs/architecture/BLOCK_DIAGRAM.txt` | Borders align exactly, no text overruns a box, the diagram is regenerated from the RTL rather than hand-edited | MEASURED |
+| 2026-11-12 | OpenCode | **Mermaid diagram corrected** — the old one claimed an "RV32IMC core" with "PMP" and "User Mode", but the implemented core is RV32IM, machine-mode only, with no C extension, no user mode and no PMP. Peripheral set, bus fabric and interrupt path now match `has_soc.sv`, `intc_axi.sv` and `has_addr_map.sv` | Documentation now matches the RTL | VERIFIED |
+| 2026-11-12 | OpenCode | **Complete tool stack documented in README.md** — split into Design Stack, Simulation & Verification, ASIC Physical Design, FPGA & PCB, and Firmware & Build, each with version, platform, exact path and status. Added a "Reproducing the Verification" section with runnable commands | Every tool the project needs is discoverable from one document | DOCUMENTED |
+| 2026-11-12 | OpenCode | **Animated figure built** in `docs/figures/dispatcher/` — the SoC modelled as a pneumatic transaction dispatcher (capsule = a transaction, brass trunk = the bus fabric, address drum = one-hot decode, pigeonholes = memory and peripherals, lever = the core's fetch/exec/mem/trap states). Dark and light themes; `node build.mjs` regenerates it | Animation runs; the readout steps req/gnt → bus beat → decode → to memory → to peripheral while the lever steps FETCH → EXEC → MEM → TRAP | MEASURED |
+| 2026-11-12 | OpenCode | Updated `D:\tools\EDA_TOOL_REGISTRY.md` — renumbered Section 2 to 2.1-2.29, added 8 new tool entries (OpenLane 2, Magic, Netgen, Verible, portable Yosys/SymbiYosys, bazelisk, tkinter, POSIX utils), new quick-reference commands, traps 24-29, expanded availability matrix and agent-to-tool map | All EDA tools documented under `D:\tools` per project policy | DOCUMENTED |
 | 2026-11-12 | OpenCode | **RESOLVED the "no g++/make" blocker** — installed WinLibs MCF UCRT (g++ 16.1.0, gcc, make 4.4.1, ar, gdb) to D:\tools\mingw64\, created the required `make.exe` alias for `mingw32-make.exe` | Verilator C++ model build + link + run now works | MEASURED |
 | 2026-11-12 | OpenCode | Built a Windows-native Verilator kit shim (D:\tools\patch_verilator_kit.py → D:\tools\verilator-shim\). The OSS CAD Suite `verilator_bin.exe` hardcodes `VERILATOR_ROOT=/yosyshq/share/verilator` and ignores VERILATOR_ROOT/YOSYSHQ_ROOT; the shim provides a cmd.exe-compatible `verilated.mk` | Unblocks Verilator C++ simulation on Windows | VERIFIED |
 | 2026-11-12 | OpenCode | Added scripts/eda/verilator_build.bat, verilator_build_soc.bat, verilator_run.bat | Full-SoC Verilator build: 22 RTL files + tb_boot → Vtb_boot.exe | MEASURED |
@@ -63,10 +69,10 @@
 | 2 | RTL | PARTIAL | 22 SystemVerilog files, Verilator lint: **0 errors**; RV32IM core with exception/trap support; UART LSR fix; watchdog reset controller; per-slot APB isolation; AXI AW/W independence | UART FIFO/parity NOT IMPLEMENTED; flash write/erase NOT IMPLEMENTED; core still ignores rresp/bresp; no misaligned-load fault beyond traps already added | YES (RTL additions, testbenches) |
 | 3 | Firmware | PARTIAL | C firmware builds reproducibly with `build_fw.js` (RISC-V toolchain present) → `build/fw/firmware.elf` + `.bin`/`.srec`; `rom.hex`/`tcm.hex` regenerated; **C demo PASSES on the RTL SoC**: banner, UART RX, watchdog arm/pet, starve → internal reset → reboot + LED blink | No OTA, no flash write, no authenticated image; watchdog demo is diagnostic only | YES (firmware features) |
 | 4 | Verification | PARTIAL | Regression **PASS 17/17** (Icarus), including the C firmware demo; **Verilator C++ simulation** — full-SoC boot 7/7 PASS at ~20,000× real time; UART pin-level 153/153; reset_ctrl 15/15; ISA traps 47/47; boot 7/7; power_mgr 16/16; CLINT/PLIC/GPIO/SPI/I2C/PWM/timer/watchdog/I2S/SRAM/debug_jtag PASS | No formal proofs run; no trace/coverage; no CDC verification | PARTIAL (sim only) |
-| 5 | FPGA | PARTIAL | XDC constraints, OpenOCD config, bring-up guide, Vivado Tcl build scripts | Not synthesized — no Vivado | NO |
+| 5 | FPGA | PARTIAL | XDC constraints, OpenOCD config, bring-up guide, Vivado Tcl build scripts | Not synthesized — no Vivado (proprietary), no board | NO |
 | 6 | ASIC | PARTIAL | sky130 PDK downloaded, OpenLane 2 v2.0.0b16 installed (D:\tools\venv-openlane2\), Magic 8.3.105, Netgen 6.2.2401, KLayout 0.30.13, OpenROAD, OpenSTA 3.1.0, volare 0.20.6, bazelisk | End-to-end flow NOT_TESTED — needs a volare-enabled sky130A PDK and an OpenROAD build the flow can drive; full-chip Yosys blocked by interconnect unpacked-array ports | PARTIAL (scripts only) |
 | 7 | DFT/signoff | NOT STARTED | Documented as commercial-tool gap | Commercial tool required | NO |
-| 8 | PCB | PARTIAL | Schematic doc + BOM only, KiCad not installed | No KiCad files | NO |
+| 8 | PCB | PARTIAL | Schematic doc + BOM only; KiCad 10.0.8 installed at `D:\tools\KiCad\10.0` (`kicad-cli` 10.0.8 VERIFIED) | No KiCad project files — schematic/layout still to be drawn | YES (KiCad work) |
 | 9 | Final Delivery | COMPLETE | `reports/FINAL_PROJECT_DELIVERY_REPORT.md` | None | NO |
 
 ---
@@ -201,39 +207,42 @@ This ensures no work is repeated and the project moves forward continuously acro
 
 ## 6. NEXT EXECUTABLE TASKS (Pick Any)
 
-### Priority 1: Fix Icarus Testbenches (Icarus SV Compatibility)
-- `tb_pwm.v` — Array indexing in generate block causes elaboration error
-- `tb_i2c.v` — Explicit cast required
-- `tb_spi.v` — Explicit cast required
-- `tb_clint.v` — Port name mismatch
-- Fix these to run all 13 tests under Icarus
-
-### Priority 2: Create Full SoC Testbench
-- `tb_has_soc.v` exists but has AXI4-Lite handshake timing issues
-- Fix handshake timing and run full SoC simulation
-- Test reset, invalid bus accesses, memory, interrupts
-
-### Priority 3: Add SystemVerilog Assertions
-- `has_soc.sv` — Add SVA for bus protocols, reset, CDC
-- `axi_lite_interconnect.sv` — Add SVA for one-hot slave select, transaction ordering
-- Run SymbiYosys formal verification
-
-### Priority 4: Create FPGA Build Scripts
-- Create Vivado Tcl scripts for synthesis and implementation
-- Create bitstream generation script
-- Document FPGA bring-up steps
-
-### Priority 5: Create ASIC Physical Design Flow
-- sky130 PDK downloaded at `D:\tools\pdk\skywater-pdk-main\`
-- Install OpenLane 2 (needs Python with working SSL)
-- Create OpenLane config and flow scripts
-- Run synthesis, floorplan, placement, CTS, routing, STA
-
-### Priority 6: Create PCB Design in KiCad
-- Install KiCad
+### Priority 1: Create PCB Design in KiCad
+- ~~Install KiCad~~ — done, `D:\tools\KiCad\10.0` (kicad-cli 10.0.8)
 - Create schematic from `board/schematics/has_soc_sch.md`
 - Create PCB layout from `board/bom/bom.csv`
 - Generate Gerbers and BOM
+
+### Priority 2: Run the ASIC Flow End to End
+- ~~Install OpenLane 2~~ — done, `D:\tools\venv-openlane2` (CLI v2.0.0b16)
+- Provision the sky130A PDK through `volare` so OpenLane 2 can drive it
+- Reconcile the flow with the OpenROAD build in `D:\tools\openroad\`
+- Run synthesis → floorplan → placement → CTS → routing → STA → GDSII
+
+### Priority 3: Run Formal Verification
+- SymbiYosys is installed (`D:\tools\oss-cad-suite\bin\sby.exe`, and the
+  portable `D:\tools\venv\Scripts\yowasp-sby.exe`)
+- Run `reports/verification/formal_sram.sby` and `formal_interconnect.sby`
+- `reports/verification/formal_properties.sv` holds the SVA properties
+  (core reset/state/PC/fetch/data, interconnect one-hot and handshake, boot
+  ROM, SRAM, clock gating)
+
+### Priority 4: Fix the Full-SoC Testbench
+- `tb_has_soc.v` exists but has AXI4-Lite handshake timing issues
+- Fix handshake timing and run the full SoC simulation
+- Test reset, invalid bus accesses, memory, interrupts
+
+### Priority 5: FPGA
+- ~~Create Vivado Tcl scripts~~ — done, `fpga/projects/`
+- Vivado itself is not installed and is proprietary
+- Needs a Nexys A7-100T to program and check
+
+### Priority 6: Firmware
+- ~~Install the RISC-V toolchain~~ — done, `D:\tools\xpack-riscv-none-elf-gcc-12.2.0-2`
+- The `firmware (C demo)` regression entry still times out at 120 ms with
+  `wdog pulses 0`; the watchdog reset pulse is proven at block level but not
+  yet observed end to end in `tb_firmware.v`
+- Secure boot, OTA signing and flash program/erase are still unimplemented
 
 ---
 

@@ -6,6 +6,19 @@
 **Agent:** OpenCode (model: nemotron-3.5-super-vl-free)
 **External Host:** Home Assistant + Claude-based voice assistant (cloud requests, speech processing) — off-chip.
 
+> **CORRECTION BANNER — 2026-11-12 (toolchain re-verified).** Where this file
+> still says tools are missing, read it as history. Current measured state:
+>
+> - All EDA tools live under `D:\tools` (see `D:\tools\EDA_TOOL_REGISTRY.md`);
+>   31 tools verified functional (16 Windows + 15 WSL, 0 failures).
+> - MinGW-w64 g++ 16.1.0 + make 4.4.1 installed → Verilator C++ simulation works.
+> - OpenLane 2 v2.0.0b16, OpenROAD, OpenSTA 3.1.0, Magic 8.3.105,
+>   Netgen 6.2.2401, KLayout, volare 0.20.6 installed — no ASIC flow run yet
+>   (sky130A PDK not volare-enabled).
+> - KiCad 10.0.8 installed; SymbiYosys SBY v0.69 available; cocotb 2.1.0 installed.
+> - RISC-V gcc 12.2.0 builds the C firmware, and `tb_firmware.v` executes it on
+>   the RTL SoC. `node scripts/eda/run_regression.js` reports **17/17 PASS, exit 0**.
+>
 > **CORRECTION BANNER — 2026-11-11 (Buffy, independent re-review).** The stage
 > table below predates the current evidence and is superseded where it disagrees
 > with `TECH_STACK.md` and `reports/INDEPENDENT_REVIEW_2026-11-11.md`:
@@ -14,7 +27,8 @@
 >   aborted at `$dumpfile("../waveforms/…")` (missing directory) and still exited
 >   0; two did not compile at all. They now run and pass, and a strict runner
 >   (`scripts/eda/run_regression.js`) reports 14/15 with exit status 1 because no
->   UART protocol test exists.
+>   UART protocol test exists. (Superseded 2026-11-12: the UART pin-level test
+>   and the C-firmware demo were added, and the suite is 17/17 PASS.)
 > - "compiled with riscv32-unknown-elf-gcc 12.2.0" is **UNVERIFIED**: no RISC-V
 >   toolchain is installed here and `firmware/build/firmware.elf` contains no
 >   toolchain metadata. The C firmware has not been rebuilt.
@@ -115,10 +129,11 @@ All 22 SystemVerilog files pass `--lint-only -Wall`. 279 benign warnings (unused
 | riscv-none-elf-gcc | 12.2.0 | WORKING | `D:\tools\xpack-riscv-none-elf-gcc-12.2.0-2\bin\` |
 | openocd | present (5.5 MB exe) | UNCONFIRMED | `--version` produced no output |
 | Python / cocotb | — | BROKEN | `D:\tools\eda-venv\bin\python.exe` = 0 bytes; OSS CAD Suite Python has no SSL |
-| OpenSTA | — | BUILD FAILED | CUDD make failed |
-| g++/make | — | NOT INSTALLED | Needed for Verilator C++ simulation |
-| sky130 PDK | — | DOWNLOADED | `D:\tools\pdk\skywater-pdk-main\` |
-| OpenLane 2 | — | NOT INSTALLED | Needs Python with pip (SSL broken) |
+| OpenSTA | 3.1.0 | RUNNABLE (WSL) | Needs `LD_LIBRARY_PATH=/mnt/d/tools/opensta/lib` (libcudd); prefer OpenROAD's embedded STA |
+| g++/make | g++ 16.1.0, make 4.4.1 | INSTALLED | `D:\tools\mingw64\bin`; build Verilator models with `-O2`, not `-Os` |
+| sky130 PDK | — | DOWNLOADED | `D:\tools\pdk\skywater-pdk-main\` — not volare-enabled for OpenLane 2 |
+| OpenLane 2 | v2.0.0b16 | INSTALLED, CLI RUNNABLE | `D:\tools\venv-openlane2\`; no flow executed yet |
+| Verilator C++ model | 5.053 devel | WORKS | `scripts/eda/verilator_build_soc.bat` + `verilator_run.bat`; full-SoC boot 7/7 |
 
 **Toolchain root:** `D:\tools\oss-cad-suite` (OSS CAD Suite 20260928, extracted).
 
@@ -127,13 +142,13 @@ All 22 SystemVerilog files pass `--lint-only -Wall`. 279 benign warnings (unused
 ## Known Blockers & Gaps (documented honestly)
 
 1. **No RISC-V cross-toolchain** → RESOLVED: `riscv-none-elf-gcc 12.2.0` installed at `D:\tools\xpack-riscv-none-elf-gcc-12.2.0-2\bin\`
-2. **No g++/make** → Verilator C++ simulation unavailable → Verilator lint used instead
-3. **No Python/cocotb** → cocotb unavailable (Python SSL broken) → Icarus/Verilator used instead
-4. **No OpenLane 2** → ASIC P&R blocked → PDK downloaded, OpenLane not installed
+2. ~~**No g++/make**~~ → RESOLVED: WinLibs g++ 16.1.0 + make 4.4.1 at `D:\tools\mingw64\bin`; Verilator C++ simulation works
+3. ~~**No Python/cocotb**~~ → RESOLVED: Python 3.10 + cocotb 2.1.0 in `D:\tools\venv`; no cocotb testbench written yet
+4. **No ASIC flow run** → OpenLane 2 v2.0.0b16 installed but the sky130A PDK is not volare-enabled; no synthesis/P&R/STA/DRC/LVS result exists
 5. **No FPGA hardware** → Stage 5 limited to constraints
 6. **No Vivado installed** → Cannot synthesize to FPGA
 7. **No open-source DFT/ATPG** → Commercial tool required for production test signoff
-8. **No KiCad confirmed** → PCB limited to documentation
+8. ~~**No KiCad**~~ → RESOLVED: KiCad 10.0.8 installed; no schematic/layout files yet
 9. **ADRs are PROPOSED, not approved** → Architecture not approved per phase_0 report
 10. **PLL clock source** → UNRESOLVED — no sky130-qualified open PLL IP
 
@@ -143,6 +158,7 @@ All 22 SystemVerilog files pass `--lint-only -Wall`. 279 benign warnings (unused
 
 | Date | Action | Files Changed | Evidence |
 |------|--------|---------------|----------|
+| 2026-11-12 | Reconciled docs with the consolidated `D:\tools` toolchain; regression now 17/17 and the C firmware executes in `tb_firmware.v` | `README.md`, `TECH_STACK.md`, `AGENTS.md`, `resume.md`, `reports/verification/README.md`, `reports/FINAL_PROJECT_DELIVERY_REPORT.md`, this file | VERIFIED (tool versions re-run) + MEASURED (17/17) |
 | 2026-11-11 | Inspected project tree, git state, toolchain, research reports | — | VERIFIED |
 | 2026-11-11 | Stripped UTF-8 BOM from 3 architecture docs | `docs/architecture/*.md` | MEASURED |
 | 2026-11-11 | Created system requirements | `docs/requirements/system_requirements.md` | VERIFIED |

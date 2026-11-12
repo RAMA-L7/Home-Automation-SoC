@@ -35,6 +35,14 @@ plain-language summary of the latest session (2026-11-12, session 5):
   (gcc 12.2.0; readelf/objdump 2.38). C firmware build uses
   scripts/fw_build/build_fw.js; Python is not available.
 - Icarus 14.0 simulates; Verilator 5.053 is lint-only here.
+- 2026-11-12 toolchain reconciliation: every EDA tool now lives under D:\tools
+  (see D:\tools\EDA_TOOL_REGISTRY.md). README/TECH_STACK/AGENTS/resume and the
+  reports were corrected where they still said g++/make, OpenLane 2, KiCad,
+  SymbiYosys, cocotb or the RISC-V toolchain were missing.
+  Re-verified directly: g++ 16.1.0, make 4.4.1, verible v0.0-4298, kicad-cli
+  10.0.8, SBY v0.69, Verilator 5.053, yowasp-yosys 0.70, Python 3.10.11,
+  riscv-none-elf-gcc 12.2.0. Magic/Netgen/OpenROAD/OpenSTA/KLayout/volare are
+  WSL-only and were not re-run — those entries stay DOCUMENTED from the registry.
 ---
 
 AGENTS.md session log being mirrored below:

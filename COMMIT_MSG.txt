@@ -1,0 +1,43 @@
+Professional documentation: generated ASCII block diagram, corrected Mermaid, complete tool stack, animated figure
+
+Diagrams
+- scripts/docs/gen_block_diagram.py: the ASCII block diagram is now generated on
+  a character grid with measured column widths and a self-check that fails
+  loudly if any text overruns its box. The old hand-drawn art was
+  misaligned and overflowed.
+- scripts/docs/sync_readme_diagram.py: injects the generated art into README.md
+  between markers and writes docs/architecture/BLOCK_DIAGRAM.txt.
+- The Mermaid diagram was corrected: it claimed an "RV32IMC core" with "PMP"
+  and "User Mode", but the implemented core is RV32IM, machine-mode only, with
+  no C extension, no user mode and no PMP. The peripheral set, bus fabric and
+  interrupt path now match has_soc.sv, intc_axi.sv and has_addr_map.sv.
+
+Tool stack
+- README.md now carries the complete tool stack in five tables: Design Stack,
+  Simulation & Verification, ASIC Physical Design, FPGA & PCB, and Firmware &
+  Build. Each row gives the version, the platform, the exact path under
+  D:\tools and its status.
+- Added a "Reproducing the Verification" section with runnable commands for
+  the regression, the Verilator C++ model, Verible lint, SymbiYosys formal and
+  the toolchain self-check.
+
+Animated figure
+- docs/figures/dispatcher/ builds an isometric SVG of the SoC as a pneumatic
+  transaction dispatcher: the capsule is one transaction, the brass trunk is
+  the bus fabric, the address drum is the one-hot decode, the four
+  pigeonholes are Boot ROM / TCM / SRAM / the APB peripherals, and the lever
+  steps the core through fetch, execute, memory and trap.
+- Dark and light themes; `node build.mjs` regenerates both. Verified with
+  headless Chrome: the readout steps req/gnt -> bus beat -> decode ->
+  to memory -> to peripheral while the lever steps FETCH -> EXEC -> MEM -> TRAP.
+- The kit and capture scripts are vendored into docs/figures/ so the figure
+  builds without the skill installed.
+
+Docs
+- AGENTS.md: change log entries for this session, and Section 6 rewritten so
+  the next steps reflect reality (KiCad schematic/PCB, ASIC flow end to end,
+  formal verification, full-SoC testbench, FPGA, firmware).
+- README.md: figure links, the animated preview, and the ASCII block diagram.
+
+Agent: OpenCode (nemotron-3.5-super-vl-free)
+Date: 2026-11-12

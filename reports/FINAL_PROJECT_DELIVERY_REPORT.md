@@ -170,13 +170,20 @@ Evidence:  MEASURED via direct tool execution
 | Debug JTAG | 0 (stub) | 0 |
 
 ### 4.4 Verification Gaps (documented honestly)
-- No full-SoC functional simulation (no g++/make for Verilator C++ build)
-- No cocotb (no working Python)
-- No riscv-dv ISA tests (no RISC-V cross-toolchain — NOW INSTALLED, can add)
-- No SymbiYosys formal proofs completed (Yosys SV package support limited)
+
+> **Updated 2026-11-12:** the tooling gaps listed below for Verilator, cocotb,
+> the RISC-V toolchain and firmware execution are now closed — full-SoC Verilator
+> simulation runs (7/7), `scripts/eda/run_regression.js` reports **17/17 PASS**,
+> and the compiled C firmware runs end to end in `tb_firmware.v`. What remains is
+> the verification work itself, listed as the last four items.
+
+- ~~No full-SoC functional simulation~~ — closed: Verilator C++ model + Icarus
+- ~~No cocotb~~ — installed (2.1.0) but no cocotb testbench written yet
+- No riscv-dv ISA tests (RISC-V cross-toolchain installed; riscv-dv not set up)
+- No SymbiYosys formal proofs completed (SymbiYosys available; no property proven)
 - No CDC formal verification
 - No low-power/UPF verification
-- No firmware-driven tests (firmware compiled but not executed on hardware)
+- ~~No firmware-driven tests~~ — closed: `tb_firmware.v` runs the C image; still not executed on hardware
 
 ---
 

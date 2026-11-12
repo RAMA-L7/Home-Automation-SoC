@@ -52,15 +52,21 @@ All tests executed with actual tool output (MEASURED). No results fabricated.
 - Reset behavior (all peripherals reset to known state)
 - Synthesis of all major peripherals (Yosys)
 
-### Not Yet Covered (blocked by tooling)
-- Full-SoC functional simulation (no g++/make for Verilator C++ build)
-- RISC-V instruction execution (no RISC-V cross-toolchain)
-- cocotb-based verification (no working Python)
-- riscv-dv ISA tests (no RISC-V toolchain)
-- SymbiYosys formal proofs (Yosys has limited SystemVerilog package support)
+### Now Covered (2026-11-12)
+- Full-SoC functional simulation — Verilator C++ model (boot 7/7) and Icarus
+- RISC-V instruction execution — `tb_isa.v` 24/24 directed + 47/47 trap checks
+- UART protocol at pin level — `tb_uart.v` 153/153 checks
+- Watchdog reset path — `tb_reset_ctrl.v` 15/15 checks
+- Firmware-driven test — `tb_firmware.v` runs the compiled C image
+  (banner → UART command → watchdog reset → reboot → LED); suite is 17/17 PASS
+
+### Not Yet Covered
+- cocotb-based verification (cocotb 2.1.0 installed, no cocotb testbench written)
+- riscv-dv ISA tests (RISC-V toolchain installed, riscv-dv not set up)
+- SymbiYosys formal proofs (SymbiYosys available; no property proven yet)
 - CDC formal verification
 - Low-power/UPF verification (no open-source UPF tool)
-- Firmware-driven tests (firmware not compiled)
+- Hardware execution (no FPGA board, no Vivado)
 
 ## Waveform Files
 - `sim/waveforms/tb_sram.vcd`
