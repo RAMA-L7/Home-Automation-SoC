@@ -43,6 +43,16 @@
 #define REG_WDOG_CTRL       (*(volatile uint32_t *)(WDOG_BASE + 0x04))
 #define REG_WDOG_STATUS     (*(volatile uint32_t *)(WDOG_BASE + 0x08))
 
+/* Watchdog period in cycles (1,000,000 = 20 ms at 50 MHz).  This is the
+ * firmware's only value: the same constant is used to reload and to pet. */
+#define WDOG_RELOAD         1000000u
+/* CTRL bits: bit0 enable, bit1 route the timeout to the reset output.
+ * Both bits are needed: enabling the counter alone only raises irq, and a
+ * watchdog that cannot reset the SoC is not a watchdog. */
+#define WDOG_CTRL_ENABLE    (1u << 0)
+#define WDOG_CTRL_RESET_EN  (1u << 1)
+#define WDOG_CTRL_ARMED     (WDOG_CTRL_ENABLE | WDOG_CTRL_RESET_EN)
+
 /* Power manager registers */
 #define REG_PM_CTRL         (*(volatile uint32_t *)(PWRMGR_BASE + 0x00))
 #define REG_PM_STATUS       (*(volatile uint32_t *)(PWRMGR_BASE + 0x04))
@@ -103,8 +113,10 @@ static void uart_print_hex(uint32_t v)
 static void delay(volatile uint32_t cycles)
 {
     while (cycles--) {
-        if ((cycles & 0xFFFFu) == 0u)
-            REG_WDOG_LOAD = 1000000u;
+        /* Pet every 4,096 cycles: well inside the WDOG_RELOAD window and
+         * reachable even for delays shorter than the old 65,536 mask. */
+        if ((cycles & 0x0FFFu) == 0u)
+            REG_WDOG_LOAD = WDOG_RELOAD;
     }
 }
 
@@ -124,9 +136,9 @@ int main(void)
     REG_UART_LCR = 0x03;               /* 8 bits, no parity, 1 stop */
     REG_UART_IER = 0x00;               /* no interrupts (polling) */
 
-    /* Enable watchdog (reload = 1M cycles) */
-    REG_WDOG_LOAD = 1000000u;
-    REG_WDOG_CTRL = 0x01;              /* enable */
+    /* Arm the watchdog: counting + timeout drives the reset output. */
+    REG_WDOG_LOAD = WDOG_RELOAD;
+    REG_WDOG_CTRL = WDOG_CTRL_ARMED;
 
     /* Announce boot */
     uart_puts("\r\n=== Home-Automation-SoC Firmware ===\r\n");
@@ -149,8 +161,8 @@ int main(void)
         uart_print_hex(blink_count);
         uart_puts("\r\n");
 
-        /* Kick watchdog */
-        REG_WDOG_LOAD = 1000000u;
+        /* Pet the watchdog */
+        REG_WDOG_LOAD = WDOG_RELOAD;
 
         /* Check for UART command (non-blocking poll via LSR) */
         if (REG_UART_LSR & 0x01) {

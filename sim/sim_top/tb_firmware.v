@@ -137,14 +137,26 @@ module tb_firmware;
   integer wdog_pulses = 0;
   reg     wdog_prev = 1'b1;
   integer gpio_toggles = 0;
-  reg [15:0] gpio_prev = 16'h0000;
+  reg     gpio0_prev = 1'b0;
 
+  // Only GPIO[0] (the LED) is driven; GPIO[15:1] are high-Z, and `!=` on a
+  // vector with Z bits evaluates to X, which never counts.  Count real
+  // two-state edges of the LED pin instead.
   always @(posedge clk) begin
     wdog_prev <= wdog_reset_n;
     if (!wdog_reset_n && wdog_prev) wdog_pulses = wdog_pulses + 1;
-    gpio_prev <= gpio;
-    if (gpio != gpio_prev) gpio_toggles = gpio_toggles + 1;
+    gpio0_prev <= gpio[0];
+    if ((gpio[0] ^ gpio0_prev) === 1'b1) gpio_toggles = gpio_toggles + 1;
   end
+
+  // Debug trace: every system-reset transition with the watchdog state that
+  // caused it.  Kept in the bench because the C demo is the only test that
+  // exercises reset_ctrl + watchdog together.
+  always @(dut.rst_sys_n)
+    $display("[rst] %0t rst_sys_n=%b timeout=%b en=%b ld=%0d cnt=%0d exp=%b",
+             $time, dut.rst_sys_n, dut.wdog_timeout, dut.wdog_inst.enable,
+             dut.wdog_inst.load, dut.wdog_inst.count, dut.wdog_inst.expired);
+
 
   //--------------------------------------------------------------------------
   // Sequence
@@ -169,15 +181,31 @@ module tb_firmware;
     $display("[fw] command 'r' received and echoed");
     line = 0;
 
-    // 3. watchdog times out (1,000,000 ungated clocks) and resets the SoC;
-    //    reset_ctrl releases the system and the firmware reboots.
-    gpio_toggles = 16'hFFFF; // track GPIO blinks only between now and the reboot
-    @(posedge wdog_reset_n);   // best-effort: ensure the active-low pulse is visible
+    // 3. the firmware now spins without petting the watchdog.  After
+    //    WDOG_RELOAD (1,000,000 ungated clocks, 20 ms) the watchdog expires,
+    //    reset_ctrl turns that level into a bounded pulse, and the SoC
+    //    reboots from the boot ROM.
+    gpio_toggles = 0;          // count LED blinks of the rebooted firmware
     wait (wdog_reset_n == 1'b0);
-    @ (posedge wdog_reset_n);   // release to release edge
-    $display("[fw] watchdog pulse observed; waiting for the rebooted banner");
+    $display("[fw] %0t watchdog reset asserted", $time);
+    wait (wdog_reset_n == 1'b1);
+    $display("[fw] %0t watchdog reset released; waiting for the rebooted banner", $time);
+
+    // 4. the rebooted firmware announces itself again and resumes blinking
     wait (line[8*19-1:0] == "Ready for commands.");
     $display("[fw] firmware rebooted after the watchdog reset");
+    wait (line[8*7-1:0] == "Blink #");
+    $display("[fw] %0t rebooted firmware reached its blink loop", $time);
+    // Two LED edges: the loop in main() delays 50,000 *source* cycles, which
+    // is ~250,000 clock cycles on this multi-cycle core, so allow 1.5M.
+    begin : wait_blink
+      integer n;
+      for (n = 0; n < 1500000; n = n + 1) begin
+        if (gpio_toggles >= 2) disable wait_blink;
+        @(posedge clk);
+      end
+    end
+    $display("[fw] %0t blink observation done: gpio toggles %0d", $time, gpio_toggles);
 
     if (wdog_pulses < 1) begin
       $display("[fw] RESULT: FAIL (no watchdog reset pulse: %0d)", wdog_pulses);
@@ -195,11 +223,13 @@ module tb_firmware;
     $finish;
   end
 
-  // 120 ms: the watchdog timeout is 20.8 ms plus boot banners.
+  // Simulation-time guard: the watchdog timeout is 20 ms, the banners add
+  // ~1 ms each and the two LED blinks add ~12 ms, so 90 ms is ample while
+  // still bounded.
   initial begin
-    #120_000_000;
-    $display("[fw] RESULT: FAIL (timeout after 120 ms; %0d chars, wdog pulses %0d)",
-             nchars, wdog_pulses);
+    #90_000_000;
+    $display("[fw] RESULT: FAIL (timeout after 90 ms; %0d chars, wdog pulses %0d, gpio toggles %0d)",
+             nchars, wdog_pulses, gpio_toggles);
     $fatal(1, "firmware demonstration timed out");
   end
 

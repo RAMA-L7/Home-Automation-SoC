@@ -73,12 +73,27 @@ optional third write-back stage — not a four-stage core.
 | Verilator (lint) | 5.053 devel v5.052-119-g014c9820d | WORKS |
 | Verilator (C++ simulation) | 5.053 devel | **WORKS** — MinGW-w64 toolchain + Windows kit shim installed; full SoC boot 7/7 PASS at ~20,000× real time |
 | MinGW-w64 toolchain (g++/ar/make) | g++ 16.1.0, make 4.4.1 (WinLibs MCF UCRT) | WORKS — use `-O2`, not `-Os` (see registry trap 17) |
-| Yosys | 0.69+154 | Available; full-chip synthesis blocked by SV unpacked-array ports in `axi_lite_interconnect.sv` |
-| SymbiYosys (`sby`) | SBY v0.69 | Available in OSS CAD Suite, not yet exercised on this design |
+| Verible lint/format | v0.0-4298-g085eef05 | WORKS (`D:\tools\verible\`) |
+| Yosys (portable/WASM) | 0.70.0.0.post1259 | WORKS (`D:\tools\venv\`, `D:\tools\venv-wsl\`) |
+| SymbiYosys (portable/WASM) | SBY v0.69 | WORKS (`D:\tools\venv\`, `D:\tools\venv-wsl\`) |
+| cocotb | 2.1.0 | Installed in `D:\tools\venv\` |
+| Yosys (native, Windows) | 0.69+154 | Available; full-chip synthesis blocked by SV unpacked-array ports in `axi_lite_interconnect.sv` |
+| Yosys (native, WSL) | 0.33 (apt) | Available but too old for the ORFS flow — use the WASM 0.70 build instead |
+| SymbiYosys (native) | SBY v0.69 | Available in OSS CAD Suite |
 | Node.js | v26.7.0 | WORKS (assembler + regression runner) |
 | RISC-V GCC | xPack 12.2.0 at `D:\tools\xpack-riscv-none-elf-gcc-12.2.0-2\bin` | WORKS — firmware builds reproducibly |
-| cocotb | 2.1.0 | Installed (Windows Store Python 3.10); not exercised yet |
 | KiCad | 10.0.8 at `D:\tools\KiCad\10.0\` | WORKS (`kicad-cli --version` → 10.0.8) |
+| OpenLane 2 | v2.0.0b16 at `D:\tools\venv-openlane2\` | **CLI RUNNABLE** — end-to-end flow NOT_TESTED (needs volare-enabled sky130A PDK + flow-compatible OpenROAD) |
+| Magic (DRC) | 8.3.105 at `D:\tools\magic\` | **RUNNABLE** (WSL) — sky130 Magic tech file not in the local PDK |
+| Netgen (LVS) | 6.2.2401 at `D:\tools\netgen\` | **RUNNABLE** (WSL) |
+| volare | 0.20.6 | **RUNNABLE** (WSL, `D:\tools\venv-openlane2\`) |
+| KLayout | 0.30.13 | RUNNABLE (WSL) |
+| OpenROAD / OpenSTA | bazel-nostamp / 3.1.0 | RUNNABLE (WSL) |
+
+All 31 tools are verified functional (16 Windows + 15 WSL, 0 failures) by
+`D:\tools\verify_tools.bat` and `D:\tools\verify_tools_wsl.sh`. The full
+inventory with exact paths and known limitations lives in
+`D:\tools\EDA_TOOL_REGISTRY.md`.
 
 ### 3.1 Testbenches (MEASURED by `node scripts/eda/run_regression.js`)
 

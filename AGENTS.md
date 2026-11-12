@@ -38,7 +38,9 @@
 | 2026-11-11 | OpenCode | Yosys synthesis of riscv_core.sv after fixes: PASSES — 502 wires, 226 cells, 0 errors | Confirms ALU fix is syntactically valid and synthesizable | MEASURED |
 | 2026-11-11 | OpenCode | Full-chip Yosys synthesis blocked: axi_lite_interconnect.sv line 57 uses unpacked array ports (SV construct Yosys 0.69 doesn't accept in Verilog-2005 frontend mode) | Pre-existing issue, not caused by my changes. All other files parse correctly. | BLOCKED — Yosys SV limitation |
 | 2026-11-11 | OpenCode | Priority 4 — Created Vivado Tcl build scripts in fpga/projects/ | build.tcl (full flow), synth.tcl, impl.tcl, bitstream.tcl | DOCUMENTED (templates — Vivado not installed) |
-| 2026-11-11 | OpenCode | Priority 5 — Created ASIC physical design flow scripts in asic/ | config.json (OpenLane 2 config), flow.tcl (synthesis→P&R→STA→GDS), run_asic.sh (runner) | DOCUMENTED (templates — OpenLane 2 not installed, Python SSL broken) |
+| 2026-11-12 | OpenCode | **EDA toolchain consolidation into D:\tools** — installed Verible v0.0-4298 (SystemVerilog lint/format), OpenLane 2 v2.0.0b16 (source + venv + wrapper), Magic 8.3.105 (DRC), Netgen 6.2.2401 (LVS), tkinter (extracted), bazelisk 1.30.0; created Python venvs at D:\tools\venv (Windows: cocotb 2.1.0, yowasp-yosys 0.70, yowasp-sby) and D:\tools\venv-wsl (WSL) | 31 tools verified functional (16 Windows + 15 WSL, 0 failures) via D:\tools\verify_tools.bat and verify_tools_wsl.sh | MEASURED |
+| 2026-11-12 | OpenCode | Updated D:\tools\EDA_TOOL_REGISTRY.md: renumbered Section 2 to 2.1-2.29, added 8 new tool entries (2.18-2.25), new quick-reference commands, 6 new traps (24-29), expanded availability matrix, extended agent-to-tool map | All EDA tools now documented under D:\tools per project policy | DOCUMENTED |
+| 2026-11-12 | OpenCode | Priority 5 — Created ASIC physical design flow scripts in asic/ | config.json (OpenLane 2 config), flow.tcl (synthesis→P&R→STA→GDS), run_asic.sh (runner) | DOCUMENTED (templates — OpenLane 2 not installed, Python SSL broken) |
 | 2026-11-11 | OpenCode | Priority 6 — PCB design in KiCad | NOT STARTED — KiCad not installed, can only document | BLOCKED — KiCad not available |
 | 2026-11-12 | OpenCode | **RESOLVED the "no g++/make" blocker** — installed WinLibs MCF UCRT (g++ 16.1.0, gcc, make 4.4.1, ar, gdb) to D:\tools\mingw64\, created the required `make.exe` alias for `mingw32-make.exe` | Verilator C++ model build + link + run now works | MEASURED |
 | 2026-11-12 | OpenCode | Built a Windows-native Verilator kit shim (D:\tools\patch_verilator_kit.py → D:\tools\verilator-shim\). The OSS CAD Suite `verilator_bin.exe` hardcodes `VERILATOR_ROOT=/yosyshq/share/verilator` and ignores VERILATOR_ROOT/YOSYSHQ_ROOT; the shim provides a cmd.exe-compatible `verilated.mk` | Unblocks Verilator C++ simulation on Windows | VERIFIED |
@@ -61,7 +63,7 @@
 | 3 | Firmware | PARTIAL | C firmware builds reproducibly with `build_fw.js` (RISC-V toolchain present) → `build/fw/firmware.elf` + `.bin`/`.srec`; `rom.hex`/`tcm.hex` regenerated; tb_firmware boots and prints banner + RX command | tb_firmware watchdog-pulse observation still OPEN (wdog pulses 0, 120 ms timeout); C firmware RX path was previously dead — now fixed via UART LSR DR bit0 + OE/FE sticky flags | YES (firmware + tb_firmware debug) |
 | 4 | Verification | PARTIAL | Regression PASS 16/17 (Icarus); **Verilator C++ simulation now working** — full-SoC boot 7/7 PASS at ~20,000× real time; UART pin-level 153/153; reset_ctrl 15/15; ISA traps 47/47; boot 7/7; power_mgr 16/16; CLINT/PLIC/GPIO/SPI/I2C/PWM/timer/watchdog/I2S/SRAM/debug_jtag PASS | firmware (C demo) entry still FAIL (timeout); no formal proofs run; no trace/coverage enabled | PARTIAL (sim only) |
 | 5 | FPGA | PARTIAL | XDC constraints, OpenOCD config, bring-up guide, Vivado Tcl build scripts | Not synthesized — no Vivado | NO |
-| 6 | ASIC | PARTIAL | sky130 PDK downloaded, OpenLane 2 flow scripts | OpenLane not installed, no P&R; full-chip Yosys blocked by interconnect unpacked-array ports | PARTIAL (scripts only) |
+| 6 | ASIC | PARTIAL | sky130 PDK downloaded, OpenLane 2 v2.0.0b16 installed (D:\tools\venv-openlane2\), Magic 8.3.105, Netgen 6.2.2401, KLayout 0.30.13, OpenROAD, OpenSTA 3.1.0, volare 0.20.6, bazelisk | End-to-end flow NOT_TESTED — needs a volare-enabled sky130A PDK and an OpenROAD build the flow can drive; full-chip Yosys blocked by interconnect unpacked-array ports | PARTIAL (scripts only) |
 | 7 | DFT/signoff | NOT STARTED | Documented as commercial-tool gap | Commercial tool required | NO |
 | 8 | PCB | PARTIAL | Schematic doc + BOM only, KiCad not installed | No KiCad files | NO |
 | 9 | Final Delivery | COMPLETE | `reports/FINAL_PROJECT_DELIVERY_REPORT.md` | None | NO |
@@ -162,10 +164,12 @@
 
 | Blocker | Impact | What's Needed |
 |---------|--------|---------------|
+| No OpenLane 2 | FIXED — OpenLane 2 v2.0.0b16 installed at D:\tools\venv-openlane2\ (source D:\tools\src\openlane2\), CLI reports `OpenLane v2.0.0b16`. Also installed: Magic 8.3.105 (DRC), Netgen 6.2.2401 (LVS), volare 0.20.6, bazelisk 1.30.0, tkinter | End-to-end flow still needs a volare-enabled sky130A PDK and an OpenROAD build the flow can drive — NOT_TESTED |
 | No g++/make | FIXED — WinLibs MCF UCRT installed at D:\tools\mingw64\ (g++ 16.1.0, make 4.4.1, ar). Verilator C++ simulation now works end-to-end (full SoC 7/7 PASS). | None |
-| Python/cocotb | FIXED — Python 3.10 with SSL works, cocotb 2.1.0 installed | None |
+| No RTL style linter | FIXED — Verible v0.0-4298-g085eef05 installed at D:\tools\verible\ (11 tools) | None |
+| No modern WSL Yosys | FIXED — yowasp-yosys 0.70 (WebAssembly) at D:\tools\venv-wsl\ (the apt Yosys is 0.33 from 2022) | None |
+| Python/cocotb | FIXED — Python 3.10 with SSL works, cocotb 2.1.0 installed (also consolidated into D:\tools\venv\) | None |
 | KiCad | FIXED — Installed at D:\tools\KiCad\10.0\ (kicad-cli v10.0.8) | None |
-| No OpenLane 2 | ASIC P&R blocked | Not pip-installable; needs source build with many dependencies |
 | No FPGA hardware | Stage 5 limited to constraints | Acquire Nexys A7 or similar |
 | No Vivado installed | Cannot synthesize to FPGA | Install Xilinx Vivado (proprietary) |
 | ADRs are PROPOSED | Architecture not approved | Stakeholder approval needed |
