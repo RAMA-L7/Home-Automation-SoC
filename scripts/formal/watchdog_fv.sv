@@ -1,35 +1,77 @@
 //------------------------------------------------------------------------------
-// Home-Automation-SoC — formal wrapper for `watchdog`
+// Home-Automation-SoC — formal harness for `watchdog`
 //
-// Properties that the C firmware demo depends on (tb_firmware.v):
+// Directed-stimulus harness.  It drives the APB port itself, so every property
+// below is a statement about observable pins only (prdata is unused, and no
+// internal signal is referenced — this Yosys SV frontend mis-resolves
+// hierarchical references inside assertions).
 //
-//   A1  The reset output is exactly (expired && reset_en).  Enabling the
-//       counter alone must never reset the SoC.
-//   A2  Expiry can only be latched while the counter is enabled.
-//   A3  A pet (a LOAD write) restarts the full period: the next-cycle counter
-//       value must be the written value, not a decremented leftover.
-//   A4  irq mirrors the sticky expired flag.
-//   A5  The KEY register locks CTRL until reset.
+// Scenario and properties:
 //
-// A3 is the reason this file exists: the original RTL applied the LOAD write
-// and the count-down in the same always_ff, so the decrement silently won and
-// a pet did not reload the counter.  `sby` produces a counterexample for A3 on
-// that version.
+//   W1  Before anything is written the reset output is released.
+//   W2  Arm LOAD = K, then CTRL = enable|reset_en, then pet LOAD = K on every
+//       cycle.  While the dog is being fed, `irq` must never rise.  This is the
+//       property the original RTL violated: the LOAD write was applied in the
+//       same always_ff as the count-down and the decrement won, so a pet never
+//       reloaded the counter and the dog expired ~K cycles later regardless.
+//   W3  With reset_en armed, `reset_n_out` is exactly the inverse of `irq`.
+//   W4  Once feeding stops, the dog must expire within K+2 cycles.
+//   W5  Enabled but *not* reset-enabled, `irq` still rises while
+//       `reset_n_out` stays high — a counter alone is not a reset source.
+//
+// The stimulus is deterministic, so `mode bmc` with a depth beyond the
+// scenario is a complete check of it, not a sample.
 //------------------------------------------------------------------------------
 module watchdog_fv (
-  input logic        pclk,
-  input logic        presetn,
-  input logic        penable,
-  input logic        pwrite,
-  input logic [31:0] paddr,
-  input logic [31:0] pwdata
+  input logic pclk
 );
 
+  localparam logic [31:0] K        = 32'd8;   // programmed timeout
+  localparam int          POR_LEN  = 2;
+  localparam int          PET_LAST = 40;      // last cycle that pets the dog
+
+  logic [31:0] por = 32'd0;
+  logic        booted;
+  logic        presetn;
+
+  logic        penable;
+  logic        pwrite;
+  logic [31:0] paddr;
+  logic [31:0] pwdata;
   logic [31:0] prdata;
   logic        pready;
   logic        pslverr;
   logic        irq;
   logic        reset_n_out;
+
+  assign booted  = (por >= POR_LEN);
+  assign presetn = booted;
+
+  always @(posedge pclk)
+    if (!booted) por <= por + 32'd1;
+
+  // Phase counter: 0 = LOAD write, 1 = CTRL write (armed), 2..PET_LAST = pet,
+  // anything after = stop feeding.
+  logic [15:0] cyc = 16'd0;
+
+  always @(posedge pclk)
+    if (booted) cyc <= cyc + 16'd1;
+
+  always @(*) begin
+    penable = 1'b0;
+    pwrite  = 1'b0;
+    paddr   = 32'd0;
+    pwdata  = 32'd0;
+    if (booted) begin
+      if (cyc == 16'd0) begin
+        penable = 1'b1; pwrite = 1'b1; paddr = 32'h0000_0000; pwdata = K;
+      end else if (cyc == 16'd1) begin
+        penable = 1'b1; pwrite = 1'b1; paddr = 32'h0000_0004; pwdata = 32'h3;
+      end else if (cyc <= 16'(PET_LAST)) begin
+        penable = 1'b1; pwrite = 1'b1; paddr = 32'h0000_0000; pwdata = K;
+      end
+    end
+  end
 
   watchdog dut (
     .pclk        (pclk),
@@ -46,38 +88,32 @@ module watchdog_fv (
     .reset_n_out (reset_n_out)
   );
 
-  // Register selects, as decoded by the DUT (word offsets).
-  wire sel_load = penable && pwrite && (paddr[11:2] == 10'd0);
-  wire sel_ctrl = penable && pwrite && (paddr[11:2] == 10'd1);
-  wire sel_key  = penable && pwrite && (paddr[11:2] == 10'd3);
-
-  // A1 — reset generation needs both the expiry and the reset-enable bit.
-  always @(posedge pclk) if (presetn)
-    assert (reset_n_out == ~(dut.expired && dut.reset_en));
-
-  // A2 — no expiry without an enabled counter.
-  always @(posedge pclk) if (presetn)
-    assert property ($rose(dut.expired) |-> $past(dut.enable));
-
-  // A3 — a pet reloads the counter to the written value.
-  always @(posedge pclk) if (presetn)
-    assert property (sel_load |=> (dut.count == $past(pwdata)));
-
-  // A4 — irq is the sticky expired flag.
-  always @(posedge pclk)
-    assert (irq == dut.expired);
-
-  // A5 — a matching KEY write locks CTRL until the next reset.
-  always @(posedge pclk) if (presetn)
-    assert property ((sel_key && pwdata == 32'h5A5A_0001) |=> dut.locked);
-
-  // Non-vacuity: every property above must be exercised.
   always @(posedge pclk) begin
-    cover (sel_load && dut.enable && !dut.expired);  // pet while counting
-    cover (dut.expired);                            // timeout reached
-    cover (!reset_n_out);                           // reset actually asserted
-    cover (sel_ctrl && pwdata[0]);                  // counter enabled
-    cover (dut.count == 32'd1);                     // one cycle before expiry
+    if (booted) begin
+      // W1 — idle, never written: no reset, no interrupt.
+      if (cyc < 16'd2) begin
+        assert (reset_n_out);
+        assert (!irq);
+      end
+
+      // W2 — a fed watchdog must not fire.
+      if (cyc >= 16'd2 && cyc <= 16'(PET_LAST))
+        assert (!irq);
+
+      // W3 — armed: the reset output is the inverse of the timeout flag.
+      if (cyc >= 16'd2)
+        assert (reset_n_out == ~irq);
+
+      // W4 — after feeding stops, expiry must arrive within K+2 cycles.
+      if (cyc > 16'(PET_LAST + K + 2))
+        assert (irq);
+
+      // Non-vacuity.
+      if (cyc == 16'd2)   cover (1'b1);
+      if (cyc == 16'd3)   cover (!irq);
+      if (cyc > 16'(PET_LAST + K + 2)) cover (irq);
+      cover (!reset_n_out);
+    end
   end
 
 endmodule

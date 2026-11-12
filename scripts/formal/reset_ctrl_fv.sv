@@ -1,30 +1,48 @@
 //------------------------------------------------------------------------------
-// Home-Automation-SoC — formal wrapper for `reset_ctrl`
+// Home-Automation-SoC — formal harness for `reset_ctrl`
 //
-// Proves the bounded-pulse contract that makes a watchdog reset survivable:
+// Proves the bounded-pulse contract that makes a watchdog reset survivable.
+// Everything is measured on the two output pins (no internal references — this
+// Yosys SV frontend mis-resolves hierarchical references inside assertions):
 //
 //   R1  `rst_sys_n` can never stay low longer than HOLD_CYCLES.  An unbounded
-//       level would deadlock the SoC (the watchdog can only be petted by
-//       software, and software is held in reset).
-//   R2  A timeout asserts `rst_sys_n` in the very next cycle.
-//   R3  Once the pulse has run its full width it releases on the next cycle.
-//   R4  The external reset always wins and can never be extended.
-//   R5  The board-level `wdog_reset_n_out` carries the same pulse.
+//       level would deadlock the SoC: the watchdog can only be petted by
+//       software, and software is held in reset.
+//   R2  The pulse releases on the cycle after it has run its full width.
+//   R3  A timeout seen while the controller is idle asserts the reset in the
+//       very next cycle.
+//   R4  The board-level pin carries the same pulse.
 //
-// `reset_n` is assumed high for the whole proof, so the asynchronous external
-// reset path (R4's forcing direction) is covered by simulation, not here.
+// `wdog_timeout` is a free input, so R1..R4 hold for any watchdog behavior,
+// including a timeout that is stuck high.
+//
+// The wrapper drives `reset_n` through the POR model below (low for POR_LEN
+// cycles, high afterwards) so the proof starts from a defined state.  The
+// asynchronous external-reset path is covered by sim/sim_top/tb_reset_ctrl.v.
+//
+// Engine: `abc pdr`.  The width bound is a counter invariant, so temporal
+// induction alone reports a false failure from an unreachable start state;
+// PDR keeps the reachable-state restriction.
 //------------------------------------------------------------------------------
 module reset_ctrl_fv (
   input logic clk,
-  input logic reset_n,
   input logic wdog_timeout
 );
 
-  localparam int HOLD = 16;
+  localparam int         HOLD    = 16;
+  localparam logic [1:0] POR_LEN = 2'd2;
 
-  logic rst_sys_n;
-  logic wdog_reset_n_out;
-  logic [7:0] streak;   // consecutive cycles with rst_sys_n held low
+  logic [1:0] por = 2'd0;
+  logic       booted;
+  logic       reset_n;
+  logic       rst_sys_n;
+  logic       wdog_reset_n_out;
+
+  assign booted  = (por == POR_LEN);
+  assign reset_n = booted;
+
+  always @(posedge clk)
+    if (!booted) por <= por + 2'd1;
 
   reset_ctrl #(.HOLD_CYCLES(HOLD)) dut (
     .clk               (clk),
@@ -34,42 +52,47 @@ module reset_ctrl_fv (
     .wdog_reset_n_out  (wdog_reset_n_out)
   );
 
-  always_ff @(posedge clk) begin
-    if (!reset_n)        streak <= 8'd0;
-    else if (!rst_sys_n) streak <= streak + 8'd1;
-    else                 streak <= 8'd0;
+  // `low_run` is the number of consecutive cycles rst_sys_n has been low
+  // *including the current one*; `streak` holds it across the edge so the
+  // next-cycle claims can refer to it.
+  logic [7:0] streak = 8'd0;
+  wire  [7:0] low_run = rst_sys_n ? 8'd0 : (streak + 8'd1);
+
+  // Previous-cycle observations used by the next-cycle claims.
+  logic       q_full         = 1'b0;  // this cycle completes a full-width pulse
+  logic       q_idle_timeout = 1'b0;  // timeout seen with the controller idle
+
+  always @(posedge clk) begin
+    if (!reset_n) begin
+      streak <= 8'd0;
+      q_full <= 1'b0;
+      q_idle_timeout <= 1'b0;
+    end else begin
+      streak         <= low_run;
+      q_full         <= (low_run == 8'(HOLD));
+      q_idle_timeout <= (rst_sys_n && wdog_timeout);
+    end
   end
 
-  // The external reset is deasserted for the duration of the proof.
-  always @(posedge clk) assume (reset_n);
-
-  // R1 — bounded pulse width.
-  always @(posedge clk) if (reset_n)
-    assert (streak <= 8'(HOLD));
-
-  // R2 — a timeout is turned into a reset immediately.  Guarded by
-  // `rst_sys_n` because a timeout that is still high when a pulse ends
-  // re-arms only on the following cycle (in the SoC the watchdog is reset
-  // by this same pulse, so the level has already dropped).
-  property p_timeout_asserts;
-    @(posedge clk) disable iff (!reset_n) (rst_sys_n && wdog_timeout) |=> !rst_sys_n;
-  endproperty
-  assert property (p_timeout_asserts);
-
-  // R3 — release after exactly HOLD cycles.
-  property p_release;
-    @(posedge clk) disable iff (!reset_n) (streak == 8'(HOLD)) |=> rst_sys_n;
-  endproperty
-  assert property (p_release);
-
-  // R5 — both pins carry the same pulse.
-  always @(posedge clk)
-    assert (wdog_reset_n_out == rst_sys_n);
-
-  // Non-vacuity.
   always @(posedge clk) begin
-    cover (!rst_sys_n);
-    cover (streak == 8'(HOLD));
+    if (reset_n) begin
+      // R1 — bounded pulse width.
+      assert (low_run <= 8'(HOLD));
+
+      // R2 — release on the cycle after the full width.
+      if (q_full) assert (rst_sys_n);
+
+      // R3 — a timeout turns into a reset immediately.
+      if (q_idle_timeout) assert (!rst_sys_n);
+
+      // R4 — both pins carry the same pulse.
+      assert (wdog_reset_n_out == rst_sys_n);
+
+      // Non-vacuity.
+      cover (!rst_sys_n);
+      cover (rst_sys_n && wdog_timeout);
+      cover (low_run == 8'(HOLD));
+    end
   end
 
 endmodule

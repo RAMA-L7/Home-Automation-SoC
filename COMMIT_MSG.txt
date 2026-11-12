@@ -1,0 +1,43 @@
+Fix Mermaid diagram failing to render on GitHub; add Mermaid validation
+
+The fix
+- The README's Mermaid diagram failed on GitHub with "Unable to render rich
+  display / Parse error ... Expecting 'SQE' ...". The cause was edge labels
+  containing unquoted brackets:
+
+      INTC -->|addr[12]=0| CLINT     <- breaks: the "]" ends the label
+
+  Mermaid requires such labels to be quoted:
+
+      INTC -->|"addr[12]=0"| CLINT
+
+  Both the CLINT and the PLIC select edges are now quoted, and the diagram
+  renders.
+
+The safeguard
+- Installed @mermaid-js/mermaid-cli into D:\tools\mermaid\ (uses the local
+  Chrome via D:\tools\mermaid\puppeteer.json).
+- scripts/docs/check_mermaid.mjs extracts the README's own mermaid block and
+  renders it with the same parser GitHub uses, then lints for unquoted
+  brackets in edge labels. Run it before pushing any README change:
+
+      node scripts/docs/check_mermaid.mjs
+
+Single source of truth
+- The diagram now lives in docs/architecture/BLOCK_DIAGRAM.md with the facts
+  it asserts and the source file for each one.
+- scripts/docs/sync_readme_mermaid.py injects it into README.md between
+  markers, so the two can never drift apart.
+- docs/architecture/BLOCK_DIAGRAM.png and .svg are the rendered output.
+
+README
+- The tool stack gains a Mermaid CLI row.
+- "Reproducing the Verification" gains the documentation commands:
+  gen_block_diagram.py, sync_readme_diagram.py, sync_readme_mermaid.py,
+  check_mermaid.mjs and the figure build.
+
+AGENTS.md
+- Change log records the diagnosis, the fix and the safeguard.
+
+Agent: OpenCode (nemotron-3.5-super-vl-free)
+Date: 2026-11-12

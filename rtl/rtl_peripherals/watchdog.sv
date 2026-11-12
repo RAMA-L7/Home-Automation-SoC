@@ -31,6 +31,14 @@ module watchdog (
   logic [31:0] load, count;
   logic        enable, reset_en, expired, locked;
 
+  // A write that reloads the counter: LOAD, or a CTRL write that enables it.
+  // The count-down below must not run on such a cycle, otherwise the
+  // nonblocking assignment from the write is overwritten by `count - 1` and
+  // the reload is lost (a pet would not restart the period).
+  wire reload = penable && pwrite &&
+                ((paddr[11:2] == 10'd0) ||
+                 ((paddr[11:2] == 10'd1) && pwdata[0]));
+
   always_ff @(posedge pclk or negedge presetn) begin
     if (!presetn) begin
       count    <= 32'd0;
@@ -57,7 +65,7 @@ module watchdog (
         endcase
       end
 
-      if (enable && !expired) begin
+      if (enable && !expired && !reload) begin
         if (count == 32'd0) expired <= 1'b1;
         else                count   <= count - 32'd1;
       end

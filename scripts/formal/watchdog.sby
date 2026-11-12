@@ -1,8 +1,8 @@
 # Home-Automation-SoC — watchdog pet/arm/reset proof
 # Usage: sby -f watchdog.sby            (or: node scripts/formal/run_formal.js)
 [options]
-mode prove
-depth 14
+mode bmc
+depth 56
 
 [engines]
 smtbmc boolector

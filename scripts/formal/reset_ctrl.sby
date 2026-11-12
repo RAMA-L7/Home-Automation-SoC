@@ -5,7 +5,7 @@ mode prove
 depth 20
 
 [engines]
-smtbmc boolector
+abc pdr
 
 [script]
 read_verilog -sv -formal reset_ctrl.sv
