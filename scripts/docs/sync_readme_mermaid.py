@@ -47,8 +47,10 @@ def main():
     if BEGIN not in readme or END not in readme:
         raise SystemExit("README.md is missing the mermaid-diagram markers")
 
-    head, rest = readme.split(BEGIN, 1)
-    _, tail = rest.split(END, 1)
+    # Remove every existing block first so the script is idempotent and a
+    # duplicated or half-written block cannot survive.
+    readme = re.sub(re.escape(BEGIN) + r".*?" + re.escape(END), "@@BLOCK@@", readme, flags=re.DOTALL)
+    readme = readme.replace(BEGIN, "").replace(END, "")
 
     block = (
         f"{BEGIN}\n"
@@ -61,9 +63,20 @@ def main():
         f"{END}"
     )
 
-    with open(README, "w", encoding="utf-8", newline="\n") as fh:
-        fh.write(head + block + tail)
+    if "@@BLOCK@@" in readme:
+        readme = readme.replace("@@BLOCK@@", block)
+    else:
+        heading = "## \U0001f3d7\ufe0f System Block Diagram (Mermaid)"
+        index = readme.find(heading)
+        if index < 0:
+            raise SystemExit("README.md: no Mermaid heading found")
+        insert_at = readme.find("\n", index) + 1
+        readme = readme[:insert_at] + "\n" + block + "\n" + readme[insert_at:]
 
+    readme = re.sub(r"\n{4,}", "\n\n\n", readme)
+
+    with open(README, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(readme)
     print(f"[updated] {README}")
     print(f"[source]  {SOURCE}")
     return 0
