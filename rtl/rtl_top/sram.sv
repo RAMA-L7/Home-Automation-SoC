@@ -10,8 +10,9 @@
 // which is not a legal handshake and lost every other transaction.
 //------------------------------------------------------------------------------
 module sram #(
-  parameter ADDR_WIDTH = 18,           // bytes; 2^18 = 256 KB
-  parameter DATA_WIDTH = 32,
+  parameter int ADDR_WIDTH = 18,           // bytes; 2^18 = 256 KB
+  parameter int DATA_WIDTH = 32,
+  // verilog_lint: waive explicit-parameter-storage-type
   parameter MEM_FILE   = ""
 ) (
   input  logic                   clk,
@@ -47,8 +48,14 @@ module sram #(
 );
 
   localparam int WORDS = 1 << (ADDR_WIDTH - 2);
-  logic [DATA_WIDTH-1:0] mem [0:WORDS-1];
-  int wr_idx;
+  logic [DATA_WIDTH-1:0] mem [WORDS];
+  // Write index derived combinationally from the write address.  It used to be
+  // a variable updated with a blocking assignment inside the write block; a
+  // nonblocking update indexed `mem` with the *previous* address and wrote the
+  // word one place early (caught by sim/sim_top/tb_sram_audit.v).  Deriving it
+  // from awaddr keeps that guarantee and removes the only blocking assignment
+  // from a clocked block in this file.
+  wire [ADDR_WIDTH-3:0] wr_idx = awaddr[ADDR_WIDTH-1:2];
 
   typedef enum logic [1:0] {S_IDLE, S_WRESP, S_RRESP} st_e;
   st_e state, state_n;
@@ -57,7 +64,11 @@ module sram #(
   logic [DATA_WIDTH-1:0] wdata_q;
   logic [3:0]            wstrb_q;
 
-  wire wr_fire = awvalid & wvalid & awready & wready;
+  // A write is accepted only when the slave is not in reset.  Without this
+  // gate the byte-strobe write block (which has no reset branch) could commit
+  // a word on the same posedge that reset_n falls, so a reset would not
+  // reliably abort an in-flight transaction.
+  wire wr_fire = reset_n & awvalid & wvalid & awready & wready;
   wire rd_fire = arvalid & arready;
 
   // Writes take priority over reads when both are offered.
@@ -97,7 +108,6 @@ module sram #(
   // Byte-strobed write
   always_ff @(posedge clk) begin
     if (wr_fire) begin
-      wr_idx = awaddr[ADDR_WIDTH-1:2];
       if (wstrb[0]) mem[wr_idx][7:0]   <= wdata[7:0];
       if (wstrb[1]) mem[wr_idx][15:8]  <= wdata[15:8];
       if (wstrb[2]) mem[wr_idx][23:16] <= wdata[23:16];

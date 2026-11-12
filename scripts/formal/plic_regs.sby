@@ -1,0 +1,22 @@
+# Home-Automation-SoC — PLIC register semantics proof
+# Usage: sby -f plic_regs.sby            (or: node scripts/formal/run_formal.js)
+#
+# Bounded model check of one directed register trace (see plic_regs_fv.sv).
+# The stimulus is deterministic, so a depth past the end of the script is a
+# complete check of that scenario - not of all register traffic.  Classified as
+# "bounded proven" in reports/verification/README.md.
+[options]
+mode bmc
+depth 52
+
+[engines]
+smtbmc boolector
+
+[script]
+read_verilog -sv -formal plic.sv
+read_verilog -sv -formal plic_regs_fv.sv
+prep -top plic_regs_fv
+
+[files]
+../../rtl/rtl_peripherals/plic.sv
+plic_regs_fv.sv

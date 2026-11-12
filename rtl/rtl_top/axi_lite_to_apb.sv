@@ -11,8 +11,8 @@
 //   * PADDR/PWRITE/PWDATA are stable for the whole SETUP and ACCESS phases.
 //------------------------------------------------------------------------------
 module axi_lite_to_apb #(
-  parameter ADDR_WIDTH = 32,
-  parameter DATA_WIDTH = 32
+  parameter int ADDR_WIDTH = 32,
+  parameter int DATA_WIDTH = 32
 ) (
   input  logic                   clk,
   input  logic                   reset_n,

@@ -20,8 +20,8 @@
 // version drives each AXI channel independently until its handshake occurs.
 //------------------------------------------------------------------------------
 module req_gnt_to_axi_lite #(
-  parameter ADDR_WIDTH = 32,
-  parameter DATA_WIDTH = 32
+  parameter int ADDR_WIDTH = 32,
+  parameter int DATA_WIDTH = 32
 ) (
   input  logic                   clk,
   input  logic                   reset_n,

@@ -13,8 +13,11 @@
 // Memory map: see has_addr_map_pkg
 //------------------------------------------------------------------------------
 module has_soc #(
+  // verilog_lint: waive explicit-parameter-storage-type
   parameter BOOT_ROM_FILE  = "",
+  // verilog_lint: waive explicit-parameter-storage-type
   parameter TCM_INIT_FILE  = "",   // simulation only: preload TCM (0x1_0000)
+  // verilog_lint: waive explicit-parameter-storage-type
   parameter SRAM_INIT_FILE = "",   // simulation only: preload SRAM (0x2000_0000)
   parameter int UART_CLK_FREQ = 50_000_000,
   parameter int UART_BAUD     = 115200

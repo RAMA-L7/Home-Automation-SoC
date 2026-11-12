@@ -37,6 +37,11 @@ const CORE = ['rtl/rtl_top/riscv_core.sv'];
 const PWR = ['rtl/rtl_peripherals/power_mgr_regs.sv', 'rtl/rtl_peripherals/power_mgr.sv'];
 const UART = ['rtl/rtl_peripherals/uart.sv'];
 const RST = ['rtl/rtl_top/reset_ctrl.sv'];
+const PLIC = ['rtl/rtl_peripherals/plic.sv'];
+const SPI  = ['rtl/rtl_peripherals/spi_ctrl.sv'];
+const JTAG = ['rtl/rtl_peripherals/debug_jtag.sv'];
+const WDOG = ['rtl/rtl_peripherals/watchdog.sv'];
+const SRAM = ['rtl/rtl_top/sram.sv'];
 
 // name, testbench, extra sources (undefined => whole SoC filelist), success marker
 const TESTS = [
@@ -57,6 +62,12 @@ const TESTS = [
   { name: 'sram',                          tb: 'sim/sim_top/tb_sram_simple.v', src: null, marker: 'ALL TESTS PASSED' },
   { name: 'debug_jtag',                    tb: 'sim/sim_top/tb_debug_jtag.v', src: null, marker: 'ALL TESTS PASSED' },
   { name: 'firmware (C demo)',              tb: 'sim/sim_top/tb_firmware.v', src: null, marker: 'RESULT: PASS' },
+  // Phase-3 protocol and audit testbenches
+  { name: 'plic protocol (sync + claim)',   tb: 'sim/sim_top/tb_plic_proto.v', src: PLIC, marker: 'PLIC PROTOCOL: ALL TESTS PASSED' },
+  { name: 'spi device model (mode 0)',      tb: 'sim/sim_top/tb_spi_device.v', src: SPI, marker: 'SPI DEVICE: ALL TESTS PASSED' },
+  { name: 'jtag protocol (TAP subset)',     tb: 'sim/sim_top/tb_jtag_proto.v', src: JTAG, marker: 'JTAG PROTOCOL: ALL TESTS PASSED' },
+  { name: 'watchdog audit (reload)',        tb: 'sim/sim_top/tb_watchdog_audit.v', src: WDOG, marker: 'WATCHDOG AUDIT: ALL TESTS PASSED' },
+  { name: 'sram audit (strobes/RAW)',       tb: 'sim/sim_top/tb_sram_audit.v', src: SRAM, marker: 'SRAM AUDIT: ALL TESTS PASSED' },
 ];
 
 const FAIL_RE = /: FAIL|FAIL -|ERRORS|RESULT: FAIL|FATAL|error:/;

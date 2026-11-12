@@ -16,7 +16,7 @@
 //   0x18 GPIO_INT_PEND   - RW1C - pending interrupts
 //------------------------------------------------------------------------------
 module gpio #(
-  parameter WIDTH = 16
+  parameter int WIDTH = 16
 ) (
   input  logic         pclk,
   input  logic         presetn,

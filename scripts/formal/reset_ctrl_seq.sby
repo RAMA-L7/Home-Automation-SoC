@@ -1,0 +1,22 @@
+# Home-Automation-SoC — directed pulse-timing proof for reset_ctrl
+# Usage: sby -f reset_ctrl_seq.sby      (or: node scripts/formal/run_formal.js)
+#
+# Deterministic timeline (see reset_ctrl_seq_fv.sv).  Depth 60 covers the whole
+# scenario: the last event is the release at cycle 54.  This proves exact pulse
+# width and phase; it is a bounded proof over one stimulus, not a theorem about
+# all timeout patterns (reset_ctrl.sby covers those invariants).
+[options]
+mode bmc
+depth 60
+
+[engines]
+smtbmc boolector
+
+[script]
+read_verilog -sv -formal reset_ctrl.sv
+read_verilog -sv -formal reset_ctrl_seq_fv.sv
+prep -top reset_ctrl_seq_fv
+
+[files]
+../../rtl/rtl_top/reset_ctrl.sv
+reset_ctrl_seq_fv.sv

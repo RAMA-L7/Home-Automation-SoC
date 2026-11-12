@@ -28,8 +28,8 @@
 // Formal verification properties are in reports/verification/formal_properties.sv
 //------------------------------------------------------------------------------
 module riscv_core #(
-  parameter XLEN = 32,
-  parameter RESET_PC = 32'h0000_0000
+  parameter int XLEN = 32,
+  parameter int RESET_PC = 32'h0000_0000
 ) (
   input  logic                   clk,
   input  logic                   reset_n,
@@ -63,7 +63,7 @@ module riscv_core #(
   //--------------------------------------------------------------------------
   // Architectural state
   //--------------------------------------------------------------------------
-  logic [XLEN-1:0] rf [0:31];
+  logic [XLEN-1:0] rf [32];
   logic [XLEN-1:0] pc, ir;
 
   logic [XLEN-1:0] mstatus, mtvec, mscratch, mepc, mcause, mtval, mie, mip;
@@ -236,6 +236,7 @@ module riscv_core #(
         3'b101: muldiv_out = rs1_val / rs2_val;
         3'b110: muldiv_out = $signed(rs1_val) % $signed(rs2_val);
         3'b111: muldiv_out = rs1_val % rs2_val;
+        default: ;
       endcase
     end
   end
@@ -431,6 +432,7 @@ module riscv_core #(
           2'd1: ld_data = {{24{data_rdata[15]}}, data_rdata[15:8]};
           2'd2: ld_data = {{24{data_rdata[23]}}, data_rdata[23:16]};
           2'd3: ld_data = {{24{data_rdata[31]}}, data_rdata[31:24]};
+          default: ;
         endcase
       end
       3'b001: begin                                        // LH
@@ -443,6 +445,7 @@ module riscv_core #(
           2'd1: ld_data = {24'd0, data_rdata[15:8]};
           2'd2: ld_data = {24'd0, data_rdata[23:16]};
           2'd3: ld_data = {24'd0, data_rdata[31:24]};
+          default: ;
         endcase
       end
       3'b101: begin                                        // LHU

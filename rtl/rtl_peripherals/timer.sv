@@ -10,7 +10,7 @@
 //   0x0C TIMER_STATUS  - RW1C - bit0: compare match pending
 //------------------------------------------------------------------------------
 module timer #(
-  parameter WIDTH = 32
+  parameter int WIDTH = 32
 ) (
   input  logic         pclk,
   input  logic         presetn,

@@ -27,8 +27,8 @@
 // CLK_FREQ/BAUD and may be overridden through DLL/DLM.
 //------------------------------------------------------------------------------
 module uart #(
-  parameter CLK_FREQ = 50_000_000,
-  parameter BAUD     = 115200
+  parameter int CLK_FREQ = 50_000_000,
+  parameter int BAUD     = 115200
 ) (
   input  logic         pclk,
   input  logic         presetn,

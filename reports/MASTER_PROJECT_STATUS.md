@@ -18,6 +18,17 @@
 > - KiCad 10.0.8 installed; SymbiYosys SBY v0.69 available; cocotb 2.1.0 installed.
 > - RISC-V gcc 12.2.0 builds the C firmware, and `tb_firmware.v` executes it on
 >   the RTL SoC. `node scripts/eda/run_regression.js` reports **17/17 PASS, exit 0**.
+> - Formal verification is no longer empty: `node scripts/formal/run_formal.js`
+>   runs four proofs — watchdog APB contract (BMC 96), reset-pulse invariants
+>   (`abc pdr`, **unbounded**), reset-pulse timing (BMC 60) and the asynchronous
+>   wake synchronizer (BMC 30) — **4/4 PASS, exit 0**, with a fail-closed runner
+>   whose five negative controls are all rejected (`--self-test`).
+> - Earlier runs found a real RTL bug (a watchdog pet did not reload the
+>   counter); the fix is in `watchdog.sv` and the regression is still 17/17.
+> - **CDC:** the SoC has one clock (gated copies), not the three asynchronous
+>   domains the CDC plan assumes. Pin-level crossings are inventoried; `spi_miso`,
+>   `plic.ext_irq` and `debug_jtag.tms/tdi` are unsynchronised **findings**, not
+>   proven-safe paths. See `docs/verification/formal_cdc_verification_plan.md` §9.
 >
 > **CORRECTION BANNER — 2026-11-11 (Buffy, independent re-review).** The stage
 > table below predates the current evidence and is superseded where it disagrees
@@ -56,7 +67,7 @@ Never fabricate measurements, test results, IP licenses, tool availability, FPGA
 | 1 | Architecture | PARTIAL | ADRs (PROPOSED), phase_0 report, phase_1a specs, independent review | 3 BOM docs stripped & readable (VERIFIED). PLL/pin/power gaps remain |
 | 2 | RTL (SystemVerilog) | PARTIAL | `rtl/` populated; Verilator lint: 0 errors, 279 warnings | RV32IM core, AXI4-Lite interconnect, APB bridge, boot ROM, SRAM, QSPI, GPIO, UART, I2C, SPI, PWM, Timer, Watchdog, I2S, CLINT, PLIC, JTAG, power mgr |
 | 3 | Firmware | PARTIAL | `firmware/bare_metal/` populated, COMPILED (MEASURED) | startup.S, linker.ld, main.c, drivers.h/c, boot.h/c, host_comm.c, ota.c — compiled with riscv32-unknown-elf-gcc 12.2.0 |
-| 4 | Verification | PARTIAL | 13 Icarus sim tests PASSED, Verilator lint 0 errors | `sim/sim_top/`, `reports/verification/README.md` |
+| 4 | Verification | PARTIAL | Regression 17/17 PASS, Verilator lint 0 errors, formal 4/4 PASS (watchdog, reset controller ×2, CDC wake), CDC inventory run | `sim/sim_top/`, `scripts/formal/`, `reports/verification/README.md` |
 | 5 | FPGA | PARTIAL | `fpga/constraints/nexys_a7.xdc`, `openocd.cfg`, `fpga_bringup_guide.md` | Constraints ready; no Vivado, no FPGA hardware confirmed |
 | 6 | ASIC | PARTIAL | `asic/README.md` documents gaps | sky130 PDK downloaded; OpenLane not installed |
 | 7 | DFT/signoff | NOT STARTED | Documented as commercial-tool gap | No open-source DFT/ATPG |
@@ -158,6 +169,8 @@ All 22 SystemVerilog files pass `--lint-only -Wall`. 279 benign warnings (unused
 
 | Date | Action | Files Changed | Evidence |
 |------|--------|---------------|----------|
+| 2026-11-12 | **Formal Phase 2.** Watchdog harness rebuilt around legal APB transfers (SETUP/ACCESS) with 13 properties (boundary pets, disable/re-enable, zero/max reload, KEY lock, reset during countdown and during a LOAD in flight); reset controller split into an unbounded invariant proof plus a directed timing proof; first real CDC proof (async wake, 5 properties); prep-only `cdc.sby` and its failed-run artifacts removed; runner rebuilt fail-closed with 5 negative controls; CDC inventory scanner added. Measured: formal 4/4 PASS, regression 17/17 PASS, mermaid OK, docs sync idempotent, Verible parser 0 syntax errors | `scripts/formal/*`, `scripts/docs/sync_readme_{diagram,mermaid}.py`, `reports/verification/README.md`, `docs/verification/formal_cdc_verification_plan.md`, this file | MEASURED |
+| 2026-11-12 | Formal verification made real: rewrote the watchdog/reset-controller harnesses as immediate assertions on observable pins, added `watchdog.sby`/`reset_ctrl.sby` and `scripts/formal/run_formal.js` (strict, nonzero exit). The watchdog task caught a lost-reload bug in `watchdog.sv` (pet did not restart the period); fixed with a `reload` guard on the count-down. Formal 2/2 PASS, regression still 17/17 | `scripts/formal/*`, `rtl/rtl_peripherals/watchdog.sv`, `reports/verification/README.md`, this file | MEASURED (sby 0.69 PASS 2/2, regression 17/17) |
 | 2026-11-12 | Reconciled docs with the consolidated `D:\tools` toolchain; regression now 17/17 and the C firmware executes in `tb_firmware.v` | `README.md`, `TECH_STACK.md`, `AGENTS.md`, `resume.md`, `reports/verification/README.md`, `reports/FINAL_PROJECT_DELIVERY_REPORT.md`, this file | VERIFIED (tool versions re-run) + MEASURED (17/17) |
 | 2026-11-11 | Inspected project tree, git state, toolchain, research reports | — | VERIFIED |
 | 2026-11-11 | Stripped UTF-8 BOM from 3 architecture docs | `docs/architecture/*.md` | MEASURED |
@@ -187,3 +200,23 @@ All 22 SystemVerilog files pass `--lint-only -Wall`. 279 benign warnings (unused
 4. Acquire sky130 PDK → **DOWNLOADED**; run OpenLane physical design flow
 5. Procure commercial DFT/ATPG tool → production signoff
 6. Install Python with SSL → cocotb verification
+
+---
+
+## Phase 3 (2026-11-12) — CDC hardening, peripheral verification, unified gate
+
+| Item | Result | Evidence |
+|------|--------|----------|
+| Unified gate `node scripts/verify.js` | **PASS 9 / 9, exit 0** | `build/verify/summary.txt` |
+| Gate negative controls | **6 / 6 rejected** | `node scripts/verify.js --self-test` |
+| Regression | **PASS 22 / 22** (was 17/17) | `build/verify/regression.log` |
+| Formal | **PASS 5 / 5** (was 4/4) | `build/verify/formal.log` |
+| CDC inventory | 12 classified rows, all structurally checked | `build/verify/cdc-inventory.log` |
+| Verible parser | 0 syntax errors | `build/verify/verible-syntax.log` |
+| Verible lint | 0 unexplained violations (54 → 0 fixed; localparam style pinned) | `build/verify/verible-lint.log` |
+
+Defects found and fixed: JTAG TAP could not enter SHIFT_DR/SHIFT_IR (only TMS=1
+arcs implemented); SPI receive path sampled MISO one bit late (real slave data
+shifted by one). Phase-2 fixes independently audited by mutation: the watchdog
+reload fix and the SRAM `wr_idx` fix are now covered by tests that fail on the
+mutant. Not claimed: metastability immunity, MTBF, silicon timing.

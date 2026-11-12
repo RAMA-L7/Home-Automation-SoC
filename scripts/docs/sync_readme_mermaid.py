@@ -47,33 +47,39 @@ def main():
     if BEGIN not in readme or END not in readme:
         raise SystemExit("README.md is missing the mermaid-diagram markers")
 
-    # Remove every existing block first so the script is idempotent and a
-    # duplicated or half-written block cannot survive.
-    readme = re.sub(re.escape(BEGIN) + r".*?" + re.escape(END), "@@BLOCK@@", readme, flags=re.DOTALL)
-    readme = readme.replace(BEGIN, "").replace(END, "")
+    # Replace only the fenced mermaid block inside the markers.  The marker
+    # region is shared with hand-written prose, and an earlier version of this
+    # script rewrote the region from the markers inward, deleting that prose.
+    region = re.compile(re.escape(BEGIN) + r"(?P<body>.*?)" + re.escape(END), re.DOTALL)
+    fence = re.compile(r"```mermaid\n.*?\n```", re.DOTALL)
+    fresh = "```mermaid\n" + mermaid + "\n```"
 
-    block = (
-        f"{BEGIN}\n"
-        "<!-- Source of truth: docs/architecture/BLOCK_DIAGRAM.md -->\n"
-        "<!-- Regenerate with: python scripts/docs/sync_readme_mermaid.py -->\n"
-        "\n"
-        "```mermaid\n"
-        f"{mermaid}\n"
-        "```\n"
-        f"{END}"
-    )
+    def replace_region(match):
+        body = match.group("body")
+        if fence.search(body):
+            return BEGIN + fence.sub(fresh, body, count=1) + END
+        return (
+            f"{BEGIN}\n"
+            "<!-- Source of truth: docs/architecture/BLOCK_DIAGRAM.md -->\n"
+            "<!-- Regenerate with: python scripts/docs/sync_readme_mermaid.py -->\n"
+            "\n" + fresh + "\n" + END
+        )
 
-    if "@@BLOCK@@" in readme:
-        readme = readme.replace("@@BLOCK@@", block)
+    if region.search(readme):
+        readme = region.sub(replace_region, readme)
     else:
         heading = "## \U0001f3d7\ufe0f System Block Diagram (Mermaid)"
         index = readme.find(heading)
         if index < 0:
             raise SystemExit("README.md: no Mermaid heading found")
         insert_at = readme.find("\n", index) + 1
+        block = (
+            f"{BEGIN}\n"
+            "<!-- Source of truth: docs/architecture/BLOCK_DIAGRAM.md -->\n"
+            "<!-- Regenerate with: python scripts/docs/sync_readme_mermaid.py -->\n"
+            "\n" + fresh + "\n" + END
+        )
         readme = readme[:insert_at] + "\n" + block + "\n" + readme[insert_at:]
-
-    readme = re.sub(r"\n{4,}", "\n\n\n", readme)
 
     with open(README, "w", encoding="utf-8", newline="\n") as fh:
         fh.write(readme)

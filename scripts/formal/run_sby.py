@@ -9,13 +9,20 @@ import sys
 import os
 from pathlib import Path
 
+# The OSS CAD Suite is not on the default PATH on this machine.
+_TOOLS = Path(os.environ.get("EDA_TOOLS", "D:/tools/oss-cad-suite"))
+if _TOOLS.is_dir():
+    os.environ["PATH"] = os.pathsep.join([str(_TOOLS / "bin"), str(_TOOLS / "lib"), os.environ.get("PATH", "")])
+
 # Project paths
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 RTL_ROOT = PROJECT_ROOT / "rtl"
 SCRIPTS_ROOT = PROJECT_ROOT / "scripts" / "formal"
 
-# SBY file
-SBY_FILE = "cdc.sby"
+# SBY file.  The old prep-only `cdc.sby` (which asserted nothing) was removed on
+# 2026-11-12; this wrapper now drives the real CDC task.  Prefer
+# `node scripts/formal/run_formal.js`, which runs every task fail-closed.
+SBY_FILE = "cdc_power_mgr.sby"
 
 def run_cmd(cmd, cwd=None, env=None):
     """Run command and return (success, output)"""

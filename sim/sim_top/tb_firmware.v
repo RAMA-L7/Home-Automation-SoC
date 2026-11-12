@@ -138,6 +138,7 @@ module tb_firmware;
   reg     wdog_prev = 1'b1;
   integer gpio_toggles = 0;
   reg     gpio0_prev = 1'b0;
+  integer pwm_high = 0;
 
   // Only GPIO[0] (the LED) is driven; GPIO[15:1] are high-Z, and `!=` on a
   // vector with Z bits evaluates to X, which never counts.  Count real
@@ -147,6 +148,7 @@ module tb_firmware;
     if (!wdog_reset_n && wdog_prev) wdog_pulses = wdog_pulses + 1;
     gpio0_prev <= gpio[0];
     if ((gpio[0] ^ gpio0_prev) === 1'b1) gpio_toggles = gpio_toggles + 1;
+    if (pwm_out[0]) pwm_high = pwm_high + 1;
   end
 
   // Debug trace: every system-reset transition with the watchdog state that
@@ -175,7 +177,15 @@ module tb_firmware;
     wait (line[8*19-1:0] == "Ready for commands.");
     $display("[fw] firmware reached its command loop");
 
-    // 2. host command: 'r' = reboot (stop petting the watchdog)
+    // 2. host command: 'p' = PWM response
+    send_byte("p");
+    wait (line[8*7-1:0] == "PWM set");
+    $display("[fw] PWM response observed");
+    // 3. host command: 'l' = LED toggle
+    send_byte("l");
+    wait (line[8*11-1:0] == "LED toggled");
+    $display("[fw] LED toggle observed");
+    // 4. host command: 'r' = reboot (stop petting the watchdog)
     send_byte("r");
     wait (line[8*16-1:0] == "Reboot requested");
     $display("[fw] command 'r' received and echoed");
@@ -215,9 +225,14 @@ module tb_firmware;
       $display("[fw] RESULT: FAIL (GPIO never toggled)");
       $fatal(1, "GPIO LED did not blink");
     end
+    if (pwm_high == 0) begin
+      $display("[fw] RESULT: FAIL (PWM never asserted)");
+      $fatal(1, "PWM output did not respond");
+    end
 
     $display("[fw] watchdog reset pulses: %0d", wdog_pulses);
     $display("[fw] GPIO transitions      : %0d", gpio_toggles);
+    $display("[fw] PWM high cycles       : %0d", pwm_high);
     $display("[fw] characters received  : %0d", nchars);
     $display("[fw] RESULT: PASS");
     $finish;

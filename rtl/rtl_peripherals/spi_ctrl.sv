@@ -118,15 +118,16 @@ module spi_ctrl (
         end
         SPI_RISE: begin
           sck_r <= 1'b1;
-          if (half_cnt == 16'd0) half_cnt <= clkdiv;
-          else                   half_cnt <= half_cnt - 16'd1;
-        end
-        SPI_FALL: begin
-          sck_r <= 1'b0;
           if (half_cnt == 16'd0) begin
-            shift   <= {shift[6:0], mosi_sample};
-            mosi_r  <= shift[6];
-            half_cnt<= clkdiv;
+            // Sample MISO at the END of the SCK high phase.  A mode-0 slave
+            // drives the bit on the falling edge and holds it for the whole
+            // high phase, so this is the point with the largest setup margin.
+            // Sampling at the end of the low phase instead (the previous
+            // implementation) read the *next* bit, shifting the received byte
+            // by one position - see sim/sim_top/tb_spi_device.v.
+            shift    <= {shift[6:0], mosi_sample};
+            mosi_r   <= shift[6];
+            half_cnt <= clkdiv;
             if (bit_cnt == 3'd7) begin
               rx_data <= {shift[6:0], mosi_sample};
               busy    <= 1'b0;
@@ -137,6 +138,11 @@ module spi_ctrl (
           end else begin
             half_cnt <= half_cnt - 16'd1;
           end
+        end
+        SPI_FALL: begin
+          sck_r <= 1'b0;
+          if (half_cnt == 16'd0) half_cnt <= clkdiv;
+          else                   half_cnt <= half_cnt - 16'd1;
         end
         SPI_DONE: begin
           sck_r <= 1'b0;

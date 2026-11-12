@@ -6,9 +6,13 @@ The ASCII art is rendered by scripts/docs/gen_block_diagram.py onto a character
 grid, so its borders always line up. This script places it in README.md
 between a marker pair.
 
-The script is idempotent: it removes every existing generated block (there
-may be more than one if a previous run was interrupted) and inserts exactly
-one fresh block, so running it twice never duplicates anything.
+The script is idempotent: running it twice leaves README.md byte-identical.
+
+It replaces only the fenced ```text block inside the marker pair, never the
+whole marker region.  That region is shared with hand-written prose (the
+"Animated Figure" section lives there), and an earlier version of this script
+rewrote the entire region from the markers inward, silently deleting that
+prose on every run.
 
     python scripts/docs/sync_readme_diagram.py
 """
@@ -42,16 +46,19 @@ def main():
     with open(README, "r", encoding="utf-8") as fh:
         text = fh.read()
 
-    block = f"{BEGIN}\n{HEADER}\n```text\n{art}\n```\n{END}"
+    region = re.compile(re.escape(BEGIN) + r"(?P<body>.*?)" + re.escape(END), re.DOTALL)
+    fence = re.compile(r"```text\n.*?\n```", re.DOTALL)
+    fresh = "```text\n" + art + "\n```"
 
-    # Remove every existing block, then any orphan markers, so a duplicated
-    # or half-written block cannot survive.
-    text = re.sub(re.escape(BEGIN) + r".*?" + re.escape(END), "@@BLOCK@@", text, flags=re.DOTALL)
-    text = text.replace(BEGIN, "").replace(END, "")
+    def replace_region(match):
+        body = match.group("body")
+        if fence.search(body):
+            # The generated art is the only thing this script owns.
+            return BEGIN + fence.sub(fresh, body, count=1) + END
+        return BEGIN + "\n" + HEADER + fresh + "\n" + END
 
-    if "@@BLOCK@@" in text:
-        # Replace every occurrence so a duplicated block collapses to one.
-        text = text.replace("@@BLOCK@@", block)
+    if region.search(text):
+        text = region.sub(replace_region, text)
     else:
         # First run: put the block where the heading is.
         heading = "### ASCII Block Diagram"
@@ -59,10 +66,8 @@ def main():
         if index < 0:
             raise SystemExit("README.md: no '### ASCII Block Diagram' heading found")
         insert_at = text.find("\n", index) + 1
+        block = f"{BEGIN}\n{HEADER}{fresh}\n{END}"
         text = text[:insert_at] + "\n" + block + "\n" + text[insert_at:]
-
-    # Tidy the blank lines the marker removal leaves behind.
-    text = re.sub(r"\n{4,}", "\n\n\n", text)
 
     with open(README, "w", encoding="utf-8", newline="\n") as fh:
         fh.write(text)

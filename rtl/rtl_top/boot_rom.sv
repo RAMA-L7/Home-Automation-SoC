@@ -11,9 +11,11 @@
 // Map: 0x0000_0000 .. 0x0000_3FFF
 //------------------------------------------------------------------------------
 module boot_rom #(
-  parameter ADDR_WIDTH = 16,           // 16 KB
-  parameter DATA_WIDTH = 32,
+  parameter int ADDR_WIDTH = 16,           // 16 KB
+  parameter int DATA_WIDTH = 32,
+  // verilog_lint: waive explicit-parameter-storage-type
   parameter MEM_FILE   = "",
+  // verilog_lint: waive explicit-parameter-storage-type
   parameter INIT_FILE  = ""            // alias kept for tool compatibility
 ) (
   input  logic                   clk,
@@ -45,7 +47,7 @@ module boot_rom #(
 );
 
   localparam int WORDS = 1 << (ADDR_WIDTH - 2);
-  logic [DATA_WIDTH-1:0] mem [0:WORDS-1];
+  logic [DATA_WIDTH-1:0] mem [WORDS];
 
   //----------------------------------------------------------------------------
   // Instruction port: accept in IDLE, return data on the following cycle.
@@ -69,6 +71,7 @@ module boot_rom #(
                    if_state  <= IF_DATA;
                  end
         IF_DATA: if_state <= IF_IDLE;
+        default: ;
       endcase
     end
   end
@@ -99,6 +102,7 @@ module boot_rom #(
         end
         AX_RRESP: if (r_rready) ax_state <= AX_IDLE;
         AX_BRESP: if (bready)   ax_state <= AX_IDLE;
+        default: ;
       endcase
     end
   end

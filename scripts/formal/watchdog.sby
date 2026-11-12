@@ -1,8 +1,13 @@
 # Home-Automation-SoC — watchdog pet/arm/reset proof
 # Usage: sby -f watchdog.sby            (or: node scripts/formal/run_formal.js)
+#
+# Bounded model check of a directed scenario (see watchdog_fv.sv for the
+# timeline).  Depth 96 covers the whole script, whose last named event is the
+# CTRL read-back at cycle 89.  This is a bounded proof over one deterministic
+# stimulus, not an unbounded theorem about all APB traffic.
 [options]
 mode bmc
-depth 56
+depth 96
 
 [engines]
 smtbmc boolector

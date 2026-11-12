@@ -13,8 +13,8 @@
 // constant level (duty >= 1) to avoid a division by zero style hang.
 //------------------------------------------------------------------------------
 module pwm #(
-  parameter WIDTH = 16,
-  parameter CHANNELS = 4
+  parameter int WIDTH = 16,
+  parameter int CHANNELS = 4
 ) (
   input  logic         pclk,
   input  logic         presetn,
@@ -124,6 +124,7 @@ module pwm #(
         10'd6:  period3 <= pwdata[WIDTH-1:0];   // 0x18 PWM3_PERIOD
         10'd7:  duty3   <= pwdata[WIDTH-1:0];   // 0x1C PWM3_DUTY
         10'd8:  enable  <= pwdata[CHANNELS-1:0];// 0x20 PWM_CTRL
+        default: ;
       endcase
     end
   end

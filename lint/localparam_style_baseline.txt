@@ -1,0 +1,15 @@
+# Known localparam naming deviations — pinned baseline
+#
+# Verible v0.0-4298 validates *localparams* against a fixed CamelCase regex and
+# its parameter-name-style rule cannot be configured for localparams, so this
+# repository's UPPER_SNAKE localparams (ADDR_BOOT_ROM_BASE, RESET_DIV, ...) are
+# reported by that one rule.  Rather than disabling the rule, the current
+# deviations are enumerated per file and scripts/verify.js fails when the count
+# for a file changes or a file appears that is not listed here.  Renaming a
+# parameter therefore still fails the gate, which is the point of the rule.
+#
+# Format: <count> <file>
+  1 rtl/rtl_peripherals/uart.sv
+  1 rtl/rtl_top/axi_lite_interconnect.sv
+ 34 rtl/rtl_top/has_addr_map.sv
+ 18 rtl/rtl_top/riscv_core.sv

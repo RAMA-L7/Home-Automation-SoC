@@ -2,6 +2,8 @@
 // Home-Automation-SoC — Address Map
 // Stage 2 RTL
 //------------------------------------------------------------------------------
+// The file name is the name the filelist, the docs and every include use.
+// verilog_lint: waive package-filename
 package has_addr_map_pkg;
 
   // Region base addresses

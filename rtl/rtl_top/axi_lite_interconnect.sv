@@ -25,9 +25,9 @@
 //   3 = QSPI flash, 4 = APB peripherals, 5 = INTC (CLINT + PLIC)
 //------------------------------------------------------------------------------
 module axi_lite_interconnect #(
-  parameter ADDR_WIDTH = 32,
-  parameter DATA_WIDTH = 32,
-  parameter NUM_SLAVES = 6
+  parameter int ADDR_WIDTH = 32,
+  parameter int DATA_WIDTH = 32,
+  parameter int NUM_SLAVES = 6
 ) (
   input  logic                   clk,
   input  logic                   reset_n,

@@ -752,3 +752,170 @@ entry is the slowest in the suite.
 `firmware/bare_metal/main.c`, `sim/sim_top/tb_firmware.v`, `build/fw/*`
 (regenerated `firmware.elf`/`.bin`/`.srec`, `rom.hex`, `tcm.hex`), `README.md`,
 `AGENTS.md`, `resume.md`, `.agents/OWNED-BY-BUFFY.md`.
+---
+
+## 14. SESSION LOG 6 — Buffy (Formal Verification Phase 2)
+
+`Agent: Buffy (model: DeepSeek V4.1 Flash)` — 2026-11-12, sixth session.
+Scope: independent audit of the existing proofs, property expansion, real CDC
+verification, README investigation, full verification sweep, docs. Nothing
+committed.
+
+### 14.1 Measured results (all reproducible from this tree)
+
+| Check | Command | Result |
+|---|---|---|
+| Formal (4 tasks) | `node scripts/formal/run_formal.js` | **PASS 4/4, exit 0** |
+| Runner negative controls | `node scripts/formal/run_formal.js --self-test` | **5/5 rejected, PASS** |
+| Regression | `node scripts/eda/run_regression.js` | **PASS 17/17, exit 0** |
+| Mermaid | `node scripts/docs/check_mermaid.mjs` | OK, exit 0 |
+| Docs sync idempotent | both `sync_readme_*.py` run 3× | identical md5 each run |
+| Verible parse | `verible-verilog-syntax --lang=sv rtl/**/*.sv scripts/formal/*.sv` | **0 syntax errors, exit 0** |
+| Verible lint | `verible-verilog-lint` | exit 1, **style rules only** (see 14.5) |
+| CDC inventory | `node scripts/formal/cdc_inventory.js` | runs; 6 SYNCHRONIZED / 17 SINGLE-STAGE / 71 NO-STAGE rows (heuristic) |
+
+### 14.2 What the audit changed
+
+- `watchdog_fv.sv` rebuilt around **legal APB transfers** (SETUP then ACCESS,
+  payload held across the pair, asserted by W0). 13 properties: boundary pet,
+  disable/re-enable, zero and max reload, KEY lock, reset during countdown, and
+  a LOAD write in flight when reset asserts. Rev 1 drove `penable` high on every
+  cycle, which is not a legal APB sequence.
+- Two earlier harness mistakes are now documented in the files: the drive logic
+  was combinational (`always @(*)`), so the legality check sampled a stale
+  value; it is now fully registered.
+- `reset_ctrl` split in two: `reset_ctrl.sby` keeps the **unbounded** invariants
+  (width bound, no premature release, prompt assertion, pin agreement — 5
+  properties, `abc pdr`) and `reset_ctrl_seq.sby` adds a directed timing proof
+  (6 properties) so the invariants cannot pass vacuously.
+- One property was **removed rather than weakened**: "pad reset forces the
+  outputs low in the first cycle after power-on" cannot be proven because Yosys
+  leaves the DUT registers free in the initial state. It is replaced by the
+  directed S1 assertion on a concrete timeline.
+- First real CDC proof: `cdc_power_mgr.sby` proves a two-cycle wake is always
+  delivered within three cycles, cannot be lost, and that sleeping gates both
+  clocks (CD1–CD5).
+- `scripts/formal/cdc.sby` (prep-only, asserted nothing) and `scripts/formal/cdc/`
+  (its failed-run artifacts, including the committed `ERROR`) were **deleted** so
+  neither can be mistaken for a passing CDC proof.
+
+### 14.3 CDC finding that changes the plan
+
+The RTL has **one clock**. `core_clk`/`periph_clk` are gated copies of `clk`, so
+CDC-001…CDC-007 in `docs/verification/formal_cdc_verification_plan.md`
+(async FIFOs, gray pointers, 3-flop synchronizers, `clk_aon`) have no object in
+the design. Real crossings are pins only; see the inventory table in
+`reports/verification/README.md`. Three gaps are **findings, not fixes**:
+
+1. `spi_ctrl.spi_miso` — sampled with no synchronizer (`spi_ctrl.sv:50`).
+2. `plic.ext_irq` — ORed into `pending` directly (`plic.sv:51`); a pulse shorter
+   than a clock can be lost and the level can be metastable.
+3. `debug_jtag.tms`/`tdi` — a single flop (`debug_jtag.sv:29`); TCK itself has 2.
+
+None was fixed: SPI/I²C/JTAG have no device-model tests, so a change there could
+not be regression-protected.
+
+### 14.4 Two repository-integrity findings (both handled, both reported)
+
+- **README.md carried an uncommitted rewrite** (+171/−92 whitespace-insensitive,
+  mtime 20:36) that no script in `scripts/docs/` can produce: the sync scripts
+  only touch the region between their markers, while this diff spans the whole
+  document and normalises `---` → `***` and trailing double spaces → `\`. It
+  also added an "Animated Figure" section *inside* the generated ASCII fence,
+  which was never closed — so that prose rendered as code and every sync run
+  deleted it. Fixed the two scripts to own only the fenced block (never the
+  whole marker region), repaired the fence, and kept every line of the added
+  section (verified line-by-line). Both scripts are now idempotent.
+- **`rtl/rtl_top/sram.sv` was left unable to compile** by a concurrent edit
+  (`int wr_idx;` deleted while `wr_idx` stayed in use, and the surviving
+  assignment switched to nonblocking, which would have written the previous
+  address). No lock was held on the file. Restored the declaration and the
+  blocking assignment — the only change from `HEAD` in that file is the
+  explanatory comment — and the regression passes again.
+
+### 14.5 Known gaps after this session
+
+- Only `reset_ctrl` is an unbounded proof; the other three are bounded BMC over
+  directed stimuli (complete for the scenario, not for all traffic).
+- No full-SoC or core-level formal; no formal for the bus fabric.
+- Verible lint is style-noisy (harness `parameter-name-style` 42; RTL 54 + 26
+  `explicit-parameter-storage-type`); the parser is clean.
+- The CDC inventory is a text heuristic: it cannot distinguish an intentional
+  async port from a synchronizer input, and it does not prove the destination
+  reads the last stage.
+
+### 14.6 Files changed this session
+
+`scripts/formal/{watchdog_fv.sv, watchdog.sby, reset_ctrl_fv.sv, reset_ctrl.sby,
+reset_ctrl_seq_fv.sv, reset_ctrl_seq.sby, cdc_power_mgr_fv.sv, cdc_power_mgr.sby,
+run_formal.js, cdc_inventory.js}`,
+`scripts/docs/sync_readme_diagram.py`, `scripts/docs/sync_readme_mermaid.py`,
+`README.md` (fence repair only), `rtl/rtl_top/sram.sv` (compile repair),
+`reports/verification/README.md`, `reports/MASTER_PROJECT_STATUS.md`,
+`docs/verification/formal_cdc_verification_plan.md`, `AGENTS.md`.
+Deleted: `scripts/formal/cdc.sby`, `scripts/formal/cdc/` (prep-only scaffold and
+its failed-run artifacts). Nothing committed.
+
+## 15. Phase 3 — CDC hardening, peripheral verification, unified gate (2026-11-12)
+
+Baseline reproduced first: formal 4/4 PASS, regression 17/17 PASS. Final state:
+formal 5/5, regression 22/22, `node scripts/verify.js` 9/9 PASS, exit 0.
+
+### 15.1 What changed in RTL
+
+| File | Change | Why |
+|------|--------|-----|
+| `rtl/rtl_peripherals/plic.sv` | 2-FF synchroniser (`irq_meta`/`irq_sync`) + `irq_prev` edge capture | raw pin-level `ext_irq` reached pending/claim logic; the event register keeps an asserted-at-claim source from being dropped |
+| `rtl/rtl_peripherals/debug_jtag.sv` | **new IEEE 1149.1 next-state table**; TMS/TDI 2-FF | the old table only implemented TMS=1 arcs, so `SHIFT_DR`/`SHIFT_IR` were unreachable and the TAP could never shift |
+| `rtl/rtl_peripherals/spi_ctrl.sv` | MISO sampled at the end of the SCK **high** phase | the old sample point read the next bit; every received byte was shifted left by one |
+| `rtl/rtl_top/sram.sv` | `wr_idx` is now a combinational wire | same guarantee as the blocking assignment, without a blocking assign in a clocked block |
+| all `rtl/**/*.sv` | typed parameters (`int`), `[N]` array declarations, explicit `default:` arms, trailing newline | lint cleanup, no functional change |
+
+`spi_miso` was **not** given a synchroniser: SCK is generated from the same
+`pclk` that samples MISO, so there is no second clock domain; a 2-FF there would
+only consume setup margin.
+
+### 15.2 What changed in verification
+
+- `sim/sim_top/{tb_plic_proto,tb_spi_device,tb_jtag_proto,tb_watchdog_audit,tb_sram_audit}.v`
+  (5 new testbenches, all in the regression list).
+- `scripts/formal/{plic_regs_fv.sv,plic_regs.sby}` + `run_formal.js` TASKS entry.
+- `scripts/formal/cdc_inventory.js` rewritten: 12 classified rows, each with a
+  structural check that runs against the RTL.
+- `scripts/verify.js`: unified gate, `--self-test` negative controls (6).
+- `lint/verible.rules` + `lint/localparam_style_baseline.txt`.
+
+### 15.3 Mutation evidence (audit of the phase-2 fixes)
+
+| Mutant | Result |
+|--------|--------|
+| watchdog without the `!reload` gate | rejected by `tb_watchdog_audit` (2 checks fail); **`tb_watchdog.v` passes it** |
+| SRAM with nonblocking `wr_idx` | rejected by `tb_sram_audit` (T2/T3/T4 fail) |
+| SPI at `HEAD` | rejected by `tb_spi_device` (4 of 5 receive checks fail) |
+| JTAG at `HEAD` | rejected by `tb_jtag_proto` (SHIFT states unreachable) |
+
+### 15.4 Lint status
+
+RTL lint exit 1 is *expected* and pinned: Verible v0.0-4298 validates
+localparams against a fixed CamelCase regex that cannot be reconfigured, and
+this code base uses UPPER_SNAKE. The counts per file are pinned in
+`lint/localparam_style_baseline.txt`; `verify.js` fails on any other violation,
+any new file, or a changed count. Everything else (54 → 0) was fixed.
+
+### 15.5 Open items
+
+- No full-SoC formal; the bus fabric is unproven.
+- JTAG has no DMI/DTM/IDCODE path and `trst_n` is unused.
+- SPI supports mode 0 only; `pstrb` is ignored by every APB peripheral.
+- SRAM needs a true dual-port macro for the instruction port.
+- Level-sensitive inputs can still miss pulses shorter than two `clk` cycles.
+
+## 16. Final Verification Closure (2026-11-12)
+
+- SRAM reset test corrected: reset is asserted while a write is pending (T10a) and while active (T10b); `wr_fire` gated by `reset_n`. Counts: SRAM audit 24 checks, watchdog audit 19 checks, plic protocol 18 checks.
+- CDC inventory: `periph_irq -> PLIC` reclassified as a synchronous path (gated copies of clk), not a CDC; 12 rows, all structural checks pass.
+- JTAG: documented minimum reliable clock ratio is clk >= 10x TCK (4x fails); PAUSE states reachable per table; comments corrected.
+- Unified gate: 9/9 PASS, exit 0; self-test 6/6 rejected.
+- Formal: 5/5 PASS. Regression: 22/22 PASS.
+- Verible lint baseline unchanged: 54 localparam-style deviations pinned (uart 1, axi_lite_interconnect 1, has_addr_map 34, riscv_core 18).
+- Report: `reports/FINAL_RELEASE_READINESS.md`.

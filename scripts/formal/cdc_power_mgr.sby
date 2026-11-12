@@ -1,0 +1,25 @@
+# Home-Automation-SoC — CDC property: asynchronous wake into power_mgr
+# Usage: sby -f cdc_power_mgr.sby        (or: node scripts/formal/run_formal.js)
+#
+# Behavioural proof of the 2-FF wake synchronizer's consequences (see
+# cdc_power_mgr_fv.sv for the timeline).  Depth 30 covers the whole scenario.
+#
+# This is NOT a CDC signoff and says nothing about metastability: logic-level
+# formal cannot model it.  It proves that a wake held for two cycles is always
+# delivered and never lost, which is the requirement the synchronizer exists to
+# meet.
+[options]
+mode bmc
+depth 30
+
+[engines]
+smtbmc boolector
+
+[script]
+read_verilog -sv -formal power_mgr.sv
+read_verilog -sv -formal cdc_power_mgr_fv.sv
+prep -top cdc_power_mgr_fv
+
+[files]
+../../rtl/rtl_peripherals/power_mgr.sv
+cdc_power_mgr_fv.sv

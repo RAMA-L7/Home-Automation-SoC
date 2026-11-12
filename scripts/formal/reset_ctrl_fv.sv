@@ -8,10 +8,18 @@
 //   R1  `rst_sys_n` can never stay low longer than HOLD_CYCLES.  An unbounded
 //       level would deadlock the SoC: the watchdog can only be petted by
 //       software, and software is held in reset.
+//   R1b No premature release: while the pulse has not reached HOLD_CYCLES it
+//       stays asserted.  R1 + R1b together fix the width at exactly HOLD.
+//       (The exact width is also proven by reset_ctrl_seq.sby.)
 //   R2  The pulse releases on the cycle after it has run its full width.
 //   R3  A timeout seen while the controller is idle asserts the reset in the
 //       very next cycle.
 //   R4  The board-level pin carries the same pulse.
+// Not asserted here: "the pad reset forces both outputs low" for the very first
+// cycles after power-on.  Yosys leaves the DUT's registers free in the initial
+// state (the async reset only becomes observable from the first clock edge), so
+// that window cannot be proven in this flow.  The directed harness
+// reset_ctrl_seq_fv.sv covers it with a concrete power-on timeline (S1).
 //
 // `wdog_timeout` is a free input, so R1..R4 hold for any watchdog behavior,
 // including a timeout that is stuck high.
@@ -78,6 +86,9 @@ module reset_ctrl_fv (
     if (reset_n) begin
       // R1 — bounded pulse width.
       assert (low_run <= 8'(HOLD));
+
+      // R1b — no premature release.
+      if ((low_run > 8'd0) && (low_run < 8'(HOLD))) assert (!rst_sys_n);
 
       // R2 — release on the cycle after the full width.
       if (q_full) assert (rst_sys_n);

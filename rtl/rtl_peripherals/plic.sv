@@ -17,7 +17,7 @@
 // the map document corrected (ADR-011).
 //------------------------------------------------------------------------------
 module plic #(
-  parameter NUM_SOURCES = 8
+  parameter int NUM_SOURCES = 8
 ) (
   input  logic                        clk,
   input  logic                        reset_n,
@@ -32,8 +32,35 @@ module plic #(
   output logic                        irq_out
 );
 
-  logic [7:0]             prio [0:NUM_SOURCES-1];
+  logic [7:0]             prio [NUM_SOURCES];
   logic [NUM_SOURCES-1:0] enable;
+
+  //----------------------------------------------------------------------------
+  // Source synchronisation (CDC)
+  //
+  // `ext_irq` is a pin-level input: it can arrive at any phase of `clk`, so it
+  // must not drive control logic directly.  Two flops absorb the metastability
+  // window, and a third register detects the rising edge in the clk domain, so
+  // an event that arrives while the source is still masked as `claimed` is
+  // captured rather than lost.  A pulse shorter than two clk cycles can still
+  // be missed - that is a property of level sampling, not a fixable bug, and it
+  // is documented in reports/verification/README.md.
+  //----------------------------------------------------------------------------
+  logic [NUM_SOURCES-1:0] irq_meta, irq_sync, irq_prev;
+
+  always_ff @(posedge clk or negedge reset_n) begin
+    if (!reset_n) begin
+      irq_meta <= '0;
+      irq_sync <= '0;
+      irq_prev <= '0;
+    end else begin
+      irq_meta <= ext_irq;
+      irq_sync <= irq_meta;
+      irq_prev <= irq_sync;
+    end
+  end
+
+  wire [NUM_SOURCES-1:0] irq_event = irq_sync & ~irq_prev;
   logic [7:0]             threshold;
   logic [NUM_SOURCES-1:0] pending;
   logic [NUM_SOURCES-1:0] claimed;
@@ -48,8 +75,8 @@ module plic #(
       claimed <= '0;
     end else begin
       for (int i = 0; i < NUM_SOURCES; i++) begin
-        pending[i] <= ext_irq[i] | (pending[i] & ~claimed[i]);
-        if (claimed[i] && !ext_irq[i]) claimed[i] <= 1'b0;
+        pending[i] <= irq_event[i] | irq_sync[i] | (pending[i] & ~claimed[i]);
+        if (claimed[i] && !irq_sync[i]) claimed[i] <= 1'b0;
       end
 
       // Claim (read of 0x208) masks the source until it deasserts.  Kept in

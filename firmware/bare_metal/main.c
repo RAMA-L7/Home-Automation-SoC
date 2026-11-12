@@ -15,6 +15,7 @@
 #define TIMER_BASE 0x50005000
 #define WDOG_BASE 0x50006000
 #define PWRMGR_BASE 0x50008000
+#define PWM_BASE    0x50004000
 
 /* GPIO registers */
 #define REG_GPIO_DATA_OUT   (*(volatile uint32_t *)(GPIO_BASE + 0x00))
@@ -127,6 +128,7 @@ int main(void)
 {
     uint32_t led_state = 0;
     uint32_t blink_count = 0;
+    uint32_t sensor_value = 0;
 
     /* Configure GPIO[0] as output (LED) */
     REG_GPIO_OE |= (1u << 0);
@@ -139,6 +141,19 @@ int main(void)
     /* Arm the watchdog: counting + timeout drives the reset output. */
     REG_WDOG_LOAD = WDOG_RELOAD;
     REG_WDOG_CTRL = WDOG_CTRL_ARMED;
+
+    /* Sensor acquisition (simulation input): read the free-running timer
+     * counter as a stand-in for a physical sensor.  The value is validated
+     * (non-zero) and stored in `sensor_value` for the host. */
+    REG_TIMER_CTRL = 0x01;          /* enable counter */
+    {
+        uint32_t s = REG_TIMER_COUNT;
+        if (s == 0u) s = 1u;       /* never report an uninitialised sample */
+        sensor_value = s;
+        uart_puts("Sensor: ");
+        uart_print_hex(sensor_value);
+        uart_puts("\r\n");
+    }
 
     /* Announce boot */
     uart_puts("\r\n=== Home-Automation-SoC Firmware ===\r\n");
@@ -176,10 +191,25 @@ int main(void)
                 /* Trigger watchdog reset by not feeding */
                 while (1)
                     ;
-            }
-            if (c == 's' || c == 'S') {
+            } else if (c == 's' || c == 'S') {
                 uart_puts("Sleep requested\r\n");
                 REG_PM_CTRL |= 0x01;   /* request sleep */
+            } else if (c == 'l' || c == 'L') {
+                /* GPIO/PWM response: toggle LED */
+                led_state = !led_state;
+                if (led_state)
+                    REG_GPIO_DATA_OUT |= (1u << 0);
+                else
+                    REG_GPIO_DATA_OUT &= ~(1u << 0);
+                uart_puts("LED toggled\r\n");
+            } else if (c == 'p' || c == 'P') {
+                /* PWM response: configure channel 0, 50% duty */
+                (*(volatile uint32_t *)(PWM_BASE + 0x00)) = 999u;   /* PERIOD */
+                (*(volatile uint32_t *)(PWM_BASE + 0x04)) = 500u;   /* DUTY  */
+                (*(volatile uint32_t *)(PWM_BASE + 0x20)) = 0x01u;  /* enable */
+                uart_puts("PWM set\r\n");
+            } else {
+                uart_puts("ERR unknown command\r\n");
             }
         }
 
