@@ -219,12 +219,25 @@ graph TB
 | Reset controller | 15/15 | PASS | `tb_reset_ctrl.v` |
 | Power manager | 16/16 | PASS | `tb_power_mgr.v` |
 | CLINT/PLIC/GPIO/SPI/I²C/PWM/timer/watchdog/I²S/SRAM/JTAG | Various | PASS | Individual testbenches |
-| Regression suite | 16/17 | PASS | `run_regression.js` (Icarus) |
+| **Regression suite** | **17/17** | **PASS** | `run_regression.js` (Icarus) |
+| C firmware demo (boot → UART → watchdog reset → reboot) | all markers | PASS | `tb_firmware.v` |
 | **Verilator C++ full-SoC boot** | **7/7** | **PASS** | `verilator_build_soc.bat` — ~20,000× real time |
 | Verilator lint | 0 errors | PASS | All 22 RTL files |
 | Yosys synthesis (core) | 226 cells, 0 errors | PASS | `riscv_core.sv` |
 
-**Failing:** `firmware (C demo)` — times out at 120 ms, `wdog pulses 0`. Boot, UART RX, and watchdog reset are individually proven at block level, but the full `tb_firmware.v` demo has not reached PASS.
+**`firmware (C demo)` — what it actually proves.** The bench runs the compiled C
+image (`build/fw/firmware.elf`, built with riscv-none-elf-gcc 12.2.0) on the RTL
+SoC and observes, in one run: the boot ROM handing control to the TCM image; the
+full UART banner; the host `r` command being received and echoed; the watchdog
+(armed by the firmware with `CTRL = 0b11`) expiring at 20.005 ms because the
+firmware stops petting it; `reset_ctrl` turning that level into a bounded
+16-cycle system reset (`rst_sys_n` low → high); and the firmware rebooting from
+the boot ROM and blinking GPIO0 again.
+
+This is a **diagnostic** demonstration: there is no image authentication, no
+flash programming and no secure boot behind it. It also does not prove an
+internal watchdog reset of a *partitioned* design or any power-domain retention
+the RTL does not implement.
 
 ---
 
@@ -273,7 +286,9 @@ export PATH="/d/tools/oss-cad-suite/bin:/d/tools/oss-cad-suite/lib:$PATH"
 ```bash
 node scripts/eda/run_regression.js
 ```
-Expected: `PASS 16 / 17` (1 failing: firmware C demo watchdog pulse)
+Expected: `PASS 17 / 17` (exit 0). The `firmware (C demo)` entry is the slowest
+one (~1 min of wall clock: it simulates 35.7 ms of SoC time, including the
+20 ms watchdog window).
 
 ### 2. Build Boot Firmware and Run Full-SoC Test
 
@@ -364,7 +379,10 @@ Expected output ends with:
 - Phase-2 correction pass: UART pin-level test, watchdog reset controller, exception/trap support
 - ISA trap program, C firmware build driver, regression harness
 - 153/153 UART checks PASS; 15/15 reset_ctrl PASS; 47/47 ISA trap checks PASS; 7/7 boot PASS
-- tb_firmware boots and prints banner + receives 'r' but watchdog pulse not yet observed (wdog pulses 0, 120 ms timeout)
+- tb_firmware (C demo) now PASSES end to end: watchdog reset pulse observed, firmware reboots, GPIO blinks
+  - root cause of the earlier FAIL was two separate bugs: firmware armed the watchdog with
+    `CTRL = 0x01` (counter enable only) so the reset output could never assert, and the bench
+    compared all 16 GPIO bits, where the high-Z pins made `!=` evaluate to X so LED edges were never counted
 - Documentation refresh: block diagram (mermaid + ASCII), README/RTE/AGENTS status aligned to measured evidence
 
 ### Session 5 — OpenCode (Current)
