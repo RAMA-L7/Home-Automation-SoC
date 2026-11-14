@@ -1,0 +1,16 @@
+# Real approval — D2 40.000 ns, D6 0.100/0.050 ns provisional, Context A only.
+# Granted by the project owner in the agent session of 2026-11-14.
+approved_period_ns 40.000
+approved_by project owner (explicit approval in agent session)
+approved_date 2026-11-14
+approval_token TYIEZtYjYRdmESNoccAFupewtqASipgR
+scope isolated timer block CTS experiment (Context A)
+sdc_sha256 d9d7768567001b38d346ef2a0657c4ab55d22e9b5a2c9ae91b0fe84a31d74c69
+cts_config_sha256 76bb517004bb2b59b983c36f2f814755fdaa78b5eec6038d483c7d79532f548c
+odb_sha256 499720e79176f70693c5b03a311f0f81f8b692510cde930be610277193a2488e
+def_sha256 38c2191b3be370afb9c7b3803f856e3a7cc54c44a623b9a66a433a864da2b018
+driver_sha256 b433567733d2dac68ef8deb15ac37ba04341e43a337cd58c141f7974515feeec
+liberty_sha256 2347eaf80ba9c31bf169bc2b73840c67e4182789e2c872ea61258137e5f4dc2c
+lef_sha256 b844f77ca764b45c97e67f07439a40bdbb59253f43e1244767b2215de4ae55e0
+rc_sha256 b8231da947daba8b162d1d47b186474c34213e7a367a0df5f166d1ce91d2ab0d
+platform_cfg_sha256 d8ebcb45d52ec4a2ce57d74837a1bb56e67350c99cbe7f91525b077ef7250171
