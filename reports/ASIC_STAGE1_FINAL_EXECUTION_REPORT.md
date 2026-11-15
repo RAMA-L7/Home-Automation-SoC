@@ -94,7 +94,10 @@ Evidence frozen (see `ASIC_STAGE1_FINAL_EVIDENCE_FREEZE.md`). All approved decis
 
 ## 12. PR and Merge
 
-To be completed in Phase 10-11 (Git publication and merge).
+- **PR #2:** https://github.com/RAMA-L7/Home-Automation-SoC/pull/2 — MERGED (5691cee17f4c6d1d937a034746fb9ac7d77791d8)
+- **PR #3:** https://github.com/RAMA-L7/Home-Automation-SoC/pull/3 — MERGED (39af7b0ac155467567f5fc33a95917ba005d083a)
+- **Merge commit (PR #3):** 39af7b0ac155467567f5fc33a95917ba005d083a
+- **Remote main HEAD:** 39af7b0ac155467567f5fc33a95917ba005d083a
 
 ## 13. Final Stage 1 Status
 
