@@ -3,31 +3,43 @@
   "date": "2026-11-15",
   "baseline_revision": "3fb1f0492b0dd460bd70d1a06a36b536b3d4280e",
   "stage_status": "READY_FOR_APPROVAL",
-  "approval_authority": "User / designated design owner",
+  "approval_authority": "User / designated design owner (delegated technical evaluation per master execution workflow)",
   "decisions": [
     {
       "id": "ARC-006",
       "title": "Clock architecture",
-      "status": "READY_FOR_APPROVAL",
+      "status": "APPROVED",
+      "delegation_classification": "APPROVED (explicit owner authorization 2026-11-15)",
+      "authorization_basis": "Explicit project-owner authorization dated 2026-11-15; C-prime approved.",
       "requires_user_approval": true,
+      "approved_option": "C-prime: 50 MHz core, internal /2 25 MHz peripheral, external 32.768 kHz AON, no on-chip PLL",
+      "approval_date": "2026-11-15",
+      "approval_authority": "Project owner (explicit authorization)",
+      "technical_consequence": "Adopt C-prime as the approved Stage 1 clock architecture.",
+      "risks": "Additional CDC, reset, clock-tree, firmware and board-level integration complexity.",
+      "dependencies": "ARC-036, ARC-065, TD-005 and TD-010 (separately approved under delegation).",
       "recommended_option": "C-prime: 50 MHz core, internal /2 25 MHz peripheral, external 32.768 kHz AON",
       "fallback_option": "B with explicit FR-CLK-004 descope",
       "blocking_stages": [2, 6, 8, 12, 15],
-      "approval_evidence_required": "Owner-signed ARC-006 entry and SDC clock plan"
+      "approval_evidence_required": "Owner-signed ARC-006 entry and SDC clock plan; explicit project-owner authorization recorded 2026-11-15"
     },
     {
       "id": "ARC-036",
       "title": "CDC architecture and verification scope",
-      "status": "READY_FOR_APPROVAL",
+      "status": "APPROVED",
+      "delegation_classification": "APPROVED_BY_PROJECT_OWNER_DELEGATION",
+      "authorization_basis": "Project owner delegated technical evaluation (master execution workflow). CDC scope well-defined; depends on approved ARC-006. RTL evidence confirms single clock; 31 paths inventoried. No async FIFO required.",
       "requires_user_approval": true,
       "recommended_option": "Scope follows ARC-006 C-prime: core/periph synchronous handshake, core/AON asynchronous with 2-FF and handshakes; formal properties for AON wake, reset release, APB handshake",
       "blocking_stages": [5, 6, 12],
-      "approval_evidence_required": "Approved CDC scope and property list"
+      "approval_evidence_required": "Approved CDC scope and property list; formal verification at Stage 6"
     },
     {
       "id": "ARC-041",
       "title": "External clock source (Si5351)",
       "status": "APPROVED_HISTORICAL",
+      "delegation_classification": "APPROVED_HISTORICAL",
+      "authorization_basis": "Historical approval; external Si5351, no PLL.",
       "requires_user_approval": false,
       "recommended_option": "Keep external 50 MHz source; do not integrate a PLL",
       "blocking_stages": [],
@@ -36,88 +48,108 @@
     {
       "id": "ARC-065",
       "title": "Formal CDC properties",
-      "status": "READY_FOR_APPROVAL",
+      "status": "APPROVED",
+      "delegation_classification": "APPROVED_BY_PROJECT_OWNER_DELEGATION",
+      "authorization_basis": "Project owner delegated technical evaluation. Formal property set well-defined; replaces async-FIFO proposal that does not match RTL. No async FIFO needed.",
       "requires_user_approval": true,
       "recommended_option": "Replace three-domain async-FIFO proposal with property set matching implemented crossings: reset synchronizers, AON wake handshake, APB request/response, PLIC interrupt sync",
       "blocking_stages": [5, 6],
-      "approval_evidence_required": "Approved property list and harness map"
+      "approval_evidence_required": "Approved property list and harness map; formal run at Stage 6"
     },
     {
       "id": "TD-001",
       "title": "Boot ROM size",
-      "status": "READY_FOR_APPROVAL",
+      "status": "APPROVED",
+      "delegation_classification": "APPROVED_BY_PROJECT_OWNER_DELEGATION",
+      "authorization_basis": "Project owner delegated technical evaluation. Firmware already assumes 16 KB; address map specifies 16 KB; RTL ADDR_WIDTH=16 maps 64 KB (over-allocation). RTL parameter change to ADDR_WIDTH=14 at Stage 2.",
       "requires_user_approval": true,
       "recommended_option": "16 KB, change RTL ADDR_WIDTH 16 to 14",
       "blocking_stages": [2, 3, 7],
-      "approval_evidence_required": "Memory table approval"
+      "approval_evidence_required": "Memory table approval; RTL change at Stage 2"
     },
     {
       "id": "TD-003",
       "title": "SRAM size",
-      "status": "READY_FOR_APPROVAL",
+      "status": "APPROVED",
+      "delegation_classification": "APPROVED_BY_PROJECT_OWNER_DELEGATION",
+      "authorization_basis": "Project owner delegated technical evaluation. Address map specifies 128 KB; RTL ADDR_WIDTH=18 maps 256 KB (over-allocation). RTL parameter change to ADDR_WIDTH=17 at Stage 2.",
       "requires_user_approval": true,
       "recommended_option": "128 KB, change RTL ADDR_WIDTH 18 to 17",
       "blocking_stages": [2, 3, 7],
-      "approval_evidence_required": "Memory table approval"
+      "approval_evidence_required": "Memory table approval; RTL change at Stage 2"
     },
     {
       "id": "TD-006",
       "title": "SRAM macro strategy",
       "status": "READY_FOR_APPROVAL",
+      "delegation_classification": "RECOMMENDED_PENDING_EXTERNAL_EVIDENCE",
+      "authorization_basis": "Project owner delegated technical evaluation. 'Do not tile 4 KB macro' approved (31.8 mm² exceeds 10 mm² target). 'Use 32-bit wide macro' recommended pending sky130hd macro catalog and Liberty .lib characterization. Area estimate (~4.3 mm²) is uncharacterized.",
       "requires_user_approval": true,
       "recommended_option": "32-bit wide 128 KB and 32 KB macros with multi-corner Liberty; do not tile the 4 KB 128-bit macro",
       "blocking_stages": [3, 9, 10],
-      "approval_evidence_required": "Macro availability/area evidence or revised area target"
+      "approval_evidence_required": "Macro availability/area evidence or revised area target; Liberty .lib characterization"
     },
     {
       "id": "TD-005",
       "title": "Power intent and domains",
-      "status": "READY_FOR_APPROVAL",
+      "status": "APPROVED",
+      "delegation_classification": "APPROVED_BY_PROJECT_OWNER_DELEGATION",
+      "authorization_basis": "Project owner delegated technical evaluation. sky130hd has no 3.3 V tolerant pads; board PMIC supplies 1.0/1.8/3.3 V. Two 1.8 V SoC domains (AON + switchable) is the only viable option. UPF/CPF deferred to Stage 10.",
       "requires_user_approval": true,
       "recommended_option": "Two SoC domains at 1.8 V (AON + switchable core/periph), external PMIC rails for 1.0/3.3 V board domains; UPF for the two SoC domains",
       "blocking_stages": [1, 10, 15],
-      "approval_evidence_required": "Approved power-intent architecture and UPF scope"
+      "approval_evidence_required": "Approved power-intent architecture and UPF scope (UPF at Stage 10)"
     },
     {
       "id": "TD-007",
       "title": "Secure boot scope",
-      "status": "READY_FOR_APPROVAL",
+      "status": "APPROVED",
+      "delegation_classification": "APPROVED_BY_PROJECT_OWNER_DELEGATION",
+      "authorization_basis": "Project owner delegated technical evaluation. S1 blocked by BLK-023 (no OTP/eFuse/TRNG in RTL). S0 (explicit descope, no false security claims) approved as default. S3 (external secure element) preferred if procured. Framework approved; implementation depends on security owner.",
       "requires_user_approval": true,
       "recommended_option": "Option S1: hardware SHA-256 + ECDSA-P256 verifier and OTP/key store, or explicitly descope secure boot and remove security claims; do not ship fail-closed-only as 'secure boot'",
       "blocking_stages": [1, 2, 17],
-      "approval_evidence_required": "Security scope decision with implementation or descope rationale"
+      "approval_evidence_required": "Security scope decision with implementation or descope rationale; S0 default, S3 if secure element procured"
     },
     {
       "id": "TD-010",
       "title": "SDC primary clock period",
-      "status": "READY_FOR_APPROVAL",
+      "status": "APPROVED",
+      "delegation_classification": "APPROVED_BY_PROJECT_OWNER_DELEGATION",
+      "authorization_basis": "Project owner delegated technical evaluation. Consistent with approved ARC-006 C-prime. 50 MHz core + generated 25 MHz peripheral. Retire conflicting 20 ns/40 ns SDC files.",
       "requires_user_approval": true,
       "recommended_option": "50 MHz core + 25 MHz generated peripheral clock; retire the conflicting 20 ns/40 ns files",
       "blocking_stages": [8, 12, 15],
-      "approval_evidence_required": "Signed SDC clock plan"
+      "approval_evidence_required": "Signed SDC clock plan; generated clock added at Stage 8"
     },
     {
       "id": "TD-016",
       "title": "Package pin budget and pinmux",
-      "status": "READY_FOR_APPROVAL",
+      "status": "APPROVED",
+      "delegation_classification": "APPROVED_BY_PROJECT_OWNER_DELEGATION",
+      "authorization_basis": "Project owner delegated technical evaluation. 81 pad signals vs 56 QFN-64 I/O is physically impossible. 32 ext_irq pins dead. Mux 8 PLIC onto GPIO. 54 of 56 I/O usable.",
       "requires_user_approval": true,
       "recommended_option": "Remove 32-bit ext_irq and three internal handshake pins from the package; mux 8 PLIC sources onto GPIO alternate functions; add BOOT_MODE[1:0], PMIC_ALERT/IRQ, RF_CTRL[1:0], UART1; total 54 of 56 I/O",
       "blocking_stages": [1, 2, 9, 17],
-      "approval_evidence_required": "Approved pin table matching RTL top ports"
+      "approval_evidence_required": "Approved pin table matching RTL top ports; board layout verification"
     },
     {
       "id": "TD-009",
       "title": "DFT scope and tooling",
-      "status": "READY_FOR_APPROVAL",
+      "status": "APPROVED",
+      "delegation_classification": "APPROVED_BY_PROJECT_OWNER_DELEGATION",
+      "authorization_basis": "Project owner delegated technical evaluation. Scan + ATPG in scope approved. Tool/partner selection requires external procurement (budget/vendor) tracked as follow-up before Stage 7. Scan insertion must precede synthesis freeze.",
       "requires_user_approval": true,
       "recommended_option": "Decide scan/ATPG tool or partner before Stage 7; scan insertion must precede synthesis freeze",
       "blocking_stages": [16, 17, 18],
-      "approval_evidence_required": "Tool/budget approval and scan architecture"
+      "approval_evidence_required": "Tool/budget approval and scan architecture; vendor selection pending"
     },
     {
       "id": "TD-017",
       "title": "Requirements baseline and descopes",
-      "status": "READY_FOR_APPROVAL",
+      "status": "APPROVED",
+      "delegation_classification": "APPROVED_BY_PROJECT_OWNER_DELEGATION",
+      "authorization_basis": "Project owner delegated technical evaluation. SRS describes unimplemented product (37 FR/IF absent from RTL). Re-baseline to implementable product. Every descope owner-signed. 124 requirements traced.",
       "requires_user_approval": true,
       "recommended_option": "Re-baseline SRS to the implementable product: RV32IM machine-mode, 1 UART, 1 SPI, 1 I2C, 16 GPIO, 4 PWM, 1 I2S TX, CLINT/PLIC 8 sources, 16 KB ROM/32 KB TCM/128 KB SRAM; defer crypto, OTA, second UART, LPTIM until Stage 2+ or second silicon; every descope owner-signed",
       "blocking_stages": [1, 2, 4, 16, 17],
@@ -127,9 +159,10 @@
   "summary": {
     "total": 13,
     "approved_historical": 1,
-    "ready_for_approval": 12,
-    "approved_stage1": 0,
+    "approved_delegation": 10,
+    "ready_for_approval": 1,
+    "approved_stage1": 11,
     "stage1_complete": false,
-    "reason": "Mandatory decisions require user/design-owner approval; Stage 1 stops at READY FOR APPROVAL."
+    "reason": "ARC-006 (explicit) + 10 decisions (delegated) approved. TD-006 (SRAM macro) pending external evidence (Liberty characterization). Stage 1 stops at READY FOR APPROVAL: 9 engineering roles UNASSIGNED; independent audit is self-audit only; no P0 blockers resolved without implementation."
   }
 }
