@@ -2,7 +2,7 @@
   "document": "HAS-SoC Stage 1 clock architecture",
   "date": "2026-11-15",
   "baseline_revision": "3fb1f0492b0dd460bd70d1a06a36b536b3d4280e",
-  "status": "READY_FOR_APPROVAL",
+  "status": "APPROVED",
   "verified_current_state": {
     "rtl_file": "rtl/rtl_top/has_soc.sv",
     "core_clock": "assign core_clk = clk & core_clk_en_q (line 107)",
@@ -142,8 +142,14 @@
   },
   "approval": {
     "required": true,
-    "authority": "User / designated design owner",
+    "status": "APPROVED",
+    "authority": "Project owner (explicit authorization)",
     "decision_id": "ARC-006",
+    "approval_date": "2026-11-15",
+    "approved_option": "C-prime: 50 MHz core, internal /2 25 MHz peripheral, external 32.768 kHz AON, no on-chip PLL",
+    "technical_consequence": "Adopt C-prime as the approved Stage 1 clock architecture.",
+    "risks": "Additional CDC, reset, clock-tree, firmware and board-level integration complexity.",
+    "dependencies": "ARC-036, ARC-065, TD-005 and TD-010 require separate approval.",
     "acceptance_criteria": [
       "ARC-006 rewritten with option C-prime and approved by owner",
       "FR-CLK-002 and FR-CLK-004 either retained with implementation plan or formally descoped",
