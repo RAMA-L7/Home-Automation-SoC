@@ -1,0 +1,51 @@
+id,category,name,rtl_reference,base_or_pin,width,direction,domain,protocol,reset_value,implemented,doc_reference,mismatch,action
+IF-01,top_port,clk,has_soc.sv:25,external,1,input,async,none,n/a,yes,IF-ELE-009,no PLL; single clock,YES
+IF-02,top_port,reset_n,has_soc.sv:26,external,1,input,async,reset,active low,yes,FR-RST-001,no PMIC sequencing,YES
+IF-03,top_port,jtag_tck/tms/tdi/tdo/trst_n,has_soc.sv:27-31,external,5,mixed,TCK,JTAG,TAP reset,yes,FR-DBG-001,no DMI/IDCODE; TMS/TDI single flop,YES
+IF-04,top_port,ext_irq,has_soc.sv:33,external,32,input,async,level,n/a,unused,FR-PER-009,dead pins; PLIC uses internal 8 sources,REMOVE_OR_MUX
+IF-05,top_port,uart_tx/uart_rx,has_soc.sv:35-36,external,2,mixed,periph,UART,div=434 (50 MHz),yes,FR-PER-001,one UART not two; no FIFO,YES
+IF-06,top_port,spi_sck/mosi/miso/cs_n,has_soc.sv:38-41,external,4,mixed,periph,SPI mode 0,clkdiv=8,yes,FR-PER-003,one CS not three; mode 0 only,YES
+IF-07,top_port,i2c_scl/sda,has_soc.sv:43-44,external,2,inout,periph,I2C open drain,clkdiv=32,yes,FR-PER-002,single byte; no stretch; no sync,NARROW
+IF-08,top_port,gpio,has_soc.sv:46,external,16,inout,periph,GPIO,0x0000,yes,FR-PER-004,no pull/drive/alternate mux,YES
+IF-09,top_port,pwm_out,has_soc.sv:48,external,4,output,periph,PWM,0,yes,FR-PER-005,16-bit only; no dead time,YES
+IF-10,top_port,i2s_bclk/lrclk/dout/din,has_soc.sv:50-53,external,4,mixed,periph,I2S,clkdiv=8,yes,FR-PER-006,TX 16-bit only; no RX,YES
+IF-11,top_port,qspi_sck/cs_n/io,has_soc.sv:55-57,external,6,mixed,core,QSPI,0,yes,FR-MEM-004,single-line read 0x03; no quad/DDR/program/erase,PARTIAL
+IF-12,top_port,wdog_reset_n_out,has_soc.sv:59,external,1,output,core,reset,active high pulse,yes,FR-RST-002,bounded pulse not level,YES
+IF-13,top_port,core_clk_en_o,has_soc.sv:60,external,1,output,core,status,1,yes,none,internal signal exposed,REMOVE_OR_MUX
+IF-14,top_port,wake_req/wake_ack,has_soc.sv:61-62,external,2,mixed,core,handshake,0,yes,FR-PWR-004,only wake source; no GPIO/LPTIM/PMIC,REMOVE_OR_MUX
+IF-15,axi_slave,boot_rom,has_soc.sv:293,0x0000_0000,16 KB,slave,core,AXI4-Lite,array uninitialized,yes,FR-MEM-003,array is 64 KB; not immutable,PARAM_FIX
+IF-16,axi_slave,tcm,has_soc.sv:323,0x0001_0000,32 KB,slave,core,AXI4-Lite,array uninitialized,yes,FR-MEM-002,inferred array; not macro,PARAM_OK
+IF-17,axi_slave,sram,has_soc.sv:340,0x2000_0000,128 KB,slave,core,AXI4-Lite,array uninitialized,yes,FR-MEM-001,array is 256 KB; not macro,PARAM_FIX
+IF-18,axi_slave,qspi,has_soc.sv:354,0x4000_0000,64 MB window,slave,core,AXI4-Lite,0,yes,FR-MEM-004,24-bit address aliases 64 MB to 16 MB,FIX_WINDOW
+IF-19,axi_slave,apb_bridge,has_soc.sv:380,0x5000_0000,1 MB,slave,core,AXI4-Lite,0,yes,FR-BUS-002,only 36 KB decoded,PARTIAL
+IF-20,axi_slave,intc,has_soc.sv:410,0x8000_0000,64 KB,slave,core,AXI4-Lite,0,yes,FR-PER-009/010,8 KB used,PARTIAL
+IF-21,apb,gpio,has_soc.sv:443,0x5000_0000,4 KB,slave,periph,APB,0x0000,yes,ARC-054,doc places UART at this base,MAP_FIX
+IF-22,apb,uart,has_soc.sv:449,0x5000_1000,4 KB,slave,periph,APB,div=434,yes,ARC-051,doc places I2C at this base,MAP_FIX
+IF-23,apb,i2c,has_soc.sv:455,0x5000_2000,4 KB,slave,periph,APB,clkdiv=32,yes,ARC-052,doc places SPI at this base,MAP_FIX
+IF-24,apb,spi,has_soc.sv:461,0x5000_3000,4 KB,slave,periph,APB,clkdiv=8,yes,ARC-053,doc places GPIO at this base,MAP_FIX
+IF-25,apb,pwm,has_soc.sv:467,0x5000_4000,4 KB,slave,periph,APB,0,yes,ARC-055,doc places PWM at this base,MAP_FIX
+IF-26,apb,timer,has_soc.sv:473,0x5000_5000,4 KB,slave,periph,APB,0,yes,ARC-057,doc places I2S at this base,MAP_FIX
+IF-27,apb,watchdog,has_soc.sv:479,0x5000_6000,4 KB,slave,clk,APB,0,yes,ARC-015,doc places LPTIM here; watchdog uses ungated clk,MAP_FIX
+IF-28,apb,i2s,has_soc.sv:493,0x5000_7000,4 KB,slave,periph,APB,clkdiv=8,yes,ARC-056,doc places LPTIM here,MAP_FIX
+IF-29,apb,power_mgr_regs,has_soc.sv:501,0x5000_8000,4 KB,slave,periph,APB,0,yes,ARC-008,doc places AES here,MAP_FIX
+IF-30,intc,clint,has_soc.sv:410,0x8000_0000,4 KB,slave,core,custom,0,yes,ARC-014,MTIME at 0x7F8 not 0xBFF8,FIX_OFFSET
+IF-31,intc,plic,has_soc.sv:410,0x8000_1000,4 KB,slave,core,custom,0,yes,ARC-014,8 sources not 32; 4 KB not 32 KB,NARROW
+IF-32,interrupt,uart,plic source 0,PLIC ID 1,1,level,periph,PLIC,n/a,yes,FR-PER-009,doc source count 32,OK
+IF-33,interrupt,spi,plic source 1,PLIC ID 2,1,level,periph,PLIC,n/a,yes,FR-PER-009,doc source count 32,OK
+IF-34,interrupt,i2c,plic source 2,PLIC ID 3,1,level,periph,PLIC,n/a,yes,FR-PER-009,doc source count 32,OK
+IF-35,interrupt,gpio,plic source 3,PLIC ID 4,1,level,periph,PLIC,n/a,yes,FR-PER-009,doc source count 32,OK
+IF-36,interrupt,pwm,plic source 4,PLIC ID 5,1,level,periph,PLIC,n/a,yes,FR-PER-009,doc source count 32,OK
+IF-37,interrupt,timer,plic source 5,PLIC ID 6,1,level,periph,PLIC,n/a,yes,FR-PER-009,doc source count 32,OK
+IF-38,interrupt,watchdog,plic source 6,PLIC ID 7,1,level,core,PLIC,n/a,yes,FR-PER-009,doc source count 32,OK
+IF-39,interrupt,i2s,plic source 7,PLIC ID 8,1,level,periph,PLIC,n/a,yes,FR-PER-009,doc source count 32,OK
+IF-40,pin,debug,CSV pins 6,5+UART0,6,mixed,3.3V,AON,TCK etc,RTL uses 1.8V bank,ARC-024,no 3.3V pads in sky130hd,DECIDE
+IF-41,pin,package,CSV,56 usable I/O,56,n/a,n/a,QFN-64,n/a,partial,ARC-022,RTL exposes 81 pad signals,PINMUX
+IF-42,missing,uart1,not present,0x5000_x,2,n/a,periph,UART,n/a,no,FR-PER-001,docs and CSV require it,ADD_OR_DESCOPE
+IF-43,missing,pmic_alert/irq,not present,external,2,input,AON,level,n/a,no,FR-PWR-006,docs and CSV require it,ADD_OR_DESCOPE
+IF-44,missing,boot_mode,not present,external,2,input,AON,strap,00,no,BOOT_MODE,docs and CSV require it,ADD_OR_DESCOPE
+IF-45,missing,rf_ctrl,not present,external,2,output,1.8V,level,0,no,FR-EXT-003,docs and CSV require it,ADD_OR_DESCOPE
+IF-46,missing,lptim,not present,0x5000_7000,4 KB,n/a,AON,APB,n/a,no,FR-PER-008,requirements mandatory,ADD_OR_DESCOPE
+IF-47,missing,aes/sha/trng,not present,0x5000_8000+,4 KB each,n/a,core,APB,n/a,no,FR-SEC-004..006,requirements mandatory,ADD_OR_DESCOPE
+IF-48,missing,pinmux,not present,0x5000_C000,4 KB,n/a,periph,APB,n/a,no,ARC-058,no alternate function RTL,ADD_OR_DESCOPE
+IF-49,missing,otp/efuse,not present,internal,256 bits,n/a,AON,none,n/a,no,FR-SEC-003,no macro or RTL,ADD_OR_DESCOPE
+IF-50,missing,peripheral reset regs,not present,0x5000_F000,4 KB,n/a,periph,APB,n/a,no,FR-RST-003,no reset register block,ADD_OR_DESCOPE
