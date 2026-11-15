@@ -1,0 +1,155 @@
+{
+  "document": "HAS-SoC Stage 1 clock architecture",
+  "date": "2026-11-15",
+  "baseline_revision": "3fb1f0492b0dd460bd70d1a06a36b536b3d4280e",
+  "status": "READY_FOR_APPROVAL",
+  "verified_current_state": {
+    "rtl_file": "rtl/rtl_top/has_soc.sv",
+    "core_clock": "assign core_clk = clk & core_clk_en_q (line 107)",
+    "peripheral_clock": "assign periph_clk = clk & periph_clk_en_q (line 108)",
+    "divider_present": false,
+    "aon_clock_present": false,
+    "pll_present": false,
+    "clock_inputs": ["clk"],
+    "peripheral_frequency_equals_core": true,
+    "uart_default_clk_freq_hz": 50000000,
+    "firmware_baud_assumption": "firmware/boot/boot.S line 5: 115200 baud at 50 MHz",
+    "internal_cdc_domains": 0,
+    "top_level_extra_clock_pins": ["jtag_tck"]
+  },
+  "requirement_baseline": {
+    "FR-CLK-001": "Core 50 MHz from external Si5351",
+    "FR-CLK-002": "Peripheral 25 MHz (core/2), synchronous",
+    "FR-CLK-003": "QSPI 12.5 MHz (core/4) or 50 MHz DDR, configurable",
+    "FR-CLK-004": "AON 32 kHz LPO, +/-10%",
+    "FR-CLK-005": "Per-peripheral clock enable via power-domain controller",
+    "ARC-006": "50 MHz core, 25 MHz periph, 32 kHz LPO (PROPOSED)",
+    "ARC-041": "External Si5351 (APPROVED)"
+  },
+  "options": [
+    {
+      "id": "A",
+      "name": "Single 50 MHz domain with clock enables",
+      "description": "All logic runs on 50 MHz; peripherals receive qualified enables. No generated clock, no AON.",
+      "functional_correctness": "Works for digital function, but peripheral timing (UART divisor, PWM range, timer tick) is 2x the specified rate. Violates FR-CLK-002 and FR-CLK-004.",
+      "clock_tree": "One tree; simplest CTS and STA.",
+      "cdc": "None internally; only pin-level async inputs.",
+      "reset": "One reset domain; existing reset_ctrl reusable.",
+      "constraints": "One create_clock; no generated clocks.",
+      "power": "Clock gating only; no 32 kHz sleep timer; deep sleep below 1 mW not achievable without external always-on timer.",
+      "gating": "Existing core/periph gate structure reusable; per-peripheral enables still missing.",
+      "physical": "Lowest complexity.",
+      "verification": "Lowest; existing 22/22 suite applies almost unchanged.",
+      "external_hw": "One 50 MHz source.",
+      "firmware": "No divisor changes; current firmware remains valid, but product requirements are unmet.",
+      "area": "Lowest.",
+      "scalability": "Poor: adding a real 25 MHz domain later changes every peripheral and constraint.",
+      "verdict": "Not compliant; acceptable only as a formally approved descope."
+    },
+    {
+      "id": "B",
+      "name": "50 MHz core + synchronous /2 25 MHz peripheral clock",
+      "description": "Internal divider generates clk_periph = clk_core/2. APB peripherals run at 25 MHz; core, memories and AXI run at 50 MHz.",
+      "functional_correctness": "Meets FR-CLK-002. Requires UART divisor, timer, PWM, SPI, I2C, I2S scaling review and firmware updates.",
+      "clock_tree": "Two synchronous trees from one source; CTS must balance each; 25 MHz tree is half rate.",
+      "cdc": "Core/periph crossing is synchronous (same source, divide-by-2) but still needs a safe APB bridge handshake; no metastability, but phase relationship must be constrained.",
+      "reset": "Per-domain reset release synchronizers required; existing single reset insufficient.",
+      "constraints": "create_clock 50 MHz + create_generated_clock divide_by 2; cross-domain exceptions/handshake paths; QSPI divider.",
+      "power": "Peripheral tree can be gated independently; still no 32 kHz AON.",
+      "gating": "Core and periph gates exist; per-peripheral enables still required by FR-CLK-005.",
+      "physical": "Moderate: generated clock, two trees, phase-aware CTS.",
+      "verification": "Moderate: new CDC/handshake checks, peripheral frequency tests.",
+      "external_hw": "One 50 MHz source (Si5351).",
+      "firmware": "Baud/timer/PWM constants must change from 50 to 25 MHz for APB peripherals.",
+      "area": "Small divider + synchronizers.",
+      "scalability": "Good foundation for AON later.",
+      "verdict": "Recommended minimum compliant baseline if AON is descoped."
+    },
+    {
+      "id": "C",
+      "name": "50 MHz core + 25 MHz peripheral + independent 32 kHz AON",
+      "description": "As B, plus an always-on 32.768 kHz domain for LPTIM, wake control and sticky power state. AON clock sourced from an external 32.768 kHz crystal/oscillator pin (no unqualified on-chip RC).",
+      "functional_correctness": "Meets FR-CLK-002 and FR-CLK-004; enables real deep sleep and wake timers.",
+      "clock_tree": "Three trees: 50 MHz, 25 MHz, 32 kHz; AON tree must be minimal and placed in the AON region.",
+      "cdc": "True asynchronous core<->AON and periph<->AON crossings; requires 2-FF synchronizers, handshakes and reset synchronizers; APB access to AON registers needs a bridge.",
+      "reset": "Three reset domains, async assert / sync deassert per domain; AON reset from POR only.",
+      "constraints": "Three clock definitions, generated 25 MHz, async clock groups, AON false paths and max-delay constraints.",
+      "power": "Enables AON-only sleep; core/periph can be clock- or power-gated.",
+      "gating": "Per-domain and per-peripheral gating; AON never gated.",
+      "physical": "Highest: AON placement, isolation, separate tree, CTS corners.",
+      "verification": "Highest: CDC formal, AON wake sequences, reset-domain checks.",
+      "external_hw": "50 MHz source + 32.768 kHz crystal/oscillator.",
+      "firmware": "25 MHz peripheral constants plus AON timer/wake driver.",
+      "area": "Divider + AON logic + retention/isolations.",
+      "scalability": "Best; supports the specified low-power product.",
+      "verdict": "Recommended production architecture. Highest effort; requires power intent (see power report)."
+    },
+    {
+      "id": "D",
+      "name": "External multi-output clock generator (Si5351) for 50 MHz, 25 MHz and 32.768 kHz",
+      "description": "Si5351 provides three board-level clocks; SoC receives separate clk_core, clk_periph and clk_aon pins.",
+      "functional_correctness": "Meets frequencies, but core and peripheral become asynchronous, so every APB transaction crosses a clock domain.",
+      "clock_tree": "Three independent trees; CTS simpler per tree but no synchronous relationship.",
+      "cdc": "Worst: full async handshake/FIFO required in the APB bridge for every access.",
+      "reset": "Three async domains; full reset synchronization.",
+      "constraints": "Three unrelated clocks, async groups, heavy exceptions.",
+      "power": "Board generator consumes power even in sleep; AON clock available.",
+      "gating": "SoC gating still required.",
+      "physical": "Moderate SoC, higher board complexity and three clock pins.",
+      "verification": "High CDC burden.",
+      "external_hw": "Si5351 with three outputs; more pins and board cost.",
+      "firmware": "Same frequency changes as B/C.",
+      "area": "No divider; more synchronizers.",
+      "scalability": "Flexible but adds permanent board dependency.",
+      "verdict": "Not recommended: asynchronous 50/25 crossing is strictly worse than an internal synchronous divider."
+    }
+  ],
+  "recommendation": {
+    "option": "C",
+    "short_name": "C-prime: 50 MHz core, internal /2 25 MHz peripheral, external 32.768 kHz AON",
+    "clock_sources": {
+      "core": "External 50.000 MHz LVCMOS oscillator or Si5351 CLK0 into clk_core",
+      "peripheral": "Internal synchronous divide-by-2 of clk_core",
+      "aon": "External 32.768 kHz crystal/oscillator into clk_aon",
+      "jtag": "TCK asynchronous, test-only",
+      "qspi_sck": "Generated inside QSPI controller from clk_core; divided to <=25 MHz for first silicon"
+    },
+    "divider": "clk_periph = clk_core / 2 (toggle flop), 50% duty by construction",
+    "ownership": {
+      "clk_core": "core, AXI fabric, memories, QSPI controller, JTAG TAP logic",
+      "clk_periph": "APB bridge slave side and all APB peripherals",
+      "clk_aon": "LPTIM, wake controller, PMU sticky state, reset stretcher",
+      "jtag_tck": "TAP shift logic only"
+    },
+    "reset_strategy": "Asynchronous assert, synchronous deassert per domain; AON reset only from POR; core reset also from watchdog/PMU; peripheral reset from core domain request synchronized into clk_periph.",
+    "clock_gating": "Core gate and periph gate retained; add per-peripheral enables in clk_periph domain; AON ungated.",
+    "power_states": {
+      "ACTIVE": "All clocks on",
+      "SLEEP": "Core and peripheral clocks gated, AON on, state retained",
+      "DEEP": "Core/peripheral rail off via PMIC, AON on, context saved to AON-retained registers or external flash"
+    },
+    "cdc_boundaries": [
+      "clk_core -> clk_periph: APB request/response handshake",
+      "clk_periph -> clk_core: APB response handshake",
+      "clk_core -> clk_aon: PMU command handshake",
+      "clk_aon -> clk_core: wake event 2-FF + handshake",
+      "clk_aon -> clk_periph: LPTIM interrupt 2-FF",
+      "async pins -> clk_core/clk_periph: 2-FF synchronizers"
+    ],
+    "firmware_impact": "APB peripheral constants change from 50 MHz to 25 MHz; UART divisor doubles; timer/PWM/I2C/SPI/I2S scaling updated; AON driver added. Core and memory timing unchanged.",
+    "verification_impact": "Add generated-clock STA, APB handshake assertions, AON wake formal, reset-domain checks.",
+    "physical_impact": "Two synchronous clock trees plus a small AON tree; generated clock must be defined in CTS and STA."
+  },
+  "approval": {
+    "required": true,
+    "authority": "User / designated design owner",
+    "decision_id": "ARC-006",
+    "acceptance_criteria": [
+      "ARC-006 rewritten with option C-prime and approved by owner",
+      "FR-CLK-002 and FR-CLK-004 either retained with implementation plan or formally descoped",
+      "One SDC clock plan (50/25/32k) signed off",
+      "Firmware frequency-change list accepted",
+      "AON source (external 32.768 kHz) accepted at board level"
+    ]
+  }
+}

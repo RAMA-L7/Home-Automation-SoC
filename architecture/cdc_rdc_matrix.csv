@@ -1,0 +1,32 @@
+id,architecture,source_domain,dest_domain,signal_group,signal_type,protocol,crossing_type,synchronization,reset_relationship,data_integrity,verification_required,status,evidence
+CUR-01,current,async_pad,clk_core,reset_n,control,reset,asynchronous,reset_ctrl counter + async assert,reset_n is the only POR,reset pulse width bounded,formal reset_ctrl unbounded,PASS,rtl/rtl_top/reset_ctrl.sv
+CUR-02,current,async_pad,clk_core,ext_irq[31:0],interrupt,level,asynchronous,none (tied to unused XOR),reset_n,unused,PASS by inspection,UNUSED,rtl/rtl_top/has_soc.sv:555
+CUR-03,current,async_pad,clk_core,uart_rx,data,serial,asynchronous,2-FF rx_sync1/rx_sync2,presetn,start-bit level,boot and uart tests,PASS,rtl/rtl_peripherals/uart.sv:144
+CUR-04,current,async_pad,clk_core,spi_miso,data,SPI mode 0,asynchronous,none,presetn,bit sampled at SCK high; no metastability guard,spi device test,UNSAFE,rtl/rtl_peripherals/spi_ctrl.sv:50
+CUR-05,current,async_pad,clk_core,i2c_sda,data,I2C open-drain,asynchronous,none (sda_in combinational),presetn,ACK/data bit,no device model,UNSAFE,rtl/rtl_peripherals/i2c_ctrl.sv:48
+CUR-06,current,jtag_tck,clk_core,jtag_tms/jtag_tdi,control,JTAG,asynchronous,single flop in TAP,trst_n,shift data,jtag protocol test,UNSAFE,rtl/rtl_peripherals/debug_jtag.sv
+CUR-07,current,jtag_tck,clk_core,jtag_tdo,data,JTAG,asynchronous,driven by TCK domain,trst_n,shift data,jtag protocol test,PARTIAL,rtl/rtl_peripherals/debug_jtag.sv
+CUR-08,current,async_pad,clk_core,wake_ack,handshake,wake,asynchronous,2-FF wake_sync,reset_n,wake event,formal cdc_power_mgr bounded,PASS,rtl/rtl_peripherals/power_mgr.sv:38
+CUR-09,current,async_pad,clk_core,qspi_io[1],data,QSPI read,source-synchronous SCK,none,reset_n,read data,no QSPI model,UNSAFE-QSPI,rtl/rtl_peripherals/qspi_flash_ctrl.sv
+CUR-10,current,async_pad,clk_core,gpio[15:0],data/control,GPIO level,asynchronous,2-FF gpio_in_sync1/2,presetn,pin level,boot and gpio tests,PASS,rtl/rtl_peripherals/gpio.sv:46
+CUR-11,current,clk_core,clk_core,all AXI/APB,data,AXI4-Lite/APB,synchronous,none,common reset_n,full,22/22 regression,PASS,rtl/rtl_top/has_soc.sv
+CUR-12,current,clk_core,clk_core,core_clk_en/periph_clk_en,control,clock gate,synchronous enable on negedge,none,reset_n,glitch-free gate,22/22 regression,PASS,rtl/rtl_top/has_soc.sv:98
+CUR-13,current,async_pad,clk_core,clk,clock,clock,asynchronous,none,reset_n,clock input,STA after implementation,NOT VERIFIED,rtl/rtl_top/has_soc.sv:25
+PROP-01,C-prime,clk_core,clk_periph,APB request,control,APB,generated /2 synchronous,request held until ack; handshake,periph reset synchronized to clk_periph,address/data/control,APB protocol assertions + STA,PROPOSED,architecture/clock_architecture.json
+PROP-02,C-prime,clk_periph,clk_core,APB response,data,APB,generated /2 synchronous,response captured in core; handshake,common reset release,prdata/pslverr,APB protocol assertions,PROPOSED,architecture/clock_architecture.json
+PROP-03,C-prime,clk_periph,clk_core,PLIC interrupt sources,interrupt,level,generated /2 synchronous,2-FF in PLIC + event capture,core reset,interrupt event,formal PLIC + CDC,PROPOSED,rtl/rtl_peripherals/plic.sv
+PROP-04,C-prime,clk_core,clk_aon,PMU command,control,handshake,asynchronous,request/ack 2-FF handshake,AON reset independent,command accepted once,formal handshake,PROPOSED,none
+PROP-05,C-prime,clk_aon,clk_core,wake event,control,pulse,asynchronous,2-FF + pulse stretcher,core reset independent,event not lost,formal wake,PROPOSED,none
+PROP-06,C-prime,clk_aon,clk_core,LPTIM interrupt,interrupt,level,asynchronous,2-FF then PLIC event,core reset independent,event not lost,formal PLIC,PROPOSED,none
+PROP-07,C-prime,clk_aon,clk_periph,LPTIM APB registers,data,APB,asynchronous,APB bridge with 2-FF handshake,periph reset synchronized,register data,APB + CDC assertions,PROPOSED,none
+PROP-08,C-prime,clk_core,clk_periph,peripheral reset request,reset,reset,generated /2,async assert sync deassert,periph reset,reset sequence,formal reset,PROPOSED,none
+PROP-09,C-prime,clk_core,clk_aon,debug halt request,control,handshake,asynchronous,2-FF handshake,AON reset independent,halt request,formal debug,PROPOSED,none
+PROP-10,C-prime,async_pad,clk_aon,AON wake pin,control,level,asynchronous,2-FF in AON,always-on reset,level,AON formal,PROPOSED,none
+PROP-11,C-prime,jtag_tck,clk_core,JTAG TMS/TDI,control,JTAG,asynchronous,2-FF + synchronized TAP,core reset,shift data,formal JTAG subset,PROPOSED,none
+PROP-12,C-prime,async_pad,clk_periph,UART1 RX,data,serial,asynchronous,2-FF,periph reset,start bit,uart test,PROPOSED,none
+PROP-13,C-prime,async_pad,clk_core,I2C SDA,data,I2C,asynchronous,2-FF + input filter,core reset,ACK/data,device model,PROPOSED,none
+PROP-14,C-prime,async_pad,clk_core,SPI MISO,data,SPI,source-synchronous SCK,2-FF or SCK-sampled,core reset,bit sample,device model,PROPOSED,none
+PROP-15,C-prime,clk_core,clk_core,QSPI SCK,clock,generated,source-synchronous,no CDC; output clock,core reset,read data,STA + flash model,PROPOSED,none
+RDC-01,C-prime,async_pad,clk_aon,AON reset,reset,reset,asynchronous assert sync deassert,2-FF release,AON POR,reset sequence,formal reset,PROPOSED,none
+RDC-02,C-prime,async_pad,clk_core,core reset,reset,reset,asynchronous assert sync deassert,2-FF release,core POR/watchdog,reset sequence,formal reset,PROPOSED,none
+RDC-03,C-prime,async_pad,clk_periph,periph reset,reset,reset,asynchronous assert sync deassert,2-FF release sourced from core,periph POR,reset sequence,formal reset,PROPOSED,none

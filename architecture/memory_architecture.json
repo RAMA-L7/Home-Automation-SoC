@@ -1,0 +1,162 @@
+{
+  "document": "HAS-SoC Stage 1 memory architecture",
+  "date": "2026-11-15",
+  "baseline_revision": "3fb1f0492b0dd460bd70d1a06a36b536b3d4280e",
+  "status": "READY_FOR_APPROVAL",
+  "authoritative_regions": [
+    {
+      "id": "boot_rom",
+      "intended_size_kb": 16,
+      "rtl_size_kb": 64,
+      "rtl_parameter": "boot_rom ADDR_WIDTH=16 -> 16384 words = 64 KB",
+      "address_base": "0x0000_0000",
+      "address_end": "0x0000_3FFF",
+      "decoded_size_kb": 16,
+      "decoded_by": "has_addr_map_pkg.ADDR_BOOT_ROM_SIZE; has_soc.sv sel_rom",
+      "unreachable_rtl_capacity_kb": 48,
+      "alias": false,
+      "macro_mapping": "16 KB mask ROM (preferred) or 4 x 4 KB SRAM macro (not preferred)",
+      "status": "MISMATCH",
+      "required_action": "Change boot_rom ADDR_WIDTH to 14 or add an explicit DEPTH parameter of 4096 words; keep 16 KB map."
+    },
+    {
+      "id": "tcm",
+      "intended_size_kb": 32,
+      "rtl_size_kb": 32,
+      "rtl_parameter": "sram ADDR_WIDTH=15 -> 8192 words = 32 KB",
+      "address_base": "0x0001_0000",
+      "address_end": "0x0001_7FFF",
+      "decoded_size_kb": 32,
+      "decoded_by": "has_addr_map_pkg.ADDR_TCM_SIZE; has_soc.sv sel_tcm",
+      "unreachable_rtl_capacity_kb": 0,
+      "alias": false,
+      "macro_mapping": "8 x 4 KB 1rw+1r macros, or 1 x 32 KB 32-bit macro",
+      "status": "CONSISTENT",
+      "required_action": "Replace inferred array with macro wrapper; keep size."
+    },
+    {
+      "id": "sram",
+      "intended_size_kb": 128,
+      "rtl_size_kb": 256,
+      "rtl_parameter": "sram ADDR_WIDTH=18 -> 65536 words = 256 KB",
+      "address_base": "0x2000_0000",
+      "address_end": "0x2001_FFFF",
+      "decoded_size_kb": 128,
+      "decoded_by": "has_addr_map_pkg.ADDR_SRAM_SIZE; has_soc.sv sel_sram",
+      "unreachable_rtl_capacity_kb": 128,
+      "alias": false,
+      "macro_mapping": "32 x 4 KB 1rw+1r macros, or 1 x 128 KB 32-bit macro",
+      "status": "MISMATCH",
+      "required_action": "Change sram ADDR_WIDTH to 17 or add DEPTH=32768 words; keep 128 KB map."
+    },
+    {
+      "id": "qspi_window",
+      "intended_size_mb": 64,
+      "rtl_size_mb": 16,
+      "rtl_parameter": "qspi_flash_ctrl uses araddr[23:0] -> 24-bit flash address",
+      "address_base": "0x4000_0000",
+      "address_end": "0x43FF_FFFF",
+      "decoded_size_mb": 64,
+      "decoded_by": "has_addr_map_pkg.ADDR_QSPI_FLASH_SIZE; AXI slave 3",
+      "unreachable_rtl_capacity_mb": 48,
+      "alias": true,
+      "alias_detail": "64 MB window aliases the same 16 MB flash four times because the controller emits only 24 address bits",
+      "macro_mapping": "External NOR flash, no on-chip macro",
+      "status": "MISMATCH",
+      "required_action": "Either reduce the map to 16 MB or implement 4-byte addressing / bank select in the controller."
+    },
+    {
+      "id": "apb",
+      "intended_size_kb": 1024,
+      "rtl_size_kb": 1024,
+      "address_base": "0x5000_0000",
+      "address_end": "0x500F_FFFF",
+      "decoded_size_kb": 36,
+      "decoded_by": "has_soc.sv apb_sel uses paddr[15:12], nine 4 KB slots (0x0-0x8)",
+      "status": "PARTIAL",
+      "required_action": "Document that only 36 KB of the 1 MB window is implemented; unmapped slots return PSLVERR."
+    },
+    {
+      "id": "intc",
+      "intended_size_kb": 64,
+      "rtl_size_kb": 8,
+      "address_base": "0x8000_0000",
+      "address_end": "0x8000_FFFF",
+      "decoded_by": "intc_axi: addr[12]=0 CLINT (4 KB), addr[12]=1 PLIC (4 KB)",
+      "status": "PARTIAL",
+      "required_action": "Document 8 KB used of 64 KB; CLINT MTIME offset is 0x7F8, not architectural 0xBFF8."
+    }
+  ],
+  "macro_analysis": {
+    "candidate": "sky130_sram_1rw1r_128x256_8",
+    "actual_capacity_kb": 4,
+    "organization": "256 words x 128 bits",
+    "ports": "1 read/write + 1 read",
+    "write_mask_bits": 16,
+    "lef_um": [1141.72, 632.475],
+    "area_per_macro_mm2": 0.7221,
+    "liberty_corners": ["TT 1.8 V 25 C"],
+    "integration_status": "NOT INTEGRATED",
+    "configurations": [
+      {
+        "name": "Requirements baseline (16 KB ROM + 32 KB TCM + 128 KB SRAM)",
+        "rom_macro_count": 4,
+        "tcm_macro_count": 8,
+        "sram_macro_count": 32,
+        "total_macro_count": 44,
+        "memory_area_mm2": 31.77,
+        "meets_10mm2_total_area": false,
+        "note": "Tiling the 4 KB 128-bit macro is area-prohibitive; it spends 31.8 mm2 on 176 KB."
+      },
+      {
+        "name": "16 KB mask ROM + 32 KB TCM + 128 KB SRAM with 32-bit wide macros",
+        "rom_macro_count": 0,
+        "tcm_macro_count": 1,
+        "sram_macro_count": 1,
+        "total_macro_count": 2,
+        "memory_area_mm2_estimated": 4.3,
+        "meets_10mm2_total_area": "likely",
+        "note": "Requires generating/obtaining 32-bit 128 KB and 32 KB macros with SS/FF/TT views; not currently in the repository."
+      }
+    ],
+    "findings": [
+      "The 4 KB macro is 128 bits wide; a 128 KB memory built from it needs 32 instances and a 4:1 width adapter.",
+      "A 128 KB 32-bit macro is the area-correct choice but is not available in the audited platform.",
+      "Current macro has TT-only Liberty; multi-corner signoff is impossible without additional views.",
+      "ROM should be a mask ROM, not SRAM macros, for area, cost and immutability."
+    ]
+  },
+  "firmware_dependencies": {
+    "linker": "firmware/bare_metal/linker.ld uses bootrom 16K, tcm 32K, sram 128K, qspiflash 64M",
+    "stack": "firmware/boot/boot.S sets sp=0x2001_0000, the top of 128 KB SRAM",
+    "boot_image": "firmware/boot/boot.S is position-dependent at 0x0000_0000 and fits in 16 KB",
+    "conclusion": "Firmware already assumes the intended 16/32/128 sizes, not the oversized RTL arrays. RTL must be corrected, not firmware."
+  },
+  "recommendation": {
+    "sizes": {
+      "boot_rom_kb": 16,
+      "tcm_kb": 32,
+      "sram_kb": 128,
+      "qspi_window_mb": 16
+    },
+    "rationale": "Match the existing firmware, linker script and address map; reduce QSPI window to what the controller can address or add 4-byte addressing.",
+    "rtl_parameter_changes": [
+      "boot_rom ADDR_WIDTH 16 -> 14 (or DEPTH parameter)",
+      "sram ADDR_WIDTH 18 -> 17 (or DEPTH parameter)",
+      "qspi_flash_ctrl address width 24 -> 26 or 32 for 64 MB, or map shrinks to 16 MB"
+    ],
+    "macro_strategy": "Do not tile the 4 KB 128-bit macro for bulk memory. Obtain/generate 32-bit wide 128 KB SRAM and 32 KB TCM macros with multi-corner Liberty, plus a 16 KB mask ROM. If unavailable, memory sizes or the 10 mm2 area target must be re-approved before Stage 3.",
+    "ecc": "Defer SECDED; it changes macro width and area and is optional in FR-MEM-006."
+  },
+  "approval": {
+    "required": true,
+    "authority": "User / designated design owner",
+    "decisions": ["TD-001", "TD-002", "TD-003", "TD-006"],
+    "acceptance_criteria": [
+      "One memory table approved and copied into SRS, linker docs and has_addr_map_pkg",
+      "RTL parameter corrections scheduled for Stage 2",
+      "Macro strategy approved with area evidence",
+      "QSPI window either 16 MB or 4-byte addressing approved"
+    ]
+  }
+}
