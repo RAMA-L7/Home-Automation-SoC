@@ -11,6 +11,18 @@
 //   R1b No premature release: while the pulse has not reached HOLD_CYCLES it
 //       stays asserted.  R1 + R1b together fix the width at exactly HOLD.
 //       (The exact width is also proven by reset_ctrl_seq.sby.)
+//
+//       R1b is deliberately phrased over `streak`, the count of low cycles up
+//       to and including the PREVIOUS cycle, and not over `low_run`, which is a
+//       function of the current rst_sys_n.  A previous revision used low_run:
+//           if (low_run > 0 && low_run < HOLD) assert (!rst_sys_n);
+//       but low_run > 0 holds exactly when rst_sys_n is low, so the assertion
+//       restated its own antecedent and was a tautology — it could not fail on
+//       any implementation, including one that releases after one cycle.
+//       `streak` is registered history, so releasing early while streak is
+//       still below HOLD is a genuine violation.  The mutation task
+//       reset_ctrl_short.sby (HOLD_DUT = 8 against HOLD = 16) demonstrates
+//       that this property now detects a shortened pulse.
 //   R2  The pulse releases on the cycle after it has run its full width.
 //   R3  A timeout seen while the controller is idle asserts the reset in the
 //       very next cycle.
@@ -32,12 +44,23 @@
 // induction alone reports a false failure from an unreachable start state;
 // PDR keeps the reachable-state restriction.
 //------------------------------------------------------------------------------
+// HOLD_EXPECT is what the properties demand; HOLD_DUT is what the instance under
+// test implements.  They are equal in the real task (reset_ctrl.sby).  The
+// mutation control reset_ctrl_short.sby compiles this same harness with
+// -DHOLD_DUT=8 so a deliberately short pulse must be detected as a failure.
+`ifndef HOLD_EXPECT
+  `define HOLD_EXPECT 16
+`endif
+`ifndef HOLD_DUT
+  `define HOLD_DUT `HOLD_EXPECT
+`endif
+
 module reset_ctrl_fv (
   input logic clk,
   input logic wdog_timeout
 );
 
-  localparam int         HOLD    = 16;
+  localparam int         HOLD    = `HOLD_EXPECT;
   localparam logic [1:0] POR_LEN = 2'd2;
 
   logic [1:0] por = 2'd0;
@@ -52,7 +75,7 @@ module reset_ctrl_fv (
   always @(posedge clk)
     if (!booted) por <= por + 2'd1;
 
-  reset_ctrl #(.HOLD_CYCLES(HOLD)) dut (
+  reset_ctrl #(.HOLD_CYCLES(`HOLD_DUT)) dut (
     .clk               (clk),
     .reset_n           (reset_n),
     .wdog_timeout      (wdog_timeout),
@@ -87,8 +110,10 @@ module reset_ctrl_fv (
       // R1 — bounded pulse width.
       assert (low_run <= 8'(HOLD));
 
-      // R1b — no premature release.
-      if ((low_run > 8'd0) && (low_run < 8'(HOLD))) assert (!rst_sys_n);
+      // R1b — no premature release.  `streak` is the low-run length through the
+      // previous cycle: registered history, independent of the current
+      // rst_sys_n, so this can actually fail (see the header note).
+      if ((streak > 8'd0) && (streak < 8'(HOLD))) assert (!rst_sys_n);
 
       // R2 — release on the cycle after the full width.
       if (q_full) assert (rst_sys_n);
@@ -99,10 +124,14 @@ module reset_ctrl_fv (
       // R4 — both pins carry the same pulse.
       assert (wdog_reset_n_out == rst_sys_n);
 
-      // Non-vacuity.
+      // Non-vacuity.  The second cover is what proves R1b's antecedent is
+      // reachable: a state where the pulse is mid-flight (streak strictly
+      // between 0 and HOLD) must be covered, otherwise R1b could pass by never
+      // being evaluated.
       cover (!rst_sys_n);
       cover (rst_sys_n && wdog_timeout);
       cover (low_run == 8'(HOLD));
+      cover ((streak > 8'd0) && (streak < 8'(HOLD)) && !rst_sys_n);
     end
   end
 

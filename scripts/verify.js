@@ -32,6 +32,11 @@ const ROOT = path.resolve(__dirname, '..');
 const OUT = path.join(ROOT, 'build', 'verify');
 const verbose = process.argv.includes('--verbose');
 const selfTest = process.argv.includes('--self-test');
+// --only=<task,task> runs a subset (used by the negative-control checks so a
+// deliberate violation can be demonstrated without a full suite run).
+const onlyArg = process.argv.find(a => a.startsWith('--only='));
+const only = onlyArg ? onlyArg.slice('--only='.length).split(',').map(s => s.trim()).filter(Boolean) : null;
+const want = name => !only || only.includes(name);
 
 const TOOL_DIR = process.env.EDA_TOOLS || 'D:/tools/oss-cad-suite';
 const VERIBLE_DIR = process.env.VERIBLE_DIR || 'D:/tools/verible';
@@ -71,7 +76,7 @@ function globSv(dir, acc = []) {
 // The verdict function. Every real task goes through it, and --self-test drives
 // it with synthetic inputs, so the gate and its negative controls share code.
 // ---------------------------------------------------------------------------
-function verdict({ name, required = true, ranAt, startedAt, exitCode, logText, marker, blockedReason }) {
+function verdict({ name, required = true, ranAt, startedAt, exitCode, logText, marker, markerRe, check, blockedReason }) {
   if (blockedReason) return { status: 'BLOCKED', detail: blockedReason };
   if (!required) return { status: 'SKIP', detail: 'not required on this platform' };
   if (startedAt && (!ranAt || ranAt < startedAt)) {
@@ -82,11 +87,32 @@ function verdict({ name, required = true, ranAt, startedAt, exitCode, logText, m
   if (marker && !logText.includes(marker)) {
     return { status: 'FAIL', detail: `success marker missing: "${marker}"` };
   }
+  if (markerRe && !markerRe.test(logText)) {
+    return { status: 'FAIL', detail: `success pattern missing: ${markerRe}` };
+  }
+  if (check) {
+    const detail = check(logText);
+    if (detail) return { status: 'FAIL', detail };
+  }
   if (FAIL_RE.test(logText)) {
     const m = logText.match(FAIL_RE);
     return { status: 'FAIL', detail: `failure pattern in log: "${m[0]}"` };
   }
   return { status: 'PASS', detail: marker ? `marker "${marker}"` : 'exit 0' };
+}
+
+// A child runner reports its own inventory as "PASS <n> / <m>".  The gate must
+// never pin an absolute total: adding or removing a test would then either
+// break a correct suite or, worse, let a shrunk inventory satisfy a hardcoded
+// number.  Require only that every executed test passed.
+function allExecutedPassed(logText) {
+  const m = logText.match(/^PASS (\d+) \/ (\d+)/m);
+  if (!m) return 'no "PASS <n> / <n>" line in log (result not derived from an inventory)';
+  const passed = Number(m[1]);
+  const total = Number(m[2]);
+  if (total === 0) return 'test inventory is empty';
+  if (passed !== total) return `${passed} of ${total} executed tests passed`;
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -124,6 +150,32 @@ if (selfTest) {
       input: { name: 'spi', startedAt: now, ranAt: now + 10, exitCode: 0,
                logText: '[spi] running...\n', marker: 'SPI DEVICE: ALL TESTS PASSED' },
     },
+    {
+      // A lint tool that exits on a usage error prints no rule diagnostics; the
+      // old gate read "no parsed violations" as success.
+      name: 'lint tool error, no diagnostics',
+      input: { name: 'verible-lint', startedAt: now, ranAt: now + 10, exitCode: 2,
+               logText: 'LINT_OK\nverible lint exit 2 over 22 files\n', marker: 'LINT_OK' },
+    },
+    {
+      // Correct diagnostic, absolute Windows path: an anchored `^([^:]+):`
+      // parser drops this row entirely and reports a clean lint.
+      name: 'lint violation on a drive-letter path',
+      input: { name: 'verible-lint', startedAt: now, ranAt: now + 10, exitCode: 0,
+               logText: 'LINT_OK\n', marker: 'LINT_OK',
+               check: () => lintDriftFromText(
+                 'D:/proj/rtl/bad.sv:12:5-9: Unexpected token [syntax]\n') },
+    },
+    {
+      name: 'regression with a shrunk inventory',
+      input: { name: 'regression', startedAt: now, ranAt: now + 10, exitCode: 0,
+               logText: 'PASS 3 / 22\n', check: allExecutedPassed },
+    },
+    {
+      name: 'regression with no inventory line',
+      input: { name: 'regression', startedAt: now, ranAt: now + 10, exitCode: 0,
+               logText: 'everything looks fine\n', check: allExecutedPassed },
+    },
   ];
 
   let rejected = 0;
@@ -151,7 +203,7 @@ function record(r) {
   summary.push(`${r.status.padEnd(8)} ${r.name.padEnd(24)} ${r.detail}`);
 }
 
-function runTask(name, cmd, args, marker) {
+function runTask(name, cmd, args, marker, check) {
   const log = logPath(name);
   if (fs.existsSync(log)) fs.unlinkSync(log);           // stale evidence cannot survive
   const p = spawnSync(cmd, args, { cwd: ROOT, env, encoding: 'utf8' });
@@ -161,8 +213,8 @@ function runTask(name, cmd, args, marker) {
   if (verbose) console.log(`\n--- ${name} ---\n${text}`);
   return verdict({
     name, startedAt, ranAt,
-    exitCode: p.status === null ? 1 : p.status,
-    logText: text, marker,
+    exitCode: p.error ? 1 : (p.status === null ? 1 : p.status),
+    logText: text, marker, check,
   });
 }
 
@@ -220,35 +272,44 @@ parsed ${files.length} files, ${syntaxErrors} syntax error(s)
   });
 }
 
-// Lint runs with the project rules configuration.  Verible v0.0-4298 reports
-// localparam names against a CamelCase regex that cannot be reconfigured, so
-// those deviations are pinned per file in lint/localparam_style_baseline.txt;
-// any other violation, any new file, or a changed count fails the gate.
-function veribleLint() {
-  const files = globSv(path.join(ROOT, 'rtl'));
-  const log = logPath('verible-lint');
-  if (fs.existsSync(log)) fs.unlinkSync(log);
-  const p = spawnSync(path.join(VERIBLE_DIR, 'verible-verilog-lint.exe'),
-    ['--rules_config=lint/verible.rules', ...files], { cwd: ROOT, env, encoding: 'utf8' });
-  const out = (p.stdout || '') + (p.stderr || '');
-  const rows = out.split(String.fromCharCode(10)).map(s => s.replace(String.fromCharCode(13), ''));
-
-  const baselineFile = path.join(ROOT, 'lint', 'localparam_style_baseline.txt');
-  const baseline = new Map();
-  for (const row of fs.readFileSync(baselineFile, 'utf8').split(String.fromCharCode(10))) {
-    const parts = row.replace(String.fromCharCode(13), '').trim().split(' ').filter(Boolean);
-    if (parts.length === 2 && /^[0-9]+$/.test(parts[0])) baseline.set(parts[1], Number(parts[0]));
+// Verible prints `<path>:<line>:<col>[-<endcol>]: <text> [rule]`.  `path` is
+// whatever was passed on the command line, so it is absolute here and starts
+// with a Windows drive letter (`D:/proj/rtl/x.sv:12:5-9: ...`).  An anchored
+// `^([^:]+):` cannot match that (the first colon belongs to the drive), which
+// silently dropped every diagnostic and turned the lint gate into a no-op.
+// The separator is therefore located by finding the first `:digits:digits:`
+// group, whenever it occurs.
+function parseLintRows(text, root) {
+  // Declared here (not at module scope) so the negative-control block above,
+  // which runs before this point in the file, can call it without hitting the
+  // temporal dead zone of a module-level const.
+  const rowRe = /^(.+?):(\d+):(\d+)(?:-\d+)?:\s?(.*)$/;
+  const rows = [];
+  for (const raw of String(text).split('\n')) {
+    const m = raw.replace(/\r$/, '').match(rowRe);
+    if (!m) continue;
+    const abs = path.isAbsolute(m[1]) ? m[1] : path.join(root, m[1]);
+    rows.push({
+      file: path.relative(root, abs).split(path.sep).join('/'),
+      line: Number(m[2]),
+      text: m[4],
+    });
   }
+  return rows;
+}
 
+function classifyLint(rows, baseline) {
   const localparam = new Map();
   const other = [];
-  for (const row of rows) {
-    const m = row.match(/^([^:]+):([0-9]+):/);
-    if (!m) continue;
-    if (row.indexOf('[parameter-name-style]') >= 0) {
-      localparam.set(m[1], (localparam.get(m[1]) || 0) + 1);
-    } else if (row.indexOf('[') >= 0 && row.indexOf(']') > 0) {
-      other.push(row);
+  let classified = 0;
+  for (const r of rows) {
+    const tag = (r.text.match(/\[([A-Za-z0-9_-]+)\]\s*$/) || [])[1];
+    if (!tag) continue;
+    classified += 1;
+    if (tag === 'parameter-name-style') {
+      localparam.set(r.file, (localparam.get(r.file) || 0) + 1);
+    } else {
+      other.push(`${r.file}:${r.line}: ${r.text}`);
     }
   }
 
@@ -259,16 +320,74 @@ function veribleLint() {
       drift.push(file + ': ' + count + ' localparam style deviations, baseline pins ' + baseline.get(file));
     }
   }
+  // A pinned file that stops reporting is drift too: renaming a parameter must
+  // force a baseline edit rather than silently shrinking the pinned set.
+  for (const [file, count] of baseline) {
+    if (!localparam.has(file)) {
+      drift.push(file + ': baseline pins ' + count + ' but 0 reported (renamed or removed?)');
+    }
+  }
+  if (classified !== rows.length) {
+    drift.push((rows.length - classified) + ' diagnostic(s) carried no recognisable rule tag');
+  }
+  return { localparam, other, drift, reported: rows.length };
+}
 
-  const ok = other.length === 0 && drift.length === 0;
+// Shared by the gate and its negative control, so the control exercises the
+// real parser rather than a lookalike.
+function lintDriftFromText(text, baseline = new Map()) {
+  const { other, drift, reported } = classifyLint(parseLintRows(text, ROOT), baseline);
+  if (reported === 0) return 'no diagnostics parsed (path parser cannot see the report)';
+  if (other.length) return 'unexpected lint violation: ' + other[0];
+  if (drift.length) return 'baseline drift: ' + drift[0];
+  return null;
+}
+
+// Lint runs with the project rules configuration.  Verible v0.0-4298 reports
+// localparam names against a CamelCase regex that cannot be reconfigured, so
+// those deviations are pinned per file in lint/localparam_style_baseline.txt;
+// any other violation, any new file, or a changed count fails the gate.
+//
+// Success is NOT inferred from "no parsed violations": the process outcome is
+// checked first (spawn error, unacceptable exit status, diagnostics that could
+// not be parsed), so a broken invocation cannot look like a clean tree.
+function veribleLint() {
+  const files = globSv(path.join(ROOT, 'rtl'));
+  const log = logPath('verible-lint');
+  if (fs.existsSync(log)) fs.unlinkSync(log);
+
+  const baselineFile = path.join(ROOT, 'lint', 'localparam_style_baseline.txt');
+  const baseline = new Map();
+  for (const row of fs.readFileSync(baselineFile, 'utf8').split('\n')) {
+    const parts = row.replace(/\r$/, '').trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 2 && /^[0-9]+$/.test(parts[0])) baseline.set(parts[1], Number(parts[0]));
+  }
+
+  const p = spawnSync(path.join(VERIBLE_DIR, 'verible-verilog-lint.exe'),
+    ['--rules_config=lint/verible.rules', ...files], { cwd: ROOT, env, encoding: 'utf8' });
+  const out = (p.stdout || '') + (p.stderr || '');
+  const rows = parseLintRows(out, ROOT);
+  const { localparam, other, drift, reported } = classifyLint(rows, baseline);
+
+  const status = p.status === null ? -1 : p.status;
+  const infra = [];
+  if (p.error) infra.push('could not run verible-verilog-lint (' + (p.error.code || p.error.message) + ')');
+  if (!p.error && status !== 0 && status !== 1) infra.push('unacceptable exit status ' + status);
+  if (out.trim() && reported === 0) infra.push('diagnostics were produced but none could be parsed');
+  if (status === 1 && reported === 0) infra.push('exit 1 without any parseable diagnostic');
+
+  const pinned = [...localparam.values()].reduce((a, b) => a + b, 0);
+  const ok = infra.length === 0 && other.length === 0 && drift.length === 0 &&
+             (status === 0 || (status === 1 && reported > 0));
   const lines = [
-    'verible lint exit ' + p.status + ' over ' + files.length + ' files',
-    'baseline-pinned localparam style deviations: ' + [...localparam.values()].reduce((a, b) => a + b, 0),
+    'verible lint exit ' + status + ' over ' + files.length + ' files (' + reported + ' diagnostics parsed)',
+    'baseline-pinned localparam style deviations: ' + pinned,
+    ...(infra.length ? ['INFRASTRUCTURE', ...infra.map(d => '  ' + d)] : []),
     ...(drift.length ? ['BASELINE DRIFT', ...drift.map(d => '  ' + d)] : []),
     ...(other.length ? ['UNEXPECTED VIOLATIONS', ...other.map(l => '  ' + l)] : []),
     ok ? 'LINT_OK' : 'LINT_FAILED',
   ];
-  const text = lines.join(String.fromCharCode(10)) + String.fromCharCode(10);
+  const text = lines.join('\n') + '\n';
   fs.writeFileSync(log, text, 'utf8');
   if (verbose) console.log(text);
   return verdict({
@@ -278,14 +397,17 @@ function veribleLint() {
 }
 
 // 4/5/6 — project runners ---------------------------------------------------
+// Counts come from the child's own executed inventory ("PASS <n> / <m>"), not
+// from a total embedded here, so adding a test cannot make a correct suite fail
+// and removing one cannot satisfy a hardcoded number.
 function regression() {
   return runTask('regression', process.execPath,
-    [path.join(ROOT, 'scripts', 'eda', 'run_regression.js')], 'PASS 22 / 22');
+    [path.join(ROOT, 'scripts', 'eda', 'run_regression.js')], null, allExecutedPassed);
 }
 
 function formal() {
   return runTask('formal', process.execPath,
-    [path.join(ROOT, 'scripts', 'formal', 'run_formal.js')], 'PASS 5 / 5');
+    [path.join(ROOT, 'scripts', 'formal', 'run_formal.js')], null, allExecutedPassed);
 }
 
 function cdc() {
@@ -387,24 +509,31 @@ function docsSync() {
 // ---------------------------------------------------------------------------
 // Run
 // ---------------------------------------------------------------------------
-console.log('Home-Automation-SoC — unified verification gate\n');
+console.log('Home-Automation-SoC — unified verification gate' + (only ? ` (only: ${only.join(',')})` : '') + '\n');
 
-record({ name: 'tools', ...checkTools() });
-if (results[0].status === 'BLOCKED') {
-  console.log(`BLOCKED  tools: ${results[0].detail}`);
-  console.log('\nNo further task can be trusted without the required tools.');
-  fs.writeFileSync(path.join(OUT, 'summary.txt'), summary.join('\n') + '\n', 'utf8');
-  process.exit(2);
+if (want('tools')) {
+  record({ name: 'tools', ...checkTools() });
+  if (results[0].status === 'BLOCKED') {
+    console.log(`BLOCKED  tools: ${results[0].detail}`);
+    console.log('\nNo further task can be trusted without the required tools.');
+    fs.writeFileSync(path.join(OUT, 'summary.txt'), summary.join('\n') + '\n', 'utf8');
+    process.exit(2);
+  }
 }
 
-record({ name: 'verible-syntax', ...veribleSyntax() });
-record({ name: 'verible-lint', ...veribleLint() });
-record({ name: 'regression', ...regression() });
-record({ name: 'formal', ...formal() });
-record({ name: 'cdc-inventory', ...cdc() });
-record({ name: 'protocol-tests', ...protocolTests() });
-record({ name: 'mermaid', ...mermaid() });
-record({ name: 'docs-sync', ...docsSync() });
+const TASK_ORDER = [
+  ['verible-syntax', veribleSyntax],
+  ['verible-lint', veribleLint],
+  ['regression', regression],
+  ['formal', formal],
+  ['cdc-inventory', cdc],
+  ['protocol-tests', protocolTests],
+  ['mermaid', mermaid],
+  ['docs-sync', docsSync],
+];
+for (const [name, fn] of TASK_ORDER) {
+  if (want(name)) record({ name, ...fn() });
+}
 
 const failed = results.filter(r => r.status === 'FAIL');
 const blocked = results.filter(r => r.status === 'BLOCKED');

@@ -1,0 +1,25 @@
+# Home-Automation-SoC — reachability (non-vacuity) check for reset_ctrl_fv
+#
+# `abc pdr` in reset_ctrl.sby proves the invariants but does not report covers,
+# so it cannot show that R1b's antecedent is ever reached.  A property that is
+# never evaluated would pass for the wrong reason.  `mode cover` checks each
+# cover as its own BMC and fails the task if any cover is unreachable, which is
+# exactly the non-vacuity evidence this harness needs.
+#
+# Depth 40 is enough for the POR model (2 cycles), a timeout, a full 16-cycle
+# pulse and the release, plus the covers that sample the state afterwards.
+[options]
+mode cover
+depth 40
+
+[engines]
+smtbmc boolector
+
+[script]
+read_verilog -sv -formal reset_ctrl.sv
+read_verilog -sv -formal reset_ctrl_fv.sv
+prep -top reset_ctrl_fv
+
+[files]
+../../rtl/rtl_top/reset_ctrl.sv
+reset_ctrl_fv.sv

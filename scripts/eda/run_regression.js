@@ -17,6 +17,7 @@
  * Log: build/sim/regression.log
  */
 const { spawnSync } = require('child_process');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
@@ -46,7 +47,8 @@ const SRAM = ['rtl/rtl_top/sram.sv'];
 // name, testbench, extra sources (undefined => whole SoC filelist), success marker
 const TESTS = [
   { name: 'isa (directed RV32IM + traps)', tb: 'sim/sim_top/tb_isa.v',   src: CORE, marker: 'RESULT: PASS' },
-  { name: 'boot (full SoC)',               tb: 'sim/sim_top/tb_boot.v',  src: null, marker: 'RESULT: PASS' },
+  { name: 'boot (full SoC)',               tb: 'sim/sim_top/tb_boot.v',  src: null, marker: 'RESULT: PASS',
+    needs: ['build/fw/boot.hex'] },
   { name: 'uart (pin level)',              tb: 'sim/sim_top/tb_uart.v',  src: UART, marker: 'RESULT: PASS' },
   { name: 'reset_ctrl (watchdog reset)',   tb: 'sim/sim_top/tb_reset_ctrl.v', src: RST, marker: 'RESULT: PASS' },
   { name: 'power_mgr sleep/wake',          tb: 'sim/sim_top/tb_power_mgr.v', src: PWR, marker: 'RESULT: PASS' },
@@ -61,13 +63,22 @@ const TESTS = [
   { name: 'i2s',                           tb: 'sim/sim_top/tb_i2s.v',   src: null, marker: 'ALL TESTS PASSED' },
   { name: 'sram',                          tb: 'sim/sim_top/tb_sram_simple.v', src: null, marker: 'ALL TESTS PASSED' },
   { name: 'debug_jtag',                    tb: 'sim/sim_top/tb_debug_jtag.v', src: null, marker: 'ALL TESTS PASSED' },
-  { name: 'firmware (C demo)',              tb: 'sim/sim_top/tb_firmware.v', src: null, marker: 'RESULT: PASS' },
+  { name: 'firmware (C demo)',              tb: 'sim/sim_top/tb_firmware.v', src: null, marker: 'RESULT: PASS',
+    needs: ['build/fw/rom.hex', 'build/fw/tcm.hex'] },
   // Phase-3 protocol and audit testbenches
   { name: 'plic protocol (sync + claim)',   tb: 'sim/sim_top/tb_plic_proto.v', src: PLIC, marker: 'PLIC PROTOCOL: ALL TESTS PASSED' },
   { name: 'spi device model (mode 0)',      tb: 'sim/sim_top/tb_spi_device.v', src: SPI, marker: 'SPI DEVICE: ALL TESTS PASSED' },
   { name: 'jtag protocol (TAP subset)',     tb: 'sim/sim_top/tb_jtag_proto.v', src: JTAG, marker: 'JTAG PROTOCOL: ALL TESTS PASSED' },
   { name: 'watchdog audit (reload)',        tb: 'sim/sim_top/tb_watchdog_audit.v', src: WDOG, marker: 'WATCHDOG AUDIT: ALL TESTS PASSED' },
   { name: 'sram audit (strobes/RAW)',       tb: 'sim/sim_top/tb_sram_audit.v', src: SRAM, marker: 'SRAM AUDIT: ALL TESTS PASSED' },
+  // Correctness-closure regressions.  Each one reproduces a defect that was
+  // confirmed in this tree and fails against the pre-fix source.
+  { name: 'plic bounds (IDs 1-8)',          tb: 'sim/sim_top/tb_plic_bounds.v', src: PLIC, marker: 'PLIC BOUNDS: ALL TESTS PASSED' },
+  { name: 'cpu csr arch (imm/illegal/minstret)', tb: 'sim/sim_top/tb_csr_arch.v', src: CORE, marker: 'CPU CSR ARCH: ALL TESTS PASSED' },
+  { name: 'apb addressing (integrated bus)', tb: 'sim/sim_top/tb_apb_integrated.v', src: null, marker: 'APB INTEGRATED: ALL TESTS PASSED',
+    needs: ['build/sim/apb_jump.hex', 'build/sim/apb_integrated.hex'] },
+  { name: 'watchdog reset recovery',        tb: 'sim/sim_top/tb_reset_recovery.v', src: null, marker: 'RESET RECOVERY: ALL TESTS PASSED',
+    needs: ['build/sim/apb_jump.hex', 'build/sim/apb_integrated.hex'] },
 ];
 
 const FAIL_RE = /: FAIL|FAIL -|ERRORS|RESULT: FAIL|FATAL|error:/;
@@ -135,12 +146,101 @@ if (selfTest) {
 }
 
 //--------------------------------------------------------------------------
+// Firmware image provenance
+//
+// `tb_boot` and `tb_firmware` $readmemh images that are generated, not checked
+// in.  Running those benches against whatever hex happens to sit in build/fw/
+// proves nothing about the current sources — a stale image can keep an old test
+// green after the firmware changed, and a deleted one silently turns the test
+// into "no firmware".  Every image is therefore rebuilt from source before the
+// suite runs, and its SHA-256 is recorded in the log.  A failed build makes the
+// dependent tests fail; there is no fallback to a stale artefact.
+//--------------------------------------------------------------------------
+const imageState = new Map();   // repo-relative path -> { ok, sha256 | error }
+
+function sha256(file) {
+  return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+}
+
+function prepareImages() {
+  const steps = [
+    {
+      label: 'boot.S -> build/fw/boot.hex',
+      args: ['scripts/fw/as.js', 'firmware/boot/boot.S', 'build/fw/boot.hex', 'build/fw/boot.lst'],
+      outputs: ['build/fw/boot.hex'],
+    },
+    {
+      label: 'C firmware -> build/fw/firmware.elf',
+      args: ['scripts/fw_build/build_fw.js'],
+      outputs: ['build/fw/firmware.elf', 'build/fw/firmware.bin'],
+    },
+    {
+      label: 'firmware.elf -> build/fw/rom.hex + tcm.hex',
+      args: ['scripts/fw_build/gen_fw_mem.js', 'build/fw/firmware.elf'],
+      outputs: ['build/fw/rom.hex', 'build/fw/tcm.hex'],
+    },
+    // Assembly images for the integrated-bus regressions.  Both are assembled
+    // here from sim/asm/ so the bus tests can never run against a hand-edited
+    // or leftover hex file.
+    {
+      label: 'boot_jump.S -> build/sim/apb_jump.hex (TLCM redirect)',
+      args: ['scripts/fw/as.js', 'sim/asm/boot_jump.S', 'build/sim/apb_jump.hex', 'build/sim/apb_jump.lst'],
+      outputs: ['build/sim/apb_jump.hex'],
+    },
+    {
+      label: 'apb_integrated.S -> build/sim/apb_integrated.hex',
+      args: ['scripts/fw/as.js', 'sim/asm/apb_integrated.S', 'build/sim/apb_integrated.hex', 'build/sim/apb_integrated.lst'],
+      outputs: ['build/sim/apb_integrated.hex'],
+    },
+  ];
+
+  const lines = [];
+  let firstError = null;
+  for (const step of steps) {
+    // A stale artefact must not be able to survive a failed rebuild.
+    for (const out of step.outputs) fs.rmSync(path.join(ROOT, out), { force: true });
+    const startedAt = Date.now();
+    const r = spawnSync(process.execPath, step.args, { cwd: ROOT, encoding: 'utf8', timeout: 180000 });
+    const text = (r.stdout || '') + (r.stderr || '');
+    const status = r.error || r.status === null ? -1 : r.status;
+    const missing = step.outputs.filter(o => !fs.existsSync(path.join(ROOT, o)));
+    const stale = step.outputs.filter(o => fs.existsSync(path.join(ROOT, o)) &&
+                                           fs.statSync(path.join(ROOT, o)).mtimeMs < startedAt);
+    const ok = status === 0 && !missing.length && !stale.length;
+    const why = status !== 0 ? `exit ${status}`
+              : missing.length ? `not produced: ${missing.join(', ')}`
+              : `stale: ${stale.join(', ')}`;
+    if (!ok && !firstError) firstError = `${step.label}: ${why}`;
+    lines.push(`  ${ok ? 'OK  ' : 'FAIL'} ${step.label}${ok ? '' : '  [' + why + ']'}`);
+    if (!ok) {
+      const tail = text.trim().split('\n').slice(-8).join('\n');
+      if (tail) lines.push('       ' + tail.replace(/\n/g, '\n       '));
+    }
+    for (const out of step.outputs) {
+      imageState.set(out, ok ? { ok: true, sha256: sha256(path.join(ROOT, out)) }
+                             : { ok: false, error: why });
+    }
+  }
+  return { lines, firstError };
+}
+
+//--------------------------------------------------------------------------
 // Regression
 //--------------------------------------------------------------------------
+const provenance = prepareImages();
 const results = [];
 
 for (const t of TESTS) {
-  const r = runOne(t);
+  let r;
+  const badImage = (t.needs || []).find(img => !(imageState.get(img) || {}).ok);
+  if (badImage) {
+    // Never fall through to a simulation that would consume a stale or absent
+    // image and could still print its success marker.
+    r = { status: 'IMAGE-FAIL',
+          detail: `image not built from current sources: ${badImage}` };
+  } else {
+    r = runOne(t);
+  }
   results.push({ ...t, ...r });
 }
 
@@ -151,13 +251,22 @@ emit('date    : ' + new Date().toISOString());
 emit('iverilog: ' + toolVersion('iverilog', ['-V']));
 emit('node    : ' + process.version);
 emit('');
+emit('firmware image provenance (rebuilt from source this run):');
+for (const line of provenance.lines) emit(line);
+for (const [img, st] of imageState) {
+  emit('  sha256 ' + (st.ok ? st.sha256 : 'unavailable') + '  ' + img);
+}
+emit('');
 for (const r of results) {
   emit(r.status.padEnd(11) + r.name + (r.detail ? '  [' + r.detail + ']' : ''));
 }
 const passed = results.filter(r => r.status === 'PASS').length;
 const missing = results.filter(r => r.status === 'MISSING').length;
+const imageFail = results.filter(r => r.status === 'IMAGE-FAIL').length;
 emit('');
-emit(`PASS ${passed} / ${results.length}` + (missing ? `  (MISSING ${missing})` : ''));
+emit(`PASS ${passed} / ${results.length}` +
+     (missing ? `  (MISSING ${missing})` : '') +
+     (imageFail ? `  (IMAGE-FAIL ${imageFail})` : ''));
 
 fs.writeFileSync(path.join(OUT, 'regression.log'), log.join('\n') + '\n');
 process.exit(passed === results.length ? 0 : 1);

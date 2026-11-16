@@ -308,15 +308,51 @@ module riscv_core #(
     endcase
   end
 
+  // CSR-immediate forms encode the source in the 5-bit `rs1` field as a
+  // zero-extended unsigned immediate (`zimm`), NOT as a register number.  Using
+  // rs1_val here read whatever register happened to share that index, so
+  // `csrrwi x0, mscratch, 5` used rf[5] instead of 5.
+  wire [XLEN-1:0] csr_zimm     = {27'd0, ir[19:15]};
+  wire            csr_is_imm   = funct3[2];
+  wire [XLEN-1:0] csr_src      = csr_is_imm ? csr_zimm : rs1_val;
+  wire            csr_src_zero = csr_is_imm ? (ir[19:15] == 5'd0) : (rs1 == 5'd0);
+
   logic [XLEN-1:0] csr_wdata;
   always_comb begin
     case (funct3)
-      3'b001, 3'b101: csr_wdata = rs1_val;                    // csrrw / csrrwi
-      3'b010, 3'b110: csr_wdata = csr_rdata | rs1_val;        // csrrs / csrrsi
-      3'b011, 3'b111: csr_wdata = csr_rdata & ~rs1_val;       // csrrc / csrrci
-      default:        csr_wdata = rs1_val;
+      3'b001, 3'b101: csr_wdata = csr_src;                    // csrrw / csrrwi
+      3'b010, 3'b110: csr_wdata = csr_rdata | csr_src;        // csrrs / csrrsi
+      3'b011, 3'b111: csr_wdata = csr_rdata & ~csr_src;       // csrrc / csrrci
+      default:        csr_wdata = csr_src;
     endcase
   end
+
+  // CSRRW/CSRRWI always write.  CSRRS/CSRRC/CSRRSI/CSRRCI are read-only when
+  // their source field is zero ("no write when rs1/zimm == 0"), so
+  // `csrrs x1, mstatus, x0` must leave mstatus untouched.
+  wire csr_we = is_csr && ((funct3[1:0] == 2'b01) || !csr_src_zero);
+
+  // Architecturally supported CSRs.  Anything else must raise illegal
+  // instruction (mcause 2) rather than read 0 / silently discard the write.
+  wire csr_known = (csr_addr == 12'h300) || (csr_addr == 12'h304) ||
+                   (csr_addr == 12'h305) || (csr_addr == 12'h340) ||
+                   (csr_addr == 12'h341) || (csr_addr == 12'h342) ||
+                   (csr_addr == 12'h343) || (csr_addr == 12'h344) ||
+                   (csr_addr == 12'h345) || (csr_addr == 12'hB00) ||
+                   (csr_addr == 12'hB80) || (csr_addr == 12'hB02) ||
+                   (csr_addr == 12'hB82) || (csr_addr == 12'hF14);
+  wire csr_writable = (csr_addr == 12'h300) || (csr_addr == 12'h304) ||
+                      (csr_addr == 12'h305) || (csr_addr == 12'h340) ||
+                      (csr_addr == 12'h341) || (csr_addr == 12'h342) ||
+                      (csr_addr == 12'h343) || (csr_addr == 12'hB00) ||
+                      (csr_addr == 12'hB80) || (csr_addr == 12'hB02) ||
+                      (csr_addr == 12'hB82);
+  wire csr_illegal = is_csr && (!csr_known || (csr_we && !csr_writable));
+  // An OP_SYSTEM word that is none of ECALL/EBREAK/MRET/WFI and not a CSR
+  // access is not an instruction this core implements; it used to execute as a
+  // silent NOP.
+  wire sys_illegal = is_system && !is_csr &&
+                     !(is_ecall || is_ebreak || is_mret || is_wfi);
 
   //--------------------------------------------------------------------------
   // Branch / jump target (used by trap detection below)
@@ -378,7 +414,9 @@ module riscv_core #(
     exc_cause = '0;
     exc_tval  = ir;
     if (state == S_EXEC) begin
-      if (is_illegal)  begin exc_take = 1'b1; exc_cause = 32'd2;  end
+      if (is_illegal || csr_illegal || sys_illegal) begin
+        exc_take = 1'b1; exc_cause = 32'd2;
+      end
       else if (is_ecall)  begin exc_take = 1'b1; exc_cause = 32'd11; exc_tval = 32'd0; end
       else if (is_ebreak) begin exc_take = 1'b1; exc_cause = 32'd3;  exc_tval = 32'd0; end
       else if (mem_misaligned) begin
@@ -567,16 +605,22 @@ module riscv_core #(
 
       // Fetch
       if (state == S_FETCH && instr_rvalid && !irq_take) begin
-        ir        <= instr_rdata;
-        minstret  <= minstret + 64'd1;
+        ir <= instr_rdata;
       end
 
       // Execute / writeback
       if (state == S_EXEC && !exc_take) begin
         if (reg_we) rf[rd] <= wb_data;
 
-        // CSR write
-        if (is_csr) begin
+        // minstret counts architectural RETIREMENT, not fetches.  Counting at
+        // fetch also counted instructions that trap, which is architecturally
+        // wrong and made the counter useless as a retirement witness.  Memory
+        // instructions retire below, when their transaction completes.
+        if (!is_mem) minstret <= minstret + 64'd1;
+
+        // CSR write.  Gated by `csr_we`, so a read-only form (CSRRS/CSRRC with
+        // rs1 == x0, or the matching immediate with zimm == 0) has no effect.
+        if (csr_we) begin
           case (csr_addr)
             12'h300: mstatus  <= csr_wdata;
             12'h304: mie      <= csr_wdata;
@@ -612,7 +656,10 @@ module riscv_core #(
       // instruction so mepc is correct.
       if (state == S_MEM && data_rvalid) begin
         if (opcode == OP_LOAD && !data_err) rf[rd] <= ld_data;
-        if (!data_err) pc <= pc + 32'd4;
+        if (!data_err) begin
+          pc       <= pc + 32'd4;
+          minstret <= minstret + 64'd1;   // retire only on successful completion
+        end
       end
 
       // Latch the synchronous exception cause.  exc_cause/exc_tval are only
@@ -663,9 +710,12 @@ module riscv_core #(
   // Misalignment detection (declared above, assigned here so every operand is
   // already declared)
   //--------------------------------------------------------------------------
+  // Halfword: LH (funct3 001) *and* LHU (funct3 101), plus SH (001).  Testing
+  // only 3'b001 let an odd-addressed LHU through, and the load shaper then
+  // returned the halfword at the aligned address instead of trapping.
   assign mem_misaligned = is_mem &&
          ((funct3 == 3'b010) ? (alu_out[1:0] != 2'b00) :
-          (funct3 == 3'b001) ? (alu_out[0] != 1'b0) : 1'b0);
+          ((funct3 == 3'b001) || (funct3 == 3'b101)) ? (alu_out[0] != 1'b0) : 1'b0);
 
   // On a core without the C extension every computed control-transfer target
   // must be 4-byte aligned; jalr masked only bit 0, so a 2-byte-aligned target

@@ -241,10 +241,18 @@ module tb_firmware;
   // Simulation-time guard: the watchdog timeout is 20 ms, the banners add
   // ~1 ms each and the two LED blinks add ~12 ms, so 90 ms is ample while
   // still bounded.
+  //
+  // `+maxns=<ns>` overrides the bound.  The corrupted-image negative control in
+  // scripts/firmware/run_e2e.js uses it so that a firmware which never reaches
+  // the pass marker still terminates on its own inside the host timeout,
+  // instead of being killed — a killed run would be an infrastructure result
+  // and could not be reported as a corruption-sensitivity outcome.
   initial begin
-    #90_000_000;
-    $display("[fw] RESULT: FAIL (timeout after 90 ms; %0d chars, wdog pulses %0d, gpio toggles %0d)",
-             nchars, wdog_pulses, gpio_toggles);
+    integer limit_ns;
+    if (!$value$plusargs("maxns=%d", limit_ns)) limit_ns = 90_000_000;
+    #(limit_ns);
+    $display("[fw] RESULT: FAIL (timeout after %0d ns; %0d chars, wdog pulses %0d, gpio toggles %0d)",
+             limit_ns, nchars, wdog_pulses, gpio_toggles);
     $fatal(1, "firmware demonstration timed out");
   end
 

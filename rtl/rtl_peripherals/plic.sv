@@ -64,7 +64,11 @@ module plic #(
   logic [7:0]             threshold;
   logic [NUM_SOURCES-1:0] pending;
   logic [NUM_SOURCES-1:0] claimed;
-  logic [2:0]             claim_id;
+  // Source IDs are 1..NUM_SOURCES (0 means "no claimant"), so the field needs
+  // enough bits to hold NUM_SOURCES itself.  With 8 sources a 3-bit field wraps
+  // 8 -> 0, i.e. the highest-priority source claims as "none" and the write-back
+  // addresses the wrong pending bit.
+  logic [3:0]             claim_id;
 
   //----------------------------------------------------------------------------
   // Level-sensitive pending tracking with claim masking
@@ -79,11 +83,11 @@ module plic #(
         if (claimed[i] && !irq_sync[i]) claimed[i] <= 1'b0;
       end
 
-      // Claim (read of 0x208) masks the source until it deasserts.  Kept in
-      // this process so `claimed` has exactly one driver; the assignment below
-      // wins over the clear above in procedural order.
-      if (wr_en && wr_addr == 12'h208 && claim_id != 3'd0)
-        claimed[claim_id - 3'd1] <= 1'b1;
+      // Complete (write of 0x208) masks the claimed source until it deasserts.
+      // Kept in this process so `claimed` has exactly one driver; the
+      // assignment below wins over the clear above in procedural order.
+      if (wr_en && wr_addr == 12'h208 && claim_id != 4'd0)
+        claimed[claim_id - 4'd1] <= 1'b1;
     end
   end
 
@@ -96,8 +100,12 @@ module plic #(
       threshold <= 8'd0;
       for (int i = 0; i < NUM_SOURCES; i++) prio[i] <= 8'd0;
     end else if (wr_en) begin
+      // Priority for source n lives at 0x004 + 4*(n-1).  Indexing with
+      // `addr[4:2] - 1` wraps at 0x020 (bits[4:2] == 0 there, so 0-1 is used as
+      // an array index).  Bits[5:2] give 1..8 across the whole block, so the
+      // subtraction cannot wrap.
       if (wr_addr >= 12'h004 && wr_addr < 12'h004 + 4*NUM_SOURCES)
-        prio[wr_addr[4:2] - 1] <= wr_data[7:0];
+        prio[4'(wr_addr[5:2] - 4'd1)] <= wr_data[7:0];
       else case (wr_addr)
         12'h200: enable    <= wr_data[NUM_SOURCES-1:0];
         12'h204: threshold <= wr_data[7:0];
@@ -118,7 +126,7 @@ module plic #(
       if (pending[i] && enable[i] && (prio[i] > threshold) && (prio[i] > best))
         begin
           best     = prio[i];
-          claim_id = 3'(i + 1);
+          claim_id = 4'(i + 1);
           irq_out  = 1'b1;
         end
     end
@@ -130,12 +138,12 @@ module plic #(
   always_comb begin
     rd_data = 32'd0;
     if (rd_addr >= 12'h004 && rd_addr < 12'h004 + 4*NUM_SOURCES)
-      rd_data = {24'd0, prio[rd_addr[4:2] - 1]};
+      rd_data = {24'd0, prio[4'(rd_addr[5:2] - 4'd1)]};
     else case (rd_addr)
       12'h100: rd_data = {24'd0, pending};
       12'h200: rd_data = {24'd0, enable};
       12'h204: rd_data = {24'd0, threshold};
-      12'h208: rd_data = {29'd0, claim_id};
+      12'h208: rd_data = {28'd0, claim_id};
       default: rd_data = 32'd0;
     endcase
   end

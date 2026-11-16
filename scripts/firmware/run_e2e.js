@@ -8,6 +8,7 @@
  * writes fresh logs under build/e2e/. Exits 0 only when every step passes.
  */
 const { spawnSync } = require('child_process');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
@@ -32,6 +33,10 @@ function log(name, text) {
   const p = path.join(OUT, name);
   fs.writeFileSync(p, text, 'utf8');
   return p;
+}
+
+function sha256(file) {
+  return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 }
 
 let failed = null;
@@ -60,21 +65,28 @@ if (failed) {
   process.exit(2);
 }
 
-// 2. build firmware
+// 2. build firmware.  The previous outputs are deleted first so a failed build
+//    cannot leave an artefact behind that the simulation would happily load.
 {
+  const startedAt = Date.now();
+  for (const a of ['build/fw/firmware.elf', 'build/fw/firmware.bin']) {
+    fs.rmSync(path.join(ROOT, a), { force: true });
+  }
   const r = run(process.execPath, [path.join(ROOT, 'scripts', 'fw_build', 'build_fw.js')]);
   const text = r.stdout + r.stderr;
   log('build.log', text);
-  const ok = r.status === 0 && text.includes('OK:');
+  const fresh = ['build/fw/firmware.elf', 'build/fw/firmware.bin'].every(a => {
+    const p = path.join(ROOT, a);
+    return fs.existsSync(p) && fs.statSync(p).mtimeMs >= startedAt;
+  });
+  const ok = r.status === 0 && text.includes('OK:') && fresh;
   if (!ok && !failed) failed = 'firmware build failed';
   results.push({ name: 'build', status: ok ? 'PASS' : 'FAIL' });
   console.log('build:', ok ? 'PASS' : 'FAIL');
 }
 
-// 3. validate artifacts
+// 3. validate artifacts (freshness, not mere existence)
 {
-  const arts = ['build/fw/firmware.elf', 'build/fw/firmware.bin', 'build/fw/rom.hex', 'build/fw/tcm.hex'];
-  // rom.hex/tcm.hex generated next; check elf/bin now
   const lines = [];
   let ok = true;
   for (const a of ['build/fw/firmware.elf', 'build/fw/firmware.bin']) {
@@ -88,15 +100,37 @@ if (failed) {
   results.push({ name: 'artifacts', status: ok ? 'PASS' : 'FAIL' });
 }
 
-// 4. generate per-memory hex
+// 4. generate per-memory hex (previous hex deleted first: a stale image must not
+//    be able to stand in for one this run failed to produce)
 {
+  for (const a of ['build/fw/rom.hex', 'build/fw/tcm.hex']) {
+    fs.rmSync(path.join(ROOT, a), { force: true });
+  }
+  const startedAt = Date.now();
   const r = run(process.execPath, [path.join(ROOT, 'scripts', 'fw_build', 'gen_fw_mem.js'), 'build/fw/firmware.elf']);
   const text = r.stdout + r.stderr;
   log('genmem.log', text);
-  const ok = r.status === 0 && fs.existsSync(path.join(ROOT, 'build/fw/rom.hex')) && fs.existsSync(path.join(ROOT, 'build/fw/tcm.hex'));
+  const fresh = ['build/fw/rom.hex', 'build/fw/tcm.hex'].every(a => {
+    const p = path.join(ROOT, a);
+    return fs.existsSync(p) && fs.statSync(p).mtimeMs >= startedAt;
+  });
+  const ok = r.status === 0 && fresh;
   if (!ok && !failed) failed = 'gen_fw_mem failed';
   results.push({ name: 'genmem', status: ok ? 'PASS' : 'FAIL' });
   console.log('genmem:', ok ? 'PASS' : 'FAIL');
+}
+
+// 5. image provenance: record what the simulation will actually load.
+{
+  const lines = [];
+  for (const a of ['build/fw/firmware.elf', 'build/fw/firmware.bin', 'build/fw/rom.hex', 'build/fw/tcm.hex']) {
+    const p = path.join(ROOT, a);
+    lines.push(`${fs.existsSync(p) ? sha256(p) : 'MISSING'.padEnd(64)}  ${a}`);
+  }
+  log('provenance.log', lines.join('\n') + '\n');
+  console.log('image sha256:');
+  for (const l of lines) console.log('  ' + l);
+  results.push({ name: 'provenance', status: 'PASS' });
 }
 
 // 5. positive simulation
@@ -122,44 +156,95 @@ if (failed) {
   }
 }
 
-// 6. negative test: corrupted image (expect failure)
+// 7. Negative control: corrupted ROM image.
+//
+// This is a **corruption sensitivity** check, not an authenticated-rejection
+// check: this firmware has no signature verifier linked, so nothing in the DUT
+// validates an image.  What the test can honestly assert is one specific
+// supported outcome — the corrupted image does not produce the clean-pass
+// marker.  Anything that prevents the simulation from running (compile failure,
+// missing simulator, crash, host timeout, silent output) is an infrastructure
+// result and must NOT be recorded as "corruption rejected", which is what the
+// previous version did.
 {
   const romPath = path.join(ROOT, 'build', 'fw', 'rom.hex');
-  const backup = fs.readFileSync(romPath, 'utf8');
-  // corrupt first word
-  const lines = backup.split('\n');
-  if (lines.length > 0 && lines[0].length === 8) {
-    lines[0] = 'deadbeef';
-  }
+  const original = fs.readFileSync(romPath, 'utf8');
+  const originalSha = sha256(romPath);
+  const lines = original.split('\n');
+  const corruptible = lines.length > 0 && /^[0-9a-fA-F]{8}$/.test(lines[0].trim());
+  if (corruptible) lines[0] = 'deadbeef';
   fs.writeFileSync(romPath, lines.join('\n'), 'utf8');
+  const corruptSha = sha256(romPath);
 
   const vvp = path.join(OUT, 'tb_firmware_neg.vvp');
   if (fs.existsSync(vvp)) fs.unlinkSync(vvp);
   const rtl = fs.readFileSync(path.join(ROOT, 'rtl', 'filelist.f'), 'utf8')
     .split('\n').filter(l => l.trim() && !l.trim().startsWith('//')).map(l => l.trim());
-  const c = run('iverilog', ['-g2012', '-o', vvp, '-s', 'tb_firmware', 'sim/sim_top/tb_firmware.v', ...rtl]);
-  let text = c.stdout + c.stderr;
-  let negPassed = false;
-  if (c.status !== 0) {
-    negPassed = true; // compile fail counts as rejection
-  } else {
-    const r = run('vvp', [vvp], { timeout: 120000 });
-    text = r.stdout + r.stderr;
-    // Expected: no RESULT: PASS, or nonzero exit, or timeout
-    negPassed = !(r.status === 0 && text.includes('RESULT: PASS'));
-  }
-  log('negative.log', text);
-  // restore rom.hex
-  fs.writeFileSync(romPath, backup, 'utf8');
 
-  if (!negPassed && !failed) failed = 'negative test did not reject corrupted image';
-  results.push({ name: 'negative', status: negPassed ? 'PASS' : 'FAIL' });
-  console.log('negative (corrupted image rejected):', negPassed ? 'PASS' : 'FAIL');
+  const c = run('iverilog', ['-g2012', '-o', vvp, '-s', 'tb_firmware', 'sim/sim_top/tb_firmware.v', ...rtl]);
+  const text0 = c.stdout + c.stderr;
+
+  let verdictDetail;
+  let ok;
+  if (!corruptible) {
+    ok = false;
+    verdictDetail = 'rom.hex is not a word image; corruption was not applied';
+  } else if (corruptSha === originalSha) {
+    ok = false;
+    verdictDetail = 'corruption did not change the image';
+  } else if (c.error || c.status !== 0) {
+    ok = false;
+    verdictDetail = `compile failed (infrastructure): ${c.error ? c.error.code : 'exit ' + c.status}`;
+  } else {
+    // `+maxns` bounds the simulation itself, just past the point where the good
+    // image prints RESULT: PASS (it finishes at ~67 ms of sim time).  The
+    // corrupted image therefore terminates on its own with its own timeout
+    // marker and can never be mistaken for a host timeout.
+    const r = run('vvp', [vvp, '+maxns=70000000'], { timeout: 600000 });
+    const text = r.stdout + r.stderr;
+    const timedOut = r.error && r.error.code === 'ETIMEDOUT';
+    if (timedOut) {
+      ok = false;
+      verdictDetail = 'host timeout (infrastructure, not a rejection)';
+    } else if (r.error && r.error.code === 'ENOENT') {
+      ok = false;
+      verdictDetail = 'simulator not found (infrastructure)';
+    } else if (r.error || r.status === null) {
+      ok = false;
+      verdictDetail = 'simulator did not complete (infrastructure)';
+    } else if (!text.trim()) {
+      ok = false;
+      verdictDetail = 'silent simulator output (infrastructure)';
+    } else if (r.status === 0 && text.includes('RESULT: PASS')) {
+      ok = false;
+      verdictDetail = 'corrupted image still produced RESULT: PASS';
+    } else {
+      // Specific supported outcome: the run completed and did not report a pass.
+      ok = true;
+      const observed = /RESULT: FAIL/.test(text) ? 'RESULT: FAIL'
+                     : /FATAL/.test(text) ? 'FATAL'
+                     : `no pass marker (exit ${r.status})`;
+      verdictDetail = 'observed ' + observed;
+    }
+    log('negative.log', text);
+  }
+  if (!fs.existsSync(path.join(OUT, 'negative.log'))) log('negative.log', text0);
+
+  fs.writeFileSync(romPath, original, 'utf8');
+  const restored = sha256(romPath) === originalSha;
+  if (!restored && !failed) failed = 'rom.hex was not restored after the negative control';
+
+  if (!ok && !failed) failed = `corrupted-image control inconclusive: ${verdictDetail}`;
+  results.push({ name: 'negative (corruption sensitivity)', status: ok && restored ? 'PASS' : 'FAIL' });
+  console.log('negative (corruption sensitivity):', ok && restored ? 'PASS' : 'FAIL', '-', verdictDetail);
 }
 
 // summary
 console.log('\n--- e2e summary ---');
 for (const r of results) console.log(`${r.status.padEnd(6)} ${r.name}`);
-const allPass = results.every(r => r.status === 'PASS') && !failed;
+// Counts come from this run's executed step list, never from a constant.
+const passed = results.filter(r => r.status === 'PASS').length;
+console.log(`\n${passed} / ${results.length} steps passed`);
+const allPass = passed === results.length && !failed;
 console.log(allPass ? '\nEND-TO-END DEMONSTRATION: PASS' : '\nEND-TO-END DEMONSTRATION: FAIL');
 process.exit(allPass ? 0 : 1);

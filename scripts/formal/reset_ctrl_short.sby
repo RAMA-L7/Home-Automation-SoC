@@ -1,0 +1,26 @@
+# Home-Automation-SoC — mutation control for the reset_ctrl properties
+#
+# The properties in reset_ctrl_fv.sv demand a pulse of exactly HOLD = 16 cycles.
+# This task compiles the SAME harness against a deliberately shortened
+# implementation (HOLD_DUT = 8) and is expected to FAIL.  It exists so that
+# "the reset Ctrl proofs pass" cannot be satisfied by a property that is
+# vacuous: if a shortened pulse ever stops being detected here, the R1b
+# no-premature-release property has become a tautology again.
+#
+# Driven by `node scripts/formal/run_formal.js --self-test`, which requires
+# FAIL from this task.
+[options]
+mode prove
+depth 20
+
+[engines]
+abc pdr
+
+[script]
+read_verilog -sv -formal -DHOLD_DUT=8 reset_ctrl.sv
+read_verilog -sv -formal -DHOLD_DUT=8 reset_ctrl_fv.sv
+prep -top reset_ctrl_fv
+
+[files]
+../../rtl/rtl_top/reset_ctrl.sv
+reset_ctrl_fv.sv

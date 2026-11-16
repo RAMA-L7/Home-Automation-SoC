@@ -22,6 +22,7 @@
  * Tasks (scripts/formal/*.sby):
  *   watchdog       bounded  BMC of the watchdog APB contract   (depth 96)
  *   reset_ctrl     unbounded PDR of the reset-pulse invariants
+ *   reset_ctrl_cover bounded BMC of cover reachability (non-vacuity)
  *   reset_ctrl_seq bounded  BMC of exact reset pulse timing    (depth 60)
  *   cdc_power_mgr  bounded  BMC of the async wake synchronizer (depth 30)
  *   plic_regs      bounded  BMC of PLIC register/claim semantics   (depth 52)
@@ -42,6 +43,7 @@ const requested = process.argv.slice(2).filter(a => !a.startsWith('-'));
 const TASKS = [
   { name: 'watchdog',      sby: 'watchdog.sby',      what: 'pet suppresses timeout; armed timeout raises reset' },
   { name: 'reset_ctrl',    sby: 'reset_ctrl.sby',    what: 'reset pulse bounded, prompt, identical on both pins' },
+  { name: 'reset_ctrl_cover', sby: 'reset_ctrl_cover.sby', what: 'reset invariants are non-vacuous (covers reachable)' },
   { name: 'reset_ctrl_seq', sby: 'reset_ctrl_seq.sby', what: 'reset pulse width and phase are exact (directed)' },
   { name: 'cdc_power_mgr', sby: 'cdc_power_mgr.sby', what: 'async wake is synchronized and never lost' },
   { name: 'plic_regs',     sby: 'plic_regs.sby',     what: 'PLIC register semantics, claim and arbitration (directed)' },
@@ -117,6 +119,10 @@ function runTask(t, opts = {}) {
 //   3 incomplete proof output           -> UNKNOWN/FAIL
 //   4 solver that exits 0 but says nothing -> FAIL
 //   5 stale PASS log left in the workdir -> must not turn a FAIL into PASS
+//   6 deliberately shortened reset pulse     -> FAIL (mutation control)
+//     reset_ctrl_short.sby builds the real harness against HOLD_DUT = 8 while
+//     the properties demand 16, so the no-premature-release property must fire.
+//     This is what keeps R1b from silently becoming a tautology again.
 //--------------------------------------------------------------------------
 if (selfTest) {
   const dir = path.join(OUT, 'selftest');
@@ -150,6 +156,8 @@ if (selfTest) {
     fs.mkdirSync(path.join(OUT, 'st_stale'), { recursive: true });
     fs.writeFileSync(path.join(OUT, 'st_stale', 'runner.log'), 'DONE (PASS, rc=0)\n');
     results.push(['stale PASS log', runTask({ name: 'st_stale', sby: 'zz_selftest_bad.sby' }, {}), ['FAIL']]);
+    results.push(['short reset pulse (mutation)',
+      runTask({ name: 'st_short_pulse', sby: 'reset_ctrl_short.sby' }, {}), ['FAIL']]);
   } finally {
     for (const f of ['zz_selftest_bad.sby', 'zz_selftest_bad_fv.sv']) {
       fs.rmSync(path.join(FORMAL, f), { force: true });

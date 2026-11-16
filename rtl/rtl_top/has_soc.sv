@@ -170,9 +170,9 @@ module has_soc #(
   // Out-of-range fetch returns an all-zero word (an illegal instruction), so
   // the core traps instead of hanging.
   logic fault_rvalid;
-  always_ff @(posedge core_clk or negedge reset_n) begin
-    if (!reset_n) fault_rvalid <= 1'b0;
-    else          fault_rvalid <= instr_req && !sel_rom && !sel_tcm && !sel_sram;
+  always_ff @(posedge core_clk or negedge rst_sys_n) begin
+    if (!rst_sys_n) fault_rvalid <= 1'b0;
+    else            fault_rvalid <= instr_req && !sel_rom && !sel_tcm && !sel_sram;
   end
 
   assign instr_gnt    = sel_rom  ? rom_i_gnt  :
@@ -201,9 +201,16 @@ module has_soc #(
   logic [1:0]   m_bresp, m_rresp;
   logic [31:0]  m_araddr, m_rdata;
 
+  // Transaction-path state (adapter, interconnect, bridge, memory ports, INTC)
+  // is reset by `rst_sys_n`, not by the external pad alone.  These blocks hold
+  // AW/W/AR accept state and B/R response state; if they survived a watchdog
+  // reset they would present a stale grant or response to the restarted CPU,
+  // which has no way to distinguish it from its own transaction.  Memory
+  // *contents* still persist: sram/boot_rom reset only their control FSM, the
+  // arrays are initialised exclusively by $readmemh.
   req_gnt_to_axi_lite data_adapter (
     .clk       (core_clk),
-    .reset_n   (reset_n),
+    .reset_n   (rst_sys_n),
     .req       (data_req),
     .addr      (data_addr),
     .we        (data_we),
@@ -246,7 +253,7 @@ module has_soc #(
 
   axi_lite_interconnect axi_ic (
     .clk         (core_clk),
-    .reset_n     (reset_n),
+    .reset_n     (rst_sys_n),
     .m_awvalid   (m_awvalid),
     .m_awready   (m_awready),
     .m_awaddr    (m_awaddr),
@@ -292,7 +299,7 @@ module has_soc #(
   //--------------------------------------------------------------------------
   boot_rom #(.ADDR_WIDTH(16), .MEM_FILE(BOOT_ROM_FILE)) rom_inst (
     .clk      (core_clk),
-    .reset_n  (reset_n),
+    .reset_n  (rst_sys_n),
     .req      (rom_i_req),
     .addr     (instr_addr[15:0]),
     .gnt      (rom_i_gnt),
@@ -322,7 +329,7 @@ module has_soc #(
   //--------------------------------------------------------------------------
   sram #(.ADDR_WIDTH(15), .MEM_FILE(TCM_INIT_FILE)) tcm_inst (
     .clk      (core_clk),
-    .reset_n  (reset_n),
+    .reset_n  (rst_sys_n),
     .awvalid  (s_awvalid[1]), .awaddr(s_awaddr[1][14:0]), .awready(s_awready[1]),
     .wvalid   (s_wvalid[1]),  .wdata (s_wdata[1]),  .wready(s_wready[1]),
     .wstrb    (s_wstrb[1]),
@@ -339,7 +346,7 @@ module has_soc #(
   //--------------------------------------------------------------------------
   sram #(.ADDR_WIDTH(18), .MEM_FILE(SRAM_INIT_FILE)) sram_inst (
     .clk      (core_clk),
-    .reset_n  (reset_n),
+    .reset_n  (rst_sys_n),
     .awvalid  (s_awvalid[2]), .awaddr(s_awaddr[2][17:0]), .awready(s_awready[2]),
     .wvalid   (s_wvalid[2]),  .wdata (s_wdata[2]),  .wready(s_wready[2]),
     .wstrb    (s_wstrb[2]),
@@ -356,7 +363,7 @@ module has_soc #(
   //--------------------------------------------------------------------------
   qspi_flash_ctrl qspi_ctrl (
     .clk      (core_clk),
-    .reset_n  (reset_n),
+    .reset_n  (rst_sys_n),
     .awvalid  (s_awvalid[3]), .awaddr(s_awaddr[3]), .awready(s_awready[3]),
     .wvalid   (s_wvalid[3]),  .wdata (s_wdata[3]),  .wready(s_wready[3]),
     .wstrb    (s_wstrb[3]),
@@ -379,7 +386,7 @@ module has_soc #(
 
   axi_lite_to_apb apb_bridge (
     .clk      (core_clk),
-    .reset_n  (reset_n),
+    .reset_n  (rst_sys_n),
     .s_awvalid(s_awvalid[4]), .s_awready(s_awready[4]),
     .s_awaddr (s_awaddr[4]),  .s_awprot (s_awprot[4]),
     .s_wvalid (s_wvalid[4]),  .s_wready (s_wready[4]),
@@ -410,7 +417,7 @@ module has_soc #(
   // blocks (a rejected earlier revision) creates multiple drivers.
   intc_axi intc_inst (
     .clk      (core_clk),
-    .reset_n  (reset_n),
+    .reset_n  (rst_sys_n),
     .awvalid  (s_awvalid[5]), .awaddr(s_awaddr[5]), .awready(s_awready[5]),
     .wvalid   (s_wvalid[5]),  .wdata (s_wdata[5]),  .wready(s_wready[5]),
     .wstrb    (s_wstrb[5]),
@@ -435,44 +442,53 @@ module has_soc #(
   logic [31:0] prdata_timer, prdata_wdog, prdata_i2s, prdata_pwr;
   logic [8:0]  apb_sel;
 
+  // Only a full-word write is presented to a peripheral.  No APB peripheral
+  // decodes PSTRB, so letting a byte/halfword/zero-strobe write reach one would
+  // silently promote it to a full-word register write *and* return PSLVERR —
+  // an error response with a real side effect.  Rejecting it before the ACCESS
+  // phase keeps the error honest: the access completes, reports failure, and
+  // changes nothing.
+  wire apb_partial_write = pwrite && (pstrb != 4'b1111);
+  wire apb_write_ok      = ~apb_partial_write;
+
   // Each peripheral is only allowed to see the APB ACCESS phase for its own
   // 4 KB slot.  Without the per-slot gate every peripheral decodes every
   // access: a UART THR write has paddr[11:2]==0, which the power-manager
   // register block took as its own control register and set sleep_req, so the
   // first transmitted character gated off core_clk and froze the whole SoC.
   gpio #(.WIDTH(16)) gpio_inst (
-    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[0]), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[0] & apb_write_ok), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_gpio), .pready(), .pslverr(),
     .gpio(gpio), .irq(gpio_irq));
 
   uart #(.CLK_FREQ(UART_CLK_FREQ), .BAUD(UART_BAUD)) uart_inst (
-    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[1]), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[1] & apb_write_ok), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_uart), .pready(), .pslverr(),
     .uart_tx(uart_tx), .uart_rx(uart_rx), .irq(uart_irq));
 
   i2c_ctrl i2c_inst (
-    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[2]), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[2] & apb_write_ok), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_i2c), .pready(), .pslverr(),
     .i2c_scl(i2c_scl), .i2c_sda(i2c_sda), .irq(i2c_irq));
 
   spi_ctrl spi_inst (
-    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[3]), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[3] & apb_write_ok), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_spi), .pready(), .pslverr(),
     .spi_sck(spi_sck), .spi_mosi(spi_mosi), .spi_miso(spi_miso),
     .spi_cs_n(spi_cs_n), .irq(spi_irq));
 
   pwm pwm_inst (
-    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[4]), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[4] & apb_write_ok), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_pwm), .pready(), .pslverr(),
     .pwm_out(pwm_out), .irq(pwm_irq));
 
   timer timer_inst (
-    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[5]), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[5] & apb_write_ok), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_timer), .pready(), .pslverr(),
     .irq(timer_irq));
@@ -482,7 +498,7 @@ module has_soc #(
   // on the ungated base clock; its APB port is still only reachable while the
   // peripheral clock is running.
   watchdog wdog_inst (
-    .pclk(clk), .presetn(rst_sys_n), .penable(penable & apb_sel[6]), .pwrite(pwrite),
+    .pclk(clk), .presetn(rst_sys_n), .penable(penable & apb_sel[6] & apb_write_ok), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_wdog), .pready(), .pslverr(),
     .irq(wdog_irq), .reset_n_out(wdog_timeout_raw_n));
@@ -492,7 +508,7 @@ module has_soc #(
   assign wdog_timeout = ~wdog_timeout_raw_n;
 
   i2s i2s_inst (
-    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[7]), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[7] & apb_write_ok), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_i2s), .pready(), .pslverr(),
     .i2s_bclk(i2s_bclk), .i2s_lrclk(i2s_lrclk),
@@ -500,26 +516,29 @@ module has_soc #(
 
   logic pm_sleep_req, pm_wake_event;
   power_mgr_regs pwr_inst (
-    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[8]), .pwrite(pwrite),
+    .pclk(periph_clk), .presetn(rst_sys_n), .penable(penable & apb_sel[8] & apb_write_ok), .pwrite(pwrite),
     .paddr(paddr), .pwdata(pwdata), .pstrb(pstrb),
     .prdata(prdata_pwr), .pready(), .pslverr(),
     .irq(pwr_irq), .sleep_req_o(pm_sleep_req),
     .wake_clear(pm_wake_event));
 
-  // APB address decode: one 4 KB slot per peripheral.  Each peripheral sees
-  // paddr[11:2] as its local register index because every slot is 4 KB aligned.
+  // APB address decode: one 4 KB slot per peripheral inside a 1 MB aperture
+  // (ADDR_APB_SIZE = 0x0010_0000).  Decoding only paddr[15:12] would make the
+  // 64 KB sub-blocks alias the first eight peripherals, so a stray access to
+  // 0x5001_0000 would write GPIO.  The full slot number is paddr[19:12]; any
+  // value outside 0..8 is unmapped and completes with PSLVERR.
   always_comb begin
     apb_sel = 9'd0;
-    case (paddr[15:12])
-      4'h0: apb_sel = 9'b000000001;  // GPIO  0x5000_0000
-      4'h1: apb_sel = 9'b000000010;  // UART  0x5000_1000
-      4'h2: apb_sel = 9'b000000100;  // I2C   0x5000_2000
-      4'h3: apb_sel = 9'b000001000;  // SPI   0x5000_3000
-      4'h4: apb_sel = 9'b000010000;  // PWM   0x5000_4000
-      4'h5: apb_sel = 9'b000100000;  // TIMER 0x5000_5000
-      4'h6: apb_sel = 9'b001000000;  // WDOG  0x5000_6000
-      4'h7: apb_sel = 9'b010000000;  // I2S   0x5000_7000
-      4'h8: apb_sel = 9'b100000000;  // PWR   0x5000_8000
+    case (paddr[19:12])
+      9'h000: apb_sel = 9'b000000001;  // GPIO  0x5000_0000
+      9'h001: apb_sel = 9'b000000010;  // UART  0x5000_1000
+      9'h002: apb_sel = 9'b000000100;  // I2C   0x5000_2000
+      9'h003: apb_sel = 9'b000001000;  // SPI   0x5000_3000
+      9'h004: apb_sel = 9'b000010000;  // PWM   0x5000_4000
+      9'h005: apb_sel = 9'b000100000;  // TIMER 0x5000_5000
+      9'h006: apb_sel = 9'b001000000;  // WDOG  0x5000_6000
+      9'h007: apb_sel = 9'b010000000;  // I2S   0x5000_7000
+      9'h008: apb_sel = 9'b100000000;  // PWR   0x5000_8000
       default: apb_sel = 9'd0;
     endcase
   end
@@ -536,14 +555,14 @@ module has_soc #(
 
   // APB completion contract:
   //  - exactly one selected slot per transfer (one-hot `apb_sel`);
-  //  - an unmapped slot completes with PSLVERR instead of hanging the bridge;
-  //  - partial-strobe writes are REJECTED with PSLVERR.  No peripheral decodes
-  //    PSTRB (it is an unused port in all nine), so accepting a partial write
-  //    would silently turn `sb`/`sh` into a full-word register write.  A
-  //    rejected access has no side effect, which is the safe failure mode.
-  wire apb_partial_write = pwrite && (pstrb != 4'b1111);
-
-  assign pready  = (apb_sel != 9'd0);
+  //  - every access completes in a single ACCESS cycle, because PREADY must
+  //    never depend on `apb_sel`: holding PREADY low for an unmapped slot
+  //    stalls the bridge (and therefore the CPU) forever instead of reporting
+  //    the error.  The error is carried by PSLVERR, which is only meaningful
+  //    together with a completed (PREADY high) transfer;
+  //  - a partial-strobe write never reaches the peripheral (see
+  //    `apb_write_ok`), so the error response carries no side effect.
+  assign pready  = 1'b1;
   assign pslverr = (apb_sel == 9'd0) || (penable && apb_partial_write);
 
   // PLIC source map: 0=uart 1=spi 2=i2c 3=gpio 4=pwm 5=timer 6=wdog 7=i2s
