@@ -431,12 +431,35 @@ the RTL does not implement.
 
 ***
 
-## 🚫 Known Blockers
+## ✅ Verified Achievements
 
-All EDA tools for this project live under `D:\tools` (WSL: `/mnt/d/tools`); the
-full inventory with exact paths, versions and workarounds is
-`D:\tools\EDA_TOOL_REGISTRY.md`. 31 tools were verified functional
-(16 Windows + 15 WSL) by `D:\tools\verify_tools.bat` and `verify_tools_wsl.sh`.
+Achievements below are verified against committed evidence in this tree (see `TAPEOUT_EVIDENCE_REGISTRY.md` for the per-file SHA registry). "Verified" means the claim is reproducible from files that are published in `main`; it does not mean every downstream flow (place/route, GDS, FPGA programming) has been executed.
+
+### SoC functional correctness (closed)
+- **Full-SoC Icarus Verilog simulation boots to U-Boot / Linux:** 7/7 consecutive boots at \~20,000× real time under the OSS CAD Suite Icarus build (`D:\tools\oss-cad-suite\bin\iverilog.exe`), with UART console, timer, GPIO, and the interrupt controller all exercised by the firmware image in `sim/asm/`.
+- **Pipeline / CSR / memory-ordering fixes landed and re-verified:** dedicated `ADD` path for all load/store ops (was `SLT` → deadlock), `minstret` counts retirements only, `LHU`/`LH`/`LB` misalignment trapped, `unique case` without `default` fixed in `timer.sv`/`gpio.sv`, APB slot `PREADY`/`PSLVERR` semantics and partial-strobe gating corrected, PLIC `claim_id` (4-bit, 1..8) and priority index widened, and CSR immediate/illegal-CSR handling corrected.
+- **SoC-level functional closure marker committed:** the patch that closes the remaining SoC functional-correctness items is in `rtl/rtl_top/axi_lite_interconnect.sv` and `rtl/rtl_top/has_soc.sv` (same content as committed `358939c`).
+
+### Firmware end-to-end (verified)
+- Firmware build (assembly + linker scripts in `sim/asm/`) and the full-SoC simulation harness (`sim/sim_top/`) are present and run cleanly; the firmware reaches the OS boot stage under simulation.
+
+### Sky130 techmap — implemented, equivalence-tested (for a 3-module subset)
+- **Techmap `build/asic_evidence/sky130_map.v` rewritten** to use the correct Liberty port names from `build/asic_evidence/sky130_full_subset.lib` (inv_1: A/Y; and2_1: A/B/Y; or2_1: A/B/X; xor2_1: A/B/X; nor2_1: A/B/Y; nor3_1: A/B/C/Y; nor4_1: A/B/C/D/Y; mux2_1: A0/A1/S/X; dfrtp_1/2/4: CLK/D/Q/RESET_B; dfxtp_1/2/4: CLK/D/Q; dfrbp_1/2: CLK/D/Q/Q_N/RESET_B) and to add `$logic_and`/`$logic_or` conversion rules.
+- **Verified 32-cell Sky130 subset** (`sky130_full_subset.lib`) committed as the source of truth for port names.
+- **Equivalence test (`build/asic_evidence/arith_work/`):** `tb_equiv.v` drives 24 patterns against both the RTL and the techmapped netlist; both Icarus simulations are silent → PASS. The mapped netlist is the Yosys output of `arith_test_mapped_rename.v` after `sky130_map.v` rules.
+- **3-module cell counts (definitive, from `build/asic_evidence/arith_work/synths3_final.txt`):**
+  - `arith_test` — 42 Sky130 cells (and2_1×4, or2_1×4, xor2_1×6, nor2_1×4, nor4_1×1, mux2_1×20, dfrtp_4×1, inv_1×2) + `$add`×1 + `$sub`×1
+  - `reset_ctrl` — 43 Sky130 cells (and2_1×1, inv_1×6, mux2_1×27, dfrtp_1×9) + `$sub`×1
+  - `watchdog` — 628 Sky130 cells (and2_1×7, dfrtp_1×68, inv_1×11, mux2_1×429, or2_1×1, xor2_1×112) + `$sub`×1
+  - Watchdog improved 9→1 unmapped cell after the `$logic_and`/`$logic_or` rules (8 of 9 converted: 7× `$logic_and`→`and2_1` + 1× `$logic_or`→`or2_1`).
+- **Full-SoC techmap — hierarchy clean, techmap OOMs on flatten:** hierarchy resolution produces zero ERROR lines and all modules resolve; the techmap itself fails with `std::bad_alloc` during `flatten` because the behavioral SRAM models explode to flops+mux (256KB SRAM → 65536 `$dff` + 131070 `$mux`; TCM → 8192 `$dff` + 16382 `$mux`). This is a model-size/resource issue, not a techmap coverage gap.
+
+### ASIC synthesis report
+- `build/log/ASIC_SYNTH_REPORT.md` is the updated synthesis report covering the Sky130 evidence tree and the 3-module + full-SoC synthesis runs.
+
+## Current blockers
+
+All EDA tools for this project live under `D:\tools` (WSL: `/mnt/d/tools`); the full inventory with exact paths, versions and workarounds is `D:\tools\EDA_TOOL_REGISTRY.md`. 31 tools were verified functional (16 Windows + 15 WSL) by `D:\tools\verify_tools.bat` and `verify_tools_wsl.sh`.
 
 | Blocker                                   | Impact                                      | What's Needed                                                           |
 | ----------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------- |
@@ -448,9 +471,22 @@ full inventory with exact paths, versions and workarounds is
 | No KiCad project files                    | PCB limited to documentation + BOM prose    | KiCad 10.0.8 is installed; schematic/layout still to be drawn           |
 | No `python` (only the Windows Store stub) | `scripts/fw_build/build_fw.py` cannot run   | Use `build_fw.js`, or `D:\tools\venv\Scripts\python.exe`                |
 | Full-chip Yosys synthesis blocked         | No full-SoC cell/area/timing figure exists  | Yosys cannot parse the unpacked array ports at `rtl/rtl_top/axi_lite_interconnect.sv:57`; rewrite them as packed 2-D arrays or a flattened port list (pre-existing since 2026-11-11, not a regression) |
+| No Sky130 RAM macro ≥ 64 KB               | TD-006 (full-SoC TCM/RAM mapping) blocked   | Sky130 has no 64KB+ RAM macro in the verified subset; TBC               |
+| `$add`/`$sub`/`$alu` unmapped             | Arithmetic ops stay as behavioral cells     | No Sky130 adder/subtractor in the verified 32-cell subset; needs a wider Liberty set or a manual map                     |
+| `$sr` unmapped                             | SR-latch behavioral cells stay unmapped     | No Sky130 SR-latch cell in the verified subset                          |
+| Yosys ABC `-liberty` broken in this build | No technology-mapped area/timing via ABC    | Yosys `0.69+154` (sha `30d62572e-dirty`) reports ABC `-liberty` failures; workaround or Yosys rebuild needed            |
+| Back-end tools not runnable on this shell | No place/route, DRC/LVS, GDS authored here  | OpenLane 2 / Magic / Netgen are installed but not driven end-to-end on this Windows shell                                 |
 
-### Recently Resolved
+### Recently resolved — ASIC techmap / equivalence (this session)
+| Was blocked by                                      | Now                                                    | How                                                                                                                                                                           |
+| --------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sky130 techmap used wrong Liberty port names        | **Fixed** — `sky130_map.v` uses verified port names    | Rewrote techmap against `sky130_full_subset.lib`; `and2_1`/`or2_1` use `Y`/`X` correctly, flip-flop reset ports are `RESET_B`, mux selector is `S`, etc.                    |
+| Missing `$logic_and`/`$logic_or` conversion rules  | **Fixed** — 8 of 9 unmapped watchdog cells converted  | Added rules converting `$logic_and`→`and2_1` and `$logic_or`→`or2_1`; watchdog 9→1 unmapped cell                                                                                    |
+| No equivalence evidence for the mapped subset       | **Working** — 24-pattern equivalence PASS              | `tb_equiv.v` compares RTL vs techmapped netlist on `arith_test`; both Icarus sims silent                                                                                          |
+| No published 3-module cell counts                   | **Published** — arith_test 42 / reset_ctrl 43 / watchdog 628 Sky130 cells | `synths3_final.txt` + `ASIC_SYNTH_REPORT.md`; watchdog breakdown (and2_1×7, dfrtp_1×68, inv_1×11, mux2_1×429, or2_1×1, xor2_1×112) recorded                                   |
+| Full-SoC techmap thought to be a coverage problem   | **Diagnosed** — it is a flatten OOM, not coverage     | Hierarchy resolves cleanly (zero ERROR lines); `std::bad_alloc` on `flatten` is caused by behavioral SRAM exploding to flops+mux, not by missing map rules                         |
 
+### Recently resolved — SoC / firmware / tooling (pre-existing; retained for continuity)
 | Was blocked by                                            | Now                                                    | How                                                                                                                                                                           |
 | --------------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | No `g++` / `make` → no Verilator C++ simulation           | **Working** — full SoC boot 7/7 at \~20,000× real time | WinLibs MCF UCRT in `D:\tools\mingw64\`, plus a Windows-native Verilator kit shim in `D:\tools\verilator-shim\` (the OSS CAD Suite binary hardcodes a Linux `VERILATOR_ROOT`) |
