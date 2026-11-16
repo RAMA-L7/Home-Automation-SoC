@@ -919,3 +919,13 @@ any new file, or a changed count. Everything else (54 → 0) was fixed.
 - Formal: 5/5 PASS. Regression: 22/22 PASS.
 - Verible lint baseline unchanged: 54 localparam-style deviations pinned (uart 1, axi_lite_interconnect 1, has_addr_map 34, riscv_core 18).
 - Report: `reports/FINAL_RELEASE_READINESS.md`.
+
+## 17. SoC Functional Correctness Closure — review, PD impact, publication (2026-11-16)
+
+- Closure patch reviewed against `da20f87` and committed as **`358939c`** (19 files): `has_soc.sv` APB aperture (`paddr[19:12]`), always-completing `PREADY`, `apb_write_ok` `penable` gating and `rst_sys_n` on the bus fabric, memories, QSPI, APB bridge and INTC; `plic.sv` 4-bit `claim_id` and non-wrapping priority index; `riscv_core.sv` CSR immediates, illegal-access traps, retirement-based `minstret`, `LHU` misalignment. No unintended behavioural change found; runner diffs only strengthen checks.
+- Gate re-run on the committed tree: **9/9 PASS, exit 0**; regression **26/26**; formal **6/6**; SRAM protocol audit 24 checks.
+- **Full-SoC gate-level synthesis still BLOCKED**: Yosys cannot parse the unpacked array ports at `rtl/rtl_top/axi_lite_interconnect.sv:57`. Reproduced with the same error and exit code on a pre-patch tree, and the file has no diff — not a regression. No full-SoC cell/area/timing figure exists and none can until the ports are rewritten as packed 2-D arrays or a flattened list.
+- Mapped module synthesis (sky130 `tt_025C_1v80`, `synth → dfflibmap → abc -liberty`): `plic` 920 → 886 cells, 7955.13 → 7903.83 µm² (−0.64 %); `timer` unchanged (306 cells, 3329.4432 µm², netlist byte-identical `42c0c3e2…`); `riscv_core` +48 pre-mapping cells, all combinational (`$eq` 136→140, `$logic_and` 40→49, `$logic_not` 18→23, `$mux` 325→330), sequential cells identical (35 `$adff`, 16 `$adffe`). Mapped core area not obtained — `abc -liberty` exceeded the run budget.
+- Placement and CTS re-run on the existing approved flow and are **byte-identical** to the baseline (placement DEF `32f3daf7…`, CTS ODB `62d98f52…`, CTS DEF `ca9d99de…`), 0 timing violations, setup skew 0.11 ns, worst hold +0.459 ns, worst setup +37.770 ns. Because the patch does not touch `timer.sv`, this is a flow-regression check, **not** a measure of the patch's physical cost: `has_soc`, `plic` and `riscv_core` have no floorplan, SDC or CTS configuration, and no approved full-SoC clock period exists.
+- Report: `reports/SOC_CLOSURE_PATCH_REVIEW_AND_PD_IMPACT.md`. Published to `origin/main` directly, no pull request. `TAPEOUT_EVIDENCE_REGISTRY.md` remains a pre-existing uncommitted modification and was deliberately excluded.
+- Still not claimed: physical signoff, timing closure, DRC/LVS, tapeout readiness.

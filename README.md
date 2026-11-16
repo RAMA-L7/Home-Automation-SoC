@@ -323,7 +323,7 @@ reports `prefers-reduced-motion: reduce`).
 ### Reproducing the Verification
 
 ```bash
-# Icarus regression (17 testbenches)
+# Icarus regression (26 testbenches)
 node scripts/eda/run_regression.js
 
 # Verilator C++ model of the full SoC
@@ -389,7 +389,10 @@ wsl -d Ubuntu-24.04 -- bash /mnt/d/tools/verify_tools_wsl.sh
 | Reset controller                                         | 15/15               | PASS     | `tb_reset_ctrl.v`                               |
 | Power manager                                            | 16/16               | PASS     | `tb_power_mgr.v`                                |
 | CLINT/PLIC/GPIO/SPI/I²C/PWM/timer/watchdog/I²S/SRAM/JTAG | Various             | PASS     | Individual testbenches                          |
-| **Regression suite**                                     | **17/17**           | **PASS** | `run_regression.js` (Icarus)                    |
+| **Regression suite**                                     | **26/26**           | **PASS** | `run_regression.js` (Icarus)                    |
+| **Unified gate** (`verify.js`)                           | **9/9**             | **PASS** | `scripts/verify.js`, exit 0                     |
+| Formal (SymbiYosys)                                      | 6/6                 | PASS     | `run_formal.js`                                 |
+| PLIC bounds / CSR arch / APB integrated / reset recovery | 0 failures          | PASS     | `tb_plic_bounds.v`, `tb_csr_arch.v`, `tb_apb_integrated.v`, `tb_reset_recovery.v` |
 | C firmware demo (boot → UART → watchdog reset → reboot)  | all markers         | PASS     | `tb_firmware.v`                                 |
 | **Verilator C++ full-SoC boot**                          | **7/7**             | **PASS** | `verilator_build_soc.bat` — \~20,000× real time |
 | Verilator lint                                           | 0 errors            | PASS     | All 22 RTL files                                |
@@ -444,6 +447,7 @@ full inventory with exact paths, versions and workarounds is
 | PLL clock source                          | No sky130-qualified open PLL IP             | External clock generator (Si5351) recommended                           |
 | No KiCad project files                    | PCB limited to documentation + BOM prose    | KiCad 10.0.8 is installed; schematic/layout still to be drawn           |
 | No `python` (only the Windows Store stub) | `scripts/fw_build/build_fw.py` cannot run   | Use `build_fw.js`, or `D:\tools\venv\Scripts\python.exe`                |
+| Full-chip Yosys synthesis blocked         | No full-SoC cell/area/timing figure exists  | Yosys cannot parse the unpacked array ports at `rtl/rtl_top/axi_lite_interconnect.sv:57`; rewrite them as packed 2-D arrays or a flattened port list (pre-existing since 2026-11-11, not a regression) |
 
 ### Recently Resolved
 
@@ -461,6 +465,12 @@ full inventory with exact paths, versions and workarounds is
 | Load/store used the wrong ALU op (SLT) → deadlock         | **Fixed**                                              | `riscv_core.sv`: dedicated `ADD` path for all memory operations                                                                                                               |
 | `unique case` without `default` in `timer.sv` / `gpio.sv` | **Fixed**                                              | Every reachable offset listed, `default: ;` added                                                                                                                             |
 | Icarus Verilog "broken runtime"                           | **Works**                                              | `D:\tools\oss-cad-suite\lib` must be on `PATH`                                                                                                                                |
+| Unmapped APB slot held `PREADY` low → bus hang            | **Fixed**                                              | `has_soc.sv`: decode moved to `paddr[19:12]` (1 MB aperture), `PREADY` always completes the transfer, error carried on `PSLVERR`                                              |
+| Partial-strobe APB write still had side effects           | **Fixed**                                              | `apb_write_ok` gates every peripheral's `penable`, so a faulted write never reaches a register                                                                                  |
+| PLIC claim ID and priority index truncated to 3 bits      | **Fixed**                                              | `plic.sv`: 4-bit `claim_id` (`1..8`), non-wrapping `4'(wr_addr[5:2] - 4'd1)` priority index                                                                                    |
+| CSR immediates read a register; illegal CSRs ignored      | **Fixed**                                              | `riscv_core.sv`: `csr_zimm`/`csr_is_imm` select the immediate, `csr_writable`/`csr_illegal` trap with `mcause = 2`                                                              |
+| `minstret` counted fetches, not retirements               | **Fixed**                                              | Increments in `S_EXEC`/`S_MEM` only, never for a faulting instruction, and an explicit `csrw minstret` still wins                                                               |
+| `LHU` misalignment not trapped                            | **Fixed**                                              | `mem_misaligned` now covers `funct3 == 3'b101`                                                                                                                                 |
 
 ***
 
@@ -484,7 +494,7 @@ export PATH="/d/tools/mingw64/bin:$PATH"
 node scripts/eda/run_regression.js
 ```
 
-Expected: `PASS 17 / 17` (exit 0). The `firmware (C demo)` entry is the slowest
+Expected: `PASS 26 / 26` (exit 0). The `firmware (C demo)` entry is the slowest
 one (\~1 min of wall clock: it simulates 35.7 ms of SoC time, including the
 20 ms watchdog window).
 
@@ -643,6 +653,20 @@ Expected output ends with:
 
 * README / AGENTS / `resume.md` re-aligned to the measured 17/17 result
 
+### Session 7 — Buffy (DeepSeek V4.1 Flash)
+
+* Reviewed the SoC functional-correctness closure patch against `da20f87` and committed it as **`358939c`** (19 files): APB aperture/decode/completion in `has_soc.sv`, PLIC claim and priority indexing in `plic.sv`, CSR immediates / illegal-access traps / retirement-based `minstret` / `LHU` alignment in `riscv_core.sv`
+
+* Re-ran the unified gate on the committed tree: **9/9 PASS** (exit 0), regression **26/26**, formal **6/6**, SRAM protocol audit 24 checks
+
+* Full-SoC gate-level synthesis remains blocked on `axi_lite_interconnect.sv:57` — reproduced identically on the pre-patch tree, so it is not a regression and no full-SoC area number exists
+
+* Mapped module synthesis (sky130 `tt_025C_1v80`): `plic` 920 → 886 cells, 7955.13 → 7903.83 µm² (−0.64 %); `timer` unchanged (306 cells, 3329.4432 µm²); `riscv_core` +48 pre-mapping cells, all combinational, sequential cells identical
+
+* Placement and CTS re-run on the existing approved flow: byte-identical DEF/ODB to the baseline (the patch does not touch `timer.sv`), 0 timing violations — a flow-regression check, not a measure of the patch's physical cost
+
+* Report: `reports/SOC_CLOSURE_PATCH_REVIEW_AND_PD_IMPACT.md`. Published to `main` directly, no pull request.
+
 ***
 
 ## 🔗 Repository
@@ -681,4 +705,4 @@ Expected output ends with:
 
 ***
 
-*Last updated: 2026-11-12 | Agent: Buffy (DeepSeek V4.1 Flash)*
+*Last updated: 2026-11-16 | Agent: Buffy (DeepSeek V4.1 Flash)*
