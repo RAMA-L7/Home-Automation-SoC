@@ -1,0 +1,13 @@
+Decision ID,Title,Recommended Option,Status,Required Approver,Blocking Stages,Evidence File
+ARC-006,Clock architecture,C-prime,PENDING_APPROVAL,SoC architect,2,6,8,12,15,"reports/ASIC_STAGE1_CLOCK_ARCHITECTURE.md"
+ARC-036,CDC scope and verification,Scope follows C-prime,PENDING_APPROVAL,Verification lead,5,6,12,"reports/ASIC_STAGE1_CDC_RDC_ARCHITECTURE.md"
+ARC-065,Formal CDC properties,Property set,no async FIFO,PENDING_APPROVAL,Verification lead,5,6,"reports/ASIC_STAGE1_CDC_RDC_ARCHITECTURE.md §3.2"
+TD-001,Boot ROM size,16 KB,ADDR_WIDTH 16→14,PENDING_APPROVAL,SoC architect + firmware,1,3,7,"reports/ASIC_STAGE1_MEMORY_ARCHITECTURE.md"
+TD-003,SRAM size,128 KB,ADDR_WIDTH 18→17,PENDING_APPROVAL,SoC architect + PD,1,3,7,"reports/ASIC_STAGE1_MEMORY_ARCHITECTURE.md"
+TD-005,Power intent and domains,Two 1.8 V domains; UPF Stage 10,PENDING_APPROVAL,Power architect + PD,1,10,15,"reports/ASIC_STAGE1_POWER_ARCHITECTURE.md"
+TD-006,SRAM macro architecture,32-bit wide macros; no 4 KB tiling,PENDING_APPROVAL,SoC architect + PD,3,9,10,"reports/ASIC_STAGE1_MEMORY_ARCHITECTURE.md"
+TD-007,Secure boot scope,S1/S3/S0; OTP required for S1,PENDING_APPROVAL,Security owner,1,2,17,"reports/ASIC_STAGE1_SECURITY_BOOT_ARCHITECTURE.md"
+TD-009,DFT scope and tooling,Decide tool/partner before Stage 7,PENDING_APPROGRAM,Program owner,16,17,18,"reports/ASIC_STAGE1_DECISION_PACKAGE.md §12"
+TD-010,SDC clock architecture,50 + generated 25 MHz; retire 20/40 ns,PENDING_APPROVAL,SoC architect + timing,8,12,15,"reports/ASIC_STAGE1_CLOCK_ARCHITECTURE.md"
+TD-016,Package pin budget,54 of 56 I/O; mux PLIC onto GPIO,PENDING_APPROVAL,SoC architect + PD,1,2,9,17,"reports/ASIC_STAGE1_INTERFACE_AND_ADDRESS_MAP.md §6"
+TD-017,Requirements baseline and descopes,Re-baseline SRS; owner-signed descopes,PENDING_APPROVAL,User/design owner,1,2,4,16,17,"reports/ASIC_STAGE1_REQUIREMENTS_TRACEABILITY.csv"

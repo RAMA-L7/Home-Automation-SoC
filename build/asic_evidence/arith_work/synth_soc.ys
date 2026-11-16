@@ -1,0 +1,46 @@
+
+
+
+
+read_liberty D:/Home-Automation-SoC/build/asic_evidence/sky130_full_subset.lib
+
+
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/reset_ctrl.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/axi_lite_interconnect.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/axi_lite_to_apb.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/boot_rom.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/has_addr_map.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/intc_axi.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/req_gnt_to_axi_lite.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/plic.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/clint.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/debug_jtag.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/power_mgr.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/i2c_ctrl.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/spi_ctrl.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/power_mgr_regs.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/i2s.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/gpio.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/timer.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/pwm.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/uart.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/qspi_flash_ctrl.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/riscv_core.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/sram.sv
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/has_soc.sv
+
+
+hierarchy -check -top has_soc
+
+
+proc
+
+
+memory
+
+
+
+techmap -map D:/Home-Automation-SoC/build/asic_evidence/sky130_map.v
+check
+stat

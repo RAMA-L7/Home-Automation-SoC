@@ -1,0 +1,25 @@
+read_liberty D:/Home-Automation-SoC/build/asic_evidence/sky130_full_subset.lib
+read_verilog -sv D:/Home-Automation-SoC/build/asic_evidence/arith_test.v
+hierarchy
+proc
+flatten
+techmap -map D:/Home-Automation-SoC/build/asic_evidence/sky130_map.v
+check
+stat
+write_verilog D:/Home-Automation-SoC/build/asic_evidence/arith_work/arith_test_full_mapped.v
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/reset_ctrl.sv
+hierarchy -check -top reset_ctrl
+proc
+flatten
+techmap -map D:/Home-Automation-SoC/build/asic_evidence/sky130_map.v
+check
+stat
+write_verilog D:/Home-Automation-SoC/build/asic_evidence/arith_work/reset_ctrl_mapped.v
+read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv
+hierarchy -check -top watchdog
+proc
+flatten
+techmap -map D:/Home-Automation-SoC/build/asic_evidence/sky130_map.v
+check
+stat
+write_verilog D:/Home-Automation-SoC/build/asic_evidence/arith_work/watchdog_mapped.v

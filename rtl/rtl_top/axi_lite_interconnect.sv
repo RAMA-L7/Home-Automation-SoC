@@ -54,26 +54,24 @@ module axi_lite_interconnect #(
   //---------------------- Slave AXI4-Lite interfaces ------------------------
   output logic [NUM_SLAVES-1:0]             s_awvalid,
   input  logic [NUM_SLAVES-1:0]             s_awready,
-  output logic [ADDR_WIDTH-1:0]             s_awaddr   [NUM_SLAVES],
-  output logic [2:0]                        s_awprot   [NUM_SLAVES],
+  output logic [NUM_SLAVES-1:0] [ADDR_WIDTH-1:0] s_awaddr,
+  output logic [NUM_SLAVES-1:0] [2:0]          s_awprot,
   output logic [NUM_SLAVES-1:0]             s_wvalid,
   input  logic [NUM_SLAVES-1:0]             s_wready,
-  output logic [DATA_WIDTH-1:0]             s_wdata    [NUM_SLAVES],
-  output logic [3:0]                        s_wstrb    [NUM_SLAVES],
+  output logic [NUM_SLAVES-1:0] [DATA_WIDTH-1:0] s_wdata,
+  output logic [NUM_SLAVES-1:0] [3:0]          s_wstrb,
   input  logic [NUM_SLAVES-1:0]             s_bvalid,
   output logic [NUM_SLAVES-1:0]             s_bready,
-  input  logic [1:0]                        s_bresp    [NUM_SLAVES],
+  input  logic [NUM_SLAVES-1:0] [1:0]          s_bresp,
   output logic [NUM_SLAVES-1:0]             s_arvalid,
   input  logic [NUM_SLAVES-1:0]             s_arready,
-  output logic [ADDR_WIDTH-1:0]             s_araddr   [NUM_SLAVES],
-  output logic [2:0]                        s_arprot   [NUM_SLAVES],
+  output logic [NUM_SLAVES-1:0] [ADDR_WIDTH-1:0] s_araddr,
+  output logic [NUM_SLAVES-1:0] [2:0]          s_arprot,
   input  logic [NUM_SLAVES-1:0]             s_rvalid,
   output logic [NUM_SLAVES-1:0]             s_rready,
-  input  logic [DATA_WIDTH-1:0]             s_rdata    [NUM_SLAVES],
-  input  logic [1:0]                        s_rresp    [NUM_SLAVES]
+  input  logic [NUM_SLAVES-1:0] [DATA_WIDTH-1:0] s_rdata,
+  input  logic [NUM_SLAVES-1:0] [1:0]          s_rresp
 );
-
-  import has_addr_map_pkg::*;
 
   localparam int SELW = (NUM_SLAVES > 1) ? $clog2(NUM_SLAVES) : 1;
 
@@ -109,16 +107,17 @@ module axi_lite_interconnect #(
   // flag is encoded in the return value instead.
   localparam logic [SELW-1:0] SEL_INVALID = SELW'(NUM_SLAVES);
 
+  // Static slave decode (mirrors has_addr_map_pkg::addr_region).  Inlined here
+  // so the module is self-contained and Yosys can parse it without an import.
+  // Semantics are identical to the upstream package for all defined regions.
   function automatic logic [SELW-1:0] decode_sel(input logic [31:0] a);
-    case (addr_region(a))
-      0: decode_sel = SELW'(0);
-      1: decode_sel = SELW'(1);
-      2: decode_sel = SELW'(2);
-      3: decode_sel = SELW'(3);
-      4: decode_sel = SELW'(4);
-      5: decode_sel = SELW'(5);
-      default: decode_sel = SEL_INVALID;
-    endcase
+    if      (a >= 32'h0000_0000 && a < 32'h0000_4000         ) decode_sel = SELW'(0);
+    else if (a >= 32'h0001_0000 && a < 32'h0001_8000         ) decode_sel = SELW'(1);
+    else if (a >= 32'h2000_0000 && a < 32'h2002_0000         ) decode_sel = SELW'(2);
+    else if (a >= 32'h4000_0000 && a < 32'h4400_0000         ) decode_sel = SELW'(3);
+    else if (a >= 32'h5000_0000 && a < 32'h5010_0000         ) decode_sel = SELW'(4);
+    else if (a >= 32'h8000_0000 && a < 32'h8001_0000         ) decode_sel = SELW'(5);
+    else                                                       decode_sel = SEL_INVALID;
   endfunction
 
   //--------------------------------------------------------------------------
@@ -245,22 +244,18 @@ module axi_lite_interconnect #(
   genvar i;
   generate
     for (i = 0; i < NUM_SLAVES; i++) begin : g_slave
-      logic sel_w, sel_r;
+      assign s_awvalid[i] = (state == IC_WR_LAUNCH) && (i == SELW'(txn_sel));
+      assign s_wvalid[i]  = (state == IC_WR_LAUNCH) && (i == SELW'(txn_sel));
+      assign s_awaddr[i]  = i == SELW'(txn_sel) ? aw_hold_addr : '0;
+      assign s_awprot[i]  = i == SELW'(txn_sel) ? aw_hold_prot  : 3'b000;
+      assign s_wdata[i]   = i == SELW'(txn_sel) ? w_hold_data   : '0;
+      assign s_wstrb[i]   = i == SELW'(txn_sel) ? w_hold_strb   : 4'b0000;
+      assign s_bready[i]  = (state == IC_WR_RESP) && (i == SELW'(txn_sel)) && m_bready;
 
-      assign sel_w = (txn_sel == SELW'(i));
-
-      assign s_awvalid[i] = (state == IC_WR_LAUNCH) && sel_w;
-      assign s_wvalid[i]  = (state == IC_WR_LAUNCH) && sel_w;
-      assign s_awaddr[i]  = aw_hold_addr;
-      assign s_awprot[i]  = aw_hold_prot;
-      assign s_wdata[i]   = w_hold_data;
-      assign s_wstrb[i]   = w_hold_strb;
-      assign s_bready[i]  = (state == IC_WR_RESP) && sel_w && m_bready;
-
-      assign s_arvalid[i] = (state == IC_RD_LAUNCH) && sel_w;
-      assign s_araddr[i]  = rd_hold_addr;
-      assign s_arprot[i]  = rd_hold_prot;
-      assign s_rready[i]  = (state == IC_RD_RESP) && sel_w && m_rready;
+      assign s_arvalid[i] = (state == IC_RD_LAUNCH) && (i == SELW'(txn_sel));
+      assign s_araddr[i]  = i == SELW'(txn_sel) ? rd_hold_addr : '0;
+      assign s_arprot[i]  = i == SELW'(txn_sel) ? rd_hold_prot  : 3'b000;
+      assign s_rready[i]  = (state == IC_RD_RESP) && (i == SELW'(txn_sel)) && m_rready;
     end
   endgenerate
 

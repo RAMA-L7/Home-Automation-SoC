@@ -1,0 +1,1057 @@
+
+ /----------------------------------------------------------------------------\
+ |  yosys -- Yosys Open SYnthesis Suite                                       |
+ |  Copyright (C) 2012 - 2026  Claire Xenia Wolf <claire@yosyshq.com>         |
+ |  Distributed under an ISC-like license, type "license" to see terms        |
+ \----------------------------------------------------------------------------/
+ Yosys 0.69+154 (git sha1 30d62572e-dirty, Release, GNU /usr/bin/x86_64-w64-mingw32-g++ 15.2.1)
+
+-- Executing script file `D:\Home-Automation-SoC\build\asic_evidence\arith_work\synth_3mods.ys' --
+
+1. Executing Liberty frontend: D:/Home-Automation-SoC/build/asic_evidence/sky130_full_subset.lib
+Imported 32 cell types from liberty file.
+
+2. Executing Verilog-2005 frontend: D:/Home-Automation-SoC/build/asic_evidence/arith_test.v
+Parsing SystemVerilog input from `D:/Home-Automation-SoC/build/asic_evidence/arith_test.v' to AST representation.
+Generating RTLIL representation for module `\arith_test'.
+Successfully finished Verilog frontend.
+
+3. Executing HIERARCHY pass (managing design hierarchy).
+
+4. Executing PROC pass (convert processes to netlists).
+
+4.1. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Cleaned up 0 empty switches.
+
+4.2. Executing PROC_RMDEAD pass (remove dead branches from decision trees).
+Marked 1 switch rules as full_case in process $proc$D:/Home-Automation-SoC/build/asic_evidence/arith_test.v:14$234 in module arith_test.
+Removed 1 dead cases from process $proc$D:/Home-Automation-SoC/build/asic_evidence/arith_test.v:5$231 in module arith_test.
+Marked 1 switch rules as full_case in process $proc$D:/Home-Automation-SoC/build/asic_evidence/arith_test.v:5$231 in module arith_test.
+Removed a total of 1 dead cases.
+
+4.3. Executing PROC_PRUNE pass (remove redundant assignments in processes).
+Removed 0 redundant assignments.
+Promoted 1 assignment to connection.
+
+4.4. Executing PROC_INIT pass (extract init attributes).
+
+4.5. Executing PROC_ARST pass (detect async resets in processes).
+Found async reset \rst_n in `\arith_test.$proc$D:/Home-Automation-SoC/build/asic_evidence/arith_test.v:14$234'.
+
+4.6. Executing PROC_ROM pass (convert switches to ROMs).
+Converted 0 switches.
+<suppressed ~2 debug messages>
+
+4.7. Executing PROC_MUX pass (convert decision trees to multiplexers).
+Creating decoders for process `\arith_test.$proc$D:/Home-Automation-SoC/build/asic_evidence/arith_test.v:14$234'.
+     1/1: $0\y[3:0]
+Creating decoders for process `\arith_test.$proc$D:/Home-Automation-SoC/build/asic_evidence/arith_test.v:5$231'.
+     1/1: $1\alu[3:0]
+
+4.8. Executing PROC_DLATCH pass (convert process syncs to latches).
+No latch inferred for signal `\arith_test.\alu' from process `\arith_test.$proc$D:/Home-Automation-SoC/build/asic_evidence/arith_test.v:5$231'.
+
+4.9. Executing PROC_DFF pass (convert process syncs to FFs).
+Creating register for signal `\arith_test.\y' using process `\arith_test.$proc$D:/Home-Automation-SoC/build/asic_evidence/arith_test.v:14$234'.
+  created $adff cell `$procdff$248' with positive edge clock and positive level reset.
+
+4.10. Executing PROC_MEMWR pass (convert process memory writes to cells).
+
+4.11. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Found and cleaned up 1 empty switch in `\arith_test.$proc$D:/Home-Automation-SoC/build/asic_evidence/arith_test.v:14$234'.
+Removing empty process `arith_test.$proc$D:/Home-Automation-SoC/build/asic_evidence/arith_test.v:14$234'.
+Found and cleaned up 1 empty switch in `\arith_test.$proc$D:/Home-Automation-SoC/build/asic_evidence/arith_test.v:5$231'.
+Removing empty process `arith_test.$proc$D:/Home-Automation-SoC/build/asic_evidence/arith_test.v:5$231'.
+Cleaned up 2 empty switches.
+
+4.12. Executing OPT_EXPR pass (perform const folding).
+Optimizing module arith_test.
+<suppressed ~4 debug messages>
+Optimizing module sky130_fd_sc_hd__xor3_1.
+Optimizing module sky130_fd_sc_hd__xor2_1.
+Optimizing module sky130_fd_sc_hd__or4_1.
+Optimizing module sky130_fd_sc_hd__or3_1.
+Optimizing module sky130_fd_sc_hd__or2_1.
+Optimizing module sky130_fd_sc_hd__nor4_1.
+Optimizing module sky130_fd_sc_hd__nor3_1.
+Optimizing module sky130_fd_sc_hd__nor2_1.
+Optimizing module sky130_fd_sc_hd__nand4_1.
+Optimizing module sky130_fd_sc_hd__nand3_1.
+Optimizing module sky130_fd_sc_hd__nand2_1.
+Optimizing module sky130_fd_sc_hd__mux4_1.
+Optimizing module sky130_fd_sc_hd__mux2_1.
+Optimizing module sky130_fd_sc_hd__inv_1.
+Optimizing module sky130_fd_sc_hd__dfxtp_4.
+Optimizing module sky130_fd_sc_hd__dfxtp_2.
+Optimizing module sky130_fd_sc_hd__dfxtp_1.
+Optimizing module sky130_fd_sc_hd__dfstp_4.
+Optimizing module sky130_fd_sc_hd__dfstp_2.
+Optimizing module sky130_fd_sc_hd__dfstp_1.
+Optimizing module sky130_fd_sc_hd__dfrtp_4.
+Optimizing module sky130_fd_sc_hd__dfrtp_2.
+Optimizing module sky130_fd_sc_hd__dfrtp_1.
+Optimizing module sky130_fd_sc_hd__dfrbp_2.
+Optimizing module sky130_fd_sc_hd__dfrbp_1.
+Optimizing module sky130_fd_sc_hd__clkbuf_4.
+Optimizing module sky130_fd_sc_hd__clkbuf_2.
+Optimizing module sky130_fd_sc_hd__clkbuf_1.
+Optimizing module sky130_fd_sc_hd__buf_1.
+Optimizing module sky130_fd_sc_hd__and4_1.
+Optimizing module sky130_fd_sc_hd__and3_1.
+Optimizing module sky130_fd_sc_hd__and2_1.
+
+5. Executing FLATTEN pass (flatten design).
+
+6. Executing TECHMAP pass (map to technology primitives).
+
+6.1. Executing Verilog-2005 frontend: D:/Home-Automation-SoC/build/asic_evidence/sky130_map.v
+Parsing Verilog input from `D:/Home-Automation-SoC/build/asic_evidence/sky130_map.v' to AST representation.
+Generating RTLIL representation for module `$not'.
+Generating RTLIL representation for module `$logic_and'.
+Generating RTLIL representation for module `$logic_or'.
+Generating RTLIL representation for module `$and'.
+Generating RTLIL representation for module `$or'.
+Generating RTLIL representation for module `$xor'.
+Generating RTLIL representation for module `$mux'.
+Generating RTLIL representation for module `$dff'.
+Generating RTLIL representation for module `$adff'.
+Generating RTLIL representation for module `$eq'.
+Generating RTLIL representation for module `$logic_not'.
+Generating RTLIL representation for module `$pmux'.
+Successfully finished Verilog frontend.
+
+6.2. Continuing TECHMAP pass.
+Using template $paramod$fe2472242c070f3b22e97f6c8c19c3569e575d97$not for cells of type $not.
+Using template $paramod$740b056ede97228d3eae64ea2fdc81f0a33e0fe7$and for cells of type $and.
+Using template $paramod$740b056ede97228d3eae64ea2fdc81f0a33e0fe7$or for cells of type $or.
+Using template $paramod$fe2472242c070f3b22e97f6c8c19c3569e575d97$logic_not for cells of type $logic_not.
+Using template $paramod$3198200f846c6dcece31f25fc425414977dcb699$eq for cells of type $eq.
+Using template $paramod$0376c8604a27ad05f4a3a19bc2c261cd33ca2fa4$logic_not for cells of type $logic_not.
+Using template $paramod$20d3ee62d72123142eb855d7ddafd835e31ba009$pmux for cells of type $pmux.
+Using template $paramod$mux\WIDTH=32'00000000000000000000000000000100 for cells of type $mux.
+Using template $paramod$bd0826b470cd902605bd728602c25a4cecc7145f$adff for cells of type $adff.
+Using template $paramod$2b6654071699e3cbb2a51b9d5305141962875f1b$logic_not for cells of type $logic_not.
+No more expansions possible.
+<suppressed ~164 debug messages>
+
+7. Executing CHECK pass (checking for obvious problems).
+Checking module arith_test...
+Warning: Wire arith_test.$and$D:/Home-Automation-SoC/build/asic_evidence/arith_test.v:9$232_Y [3] is used but has no driver.
+Warning: Wire arith_test.$and$D:/Home-Automation-SoC/build/asic_evidence/arith_test.v:9$232_Y [2] is used but has no driver.
+Warning: Wire arith_test.$and$D:/Home-Automation-SoC/build/asic_evidence/arith_test.v:9$232_Y [1] is used but has no driver.
+Warning: Wire arith_test.$and$D:/Home-Automation-SoC/build/asic_evidence/arith_test.v:9$232_Y [0] is used but has no driver.
+Checking module sky130_fd_sc_hd__xor3_1...
+Checking module sky130_fd_sc_hd__xor2_1...
+Checking module sky130_fd_sc_hd__or4_1...
+Checking module sky130_fd_sc_hd__or3_1...
+Checking module sky130_fd_sc_hd__or2_1...
+Checking module sky130_fd_sc_hd__nor4_1...
+Checking module sky130_fd_sc_hd__nor3_1...
+Checking module sky130_fd_sc_hd__nor2_1...
+Checking module sky130_fd_sc_hd__nand4_1...
+Checking module sky130_fd_sc_hd__nand3_1...
+Checking module sky130_fd_sc_hd__nand2_1...
+Checking module sky130_fd_sc_hd__mux4_1...
+Checking module sky130_fd_sc_hd__mux2_1...
+Checking module sky130_fd_sc_hd__inv_1...
+Checking module sky130_fd_sc_hd__dfxtp_4...
+Checking module sky130_fd_sc_hd__dfxtp_2...
+Checking module sky130_fd_sc_hd__dfxtp_1...
+Checking module sky130_fd_sc_hd__dfstp_4...
+Checking module sky130_fd_sc_hd__dfstp_2...
+Checking module sky130_fd_sc_hd__dfstp_1...
+Checking module sky130_fd_sc_hd__dfrtp_4...
+Checking module sky130_fd_sc_hd__dfrtp_2...
+Checking module sky130_fd_sc_hd__dfrtp_1...
+Checking module sky130_fd_sc_hd__dfrbp_2...
+Checking module sky130_fd_sc_hd__dfrbp_1...
+Checking module sky130_fd_sc_hd__clkbuf_4...
+Checking module sky130_fd_sc_hd__clkbuf_2...
+Checking module sky130_fd_sc_hd__clkbuf_1...
+Checking module sky130_fd_sc_hd__buf_1...
+Checking module sky130_fd_sc_hd__and4_1...
+Checking module sky130_fd_sc_hd__and3_1...
+Checking module sky130_fd_sc_hd__and2_1...
+Found and reported 4 problems.
+
+8. Printing statistics.
+
+=== arith_test ===
+
+        +----------Local Count, excluding submodules.
+        | 
+       71 wires
+      199 wire bits
+       11 public wires
+       30 public wire bits
+        8 ports
+       18 port bits
+        2 cells
+        1   $add
+        1   $sub
+       42 submodules
+        4   sky130_fd_sc_hd__and2_1
+        1   sky130_fd_sc_hd__dfrtp_4
+        2   sky130_fd_sc_hd__inv_1
+       20   sky130_fd_sc_hd__mux2_1
+        4   sky130_fd_sc_hd__nor2_1
+        1   sky130_fd_sc_hd__nor4_1
+        4   sky130_fd_sc_hd__or2_1
+        6   sky130_fd_sc_hd__xor2_1
+
+=== sky130_fd_sc_hd__xor3_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+       21 wires
+       21 wire bits
+        4 public wires
+        4 public wire bits
+        4 ports
+        4 port bits
+       17 cells
+        8   $_AND_
+        6   $_NOT_
+        3   $_OR_
+
+=== sky130_fd_sc_hd__xor2_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        8 wires
+        8 wire bits
+        3 public wires
+        3 public wire bits
+        3 ports
+        3 port bits
+        5 cells
+        2   $_AND_
+        2   $_NOT_
+        1   $_OR_
+
+=== sky130_fd_sc_hd__or4_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        8 wires
+        8 wire bits
+        5 public wires
+        5 public wire bits
+        5 ports
+        5 port bits
+        3 cells
+        3   $_OR_
+
+=== sky130_fd_sc_hd__or3_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        6 wires
+        6 wire bits
+        4 public wires
+        4 public wire bits
+        4 ports
+        4 port bits
+        2 cells
+        2   $_OR_
+
+=== sky130_fd_sc_hd__or2_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        4 wires
+        4 wire bits
+        3 public wires
+        3 public wire bits
+        3 ports
+        3 port bits
+        1 cells
+        1   $_OR_
+
+=== sky130_fd_sc_hd__nor4_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+       12 wires
+       12 wire bits
+        5 public wires
+        5 public wire bits
+        5 ports
+        5 port bits
+        7 cells
+        3   $_AND_
+        4   $_NOT_
+
+=== sky130_fd_sc_hd__nor3_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        9 wires
+        9 wire bits
+        4 public wires
+        4 public wire bits
+        4 ports
+        4 port bits
+        5 cells
+        2   $_AND_
+        3   $_NOT_
+
+=== sky130_fd_sc_hd__nor2_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        6 wires
+        6 wire bits
+        3 public wires
+        3 public wire bits
+        3 ports
+        3 port bits
+        3 cells
+        1   $_AND_
+        2   $_NOT_
+
+=== sky130_fd_sc_hd__nand4_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+       12 wires
+       12 wire bits
+        5 public wires
+        5 public wire bits
+        5 ports
+        5 port bits
+        7 cells
+        4   $_NOT_
+        3   $_OR_
+
+=== sky130_fd_sc_hd__nand3_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        9 wires
+        9 wire bits
+        4 public wires
+        4 public wire bits
+        4 ports
+        4 port bits
+        5 cells
+        3   $_NOT_
+        2   $_OR_
+
+=== sky130_fd_sc_hd__nand2_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        6 wires
+        6 wire bits
+        3 public wires
+        3 public wire bits
+        3 ports
+        3 port bits
+        3 cells
+        2   $_NOT_
+        1   $_OR_
+
+=== sky130_fd_sc_hd__mux4_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+       22 wires
+       22 wire bits
+        7 public wires
+        7 public wire bits
+        7 ports
+        7 port bits
+       15 cells
+        8   $_AND_
+        4   $_NOT_
+        3   $_OR_
+
+=== sky130_fd_sc_hd__mux2_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        8 wires
+        8 wire bits
+        4 public wires
+        4 public wire bits
+        4 ports
+        4 port bits
+        4 cells
+        2   $_AND_
+        1   $_NOT_
+        1   $_OR_
+
+=== sky130_fd_sc_hd__inv_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        3 wires
+        3 wire bits
+        2 public wires
+        2 public wire bits
+        2 ports
+        2 port bits
+        1 cells
+        1   $_NOT_
+
+=== sky130_fd_sc_hd__dfxtp_4 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        6 wires
+        6 wire bits
+        5 public wires
+        5 public wire bits
+        3 ports
+        3 port bits
+        3 cells
+        2   $_DFF_P_
+        1   $_NOT_
+
+=== sky130_fd_sc_hd__dfxtp_2 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        6 wires
+        6 wire bits
+        5 public wires
+        5 public wire bits
+        3 ports
+        3 port bits
+        3 cells
+        2   $_DFF_P_
+        1   $_NOT_
+
+=== sky130_fd_sc_hd__dfxtp_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        6 wires
+        6 wire bits
+        5 public wires
+        5 public wire bits
+        3 ports
+        3 port bits
+        3 cells
+        2   $_DFF_P_
+        1   $_NOT_
+
+=== sky130_fd_sc_hd__dfstp_4 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        8 wires
+        8 wire bits
+        6 public wires
+        6 public wire bits
+        4 ports
+        4 port bits
+        4 cells
+        2   $_DFF_PP1_
+        2   $_NOT_
+
+=== sky130_fd_sc_hd__dfstp_2 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        8 wires
+        8 wire bits
+        6 public wires
+        6 public wire bits
+        4 ports
+        4 port bits
+        4 cells
+        2   $_DFF_PP1_
+        2   $_NOT_
+
+=== sky130_fd_sc_hd__dfstp_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        8 wires
+        8 wire bits
+        6 public wires
+        6 public wire bits
+        4 ports
+        4 port bits
+        4 cells
+        2   $_DFF_PP1_
+        2   $_NOT_
+
+=== sky130_fd_sc_hd__dfrtp_4 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        8 wires
+        8 wire bits
+        6 public wires
+        6 public wire bits
+        4 ports
+        4 port bits
+        4 cells
+        2   $_DFF_PP0_
+        2   $_NOT_
+
+=== sky130_fd_sc_hd__dfrtp_2 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        8 wires
+        8 wire bits
+        6 public wires
+        6 public wire bits
+        4 ports
+        4 port bits
+        4 cells
+        2   $_DFF_PP0_
+        2   $_NOT_
+
+=== sky130_fd_sc_hd__dfrtp_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        8 wires
+        8 wire bits
+        6 public wires
+        6 public wire bits
+        4 ports
+        4 port bits
+        4 cells
+        2   $_DFF_PP0_
+        2   $_NOT_
+
+=== sky130_fd_sc_hd__dfrbp_2 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        9 wires
+        9 wire bits
+        7 public wires
+        7 public wire bits
+        5 ports
+        5 port bits
+        4 cells
+        2   $_DFF_PP0_
+        2   $_NOT_
+
+=== sky130_fd_sc_hd__dfrbp_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        9 wires
+        9 wire bits
+        7 public wires
+        7 public wire bits
+        5 ports
+        5 port bits
+        4 cells
+        2   $_DFF_PP0_
+        2   $_NOT_
+
+=== sky130_fd_sc_hd__clkbuf_4 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        2 wires
+        2 wire bits
+        2 public wires
+        2 public wire bits
+        2 ports
+        2 port bits
+
+=== sky130_fd_sc_hd__clkbuf_2 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        2 wires
+        2 wire bits
+        2 public wires
+        2 public wire bits
+        2 ports
+        2 port bits
+
+=== sky130_fd_sc_hd__clkbuf_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        2 wires
+        2 wire bits
+        2 public wires
+        2 public wire bits
+        2 ports
+        2 port bits
+
+=== sky130_fd_sc_hd__buf_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        2 wires
+        2 wire bits
+        2 public wires
+        2 public wire bits
+        2 ports
+        2 port bits
+
+=== sky130_fd_sc_hd__and4_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        8 wires
+        8 wire bits
+        5 public wires
+        5 public wire bits
+        5 ports
+        5 port bits
+        3 cells
+        3   $_AND_
+
+=== sky130_fd_sc_hd__and3_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        6 wires
+        6 wire bits
+        4 public wires
+        4 public wire bits
+        4 ports
+        4 port bits
+        2 cells
+        2   $_AND_
+
+=== sky130_fd_sc_hd__and2_1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        4 wires
+        4 wire bits
+        3 public wires
+        3 public wire bits
+        3 ports
+        3 port bits
+        1 cells
+        1   $_AND_
+
+9. Executing Verilog backend.
+
+9.1. Executing BMUXMAP pass.
+
+9.2. Executing DEMUXMAP pass.
+Dumping module `\arith_test'.
+Dumping module `\sky130_fd_sc_hd__and2_1'.
+Dumping module `\sky130_fd_sc_hd__and3_1'.
+Dumping module `\sky130_fd_sc_hd__and4_1'.
+Dumping module `\sky130_fd_sc_hd__buf_1'.
+Dumping module `\sky130_fd_sc_hd__clkbuf_1'.
+Dumping module `\sky130_fd_sc_hd__clkbuf_2'.
+Dumping module `\sky130_fd_sc_hd__clkbuf_4'.
+Dumping module `\sky130_fd_sc_hd__dfrbp_1'.
+Dumping module `\sky130_fd_sc_hd__dfrbp_2'.
+Dumping module `\sky130_fd_sc_hd__dfrtp_1'.
+Dumping module `\sky130_fd_sc_hd__dfrtp_2'.
+Dumping module `\sky130_fd_sc_hd__dfrtp_4'.
+Dumping module `\sky130_fd_sc_hd__dfstp_1'.
+Dumping module `\sky130_fd_sc_hd__dfstp_2'.
+Dumping module `\sky130_fd_sc_hd__dfstp_4'.
+Dumping module `\sky130_fd_sc_hd__dfxtp_1'.
+Dumping module `\sky130_fd_sc_hd__dfxtp_2'.
+Dumping module `\sky130_fd_sc_hd__dfxtp_4'.
+Dumping module `\sky130_fd_sc_hd__inv_1'.
+Dumping module `\sky130_fd_sc_hd__mux2_1'.
+Dumping module `\sky130_fd_sc_hd__mux4_1'.
+Dumping module `\sky130_fd_sc_hd__nand2_1'.
+Dumping module `\sky130_fd_sc_hd__nand3_1'.
+Dumping module `\sky130_fd_sc_hd__nand4_1'.
+Dumping module `\sky130_fd_sc_hd__nor2_1'.
+Dumping module `\sky130_fd_sc_hd__nor3_1'.
+Dumping module `\sky130_fd_sc_hd__nor4_1'.
+Dumping module `\sky130_fd_sc_hd__or2_1'.
+Dumping module `\sky130_fd_sc_hd__or3_1'.
+Dumping module `\sky130_fd_sc_hd__or4_1'.
+Dumping module `\sky130_fd_sc_hd__xor2_1'.
+Dumping module `\sky130_fd_sc_hd__xor3_1'.
+
+10. Executing Verilog-2005 frontend: D:/Home-Automation-SoC/rtl/rtl_top/reset_ctrl.sv
+Parsing SystemVerilog input from `D:/Home-Automation-SoC/rtl/rtl_top/reset_ctrl.sv' to AST representation.
+Generating RTLIL representation for module `\reset_ctrl'.
+Successfully finished Verilog frontend.
+
+11. Executing HIERARCHY pass (managing design hierarchy).
+
+11.1. Analyzing design hierarchy..
+Top module:  \reset_ctrl
+
+11.2. Analyzing design hierarchy..
+Top module:  \reset_ctrl
+Removing unused module `\arith_test'.
+Removing unused module `\sky130_fd_sc_hd__and2_1'.
+Removing unused module `\sky130_fd_sc_hd__and3_1'.
+Removing unused module `\sky130_fd_sc_hd__and4_1'.
+Removing unused module `\sky130_fd_sc_hd__buf_1'.
+Removing unused module `\sky130_fd_sc_hd__clkbuf_1'.
+Removing unused module `\sky130_fd_sc_hd__clkbuf_2'.
+Removing unused module `\sky130_fd_sc_hd__clkbuf_4'.
+Removing unused module `\sky130_fd_sc_hd__dfrbp_1'.
+Removing unused module `\sky130_fd_sc_hd__dfrbp_2'.
+Removing unused module `\sky130_fd_sc_hd__dfrtp_1'.
+Removing unused module `\sky130_fd_sc_hd__dfrtp_2'.
+Removing unused module `\sky130_fd_sc_hd__dfrtp_4'.
+Removing unused module `\sky130_fd_sc_hd__dfstp_1'.
+Removing unused module `\sky130_fd_sc_hd__dfstp_2'.
+Removing unused module `\sky130_fd_sc_hd__dfstp_4'.
+Removing unused module `\sky130_fd_sc_hd__dfxtp_1'.
+Removing unused module `\sky130_fd_sc_hd__dfxtp_2'.
+Removing unused module `\sky130_fd_sc_hd__dfxtp_4'.
+Removing unused module `\sky130_fd_sc_hd__inv_1'.
+Removing unused module `\sky130_fd_sc_hd__mux2_1'.
+Removing unused module `\sky130_fd_sc_hd__mux4_1'.
+Removing unused module `\sky130_fd_sc_hd__nand2_1'.
+Removing unused module `\sky130_fd_sc_hd__nand3_1'.
+Removing unused module `\sky130_fd_sc_hd__nand4_1'.
+Removing unused module `\sky130_fd_sc_hd__nor2_1'.
+Removing unused module `\sky130_fd_sc_hd__nor3_1'.
+Removing unused module `\sky130_fd_sc_hd__nor4_1'.
+Removing unused module `\sky130_fd_sc_hd__or2_1'.
+Removing unused module `\sky130_fd_sc_hd__or3_1'.
+Removing unused module `\sky130_fd_sc_hd__or4_1'.
+Removing unused module `\sky130_fd_sc_hd__xor2_1'.
+Removing unused module `\sky130_fd_sc_hd__xor3_1'.
+Removed 33 unused modules.
+
+12. Executing PROC pass (convert processes to netlists).
+
+12.1. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Cleaned up 0 empty switches.
+
+12.2. Executing PROC_RMDEAD pass (remove dead branches from decision trees).
+Marked 3 switch rules as full_case in process $proc$D:/Home-Automation-SoC/rtl/rtl_top/reset_ctrl.sv:36$250 in module reset_ctrl.
+Removed a total of 0 dead cases.
+
+12.3. Executing PROC_PRUNE pass (remove redundant assignments in processes).
+Removed 0 redundant assignments.
+Promoted 0 assignments to connections.
+
+12.4. Executing PROC_INIT pass (extract init attributes).
+
+12.5. Executing PROC_ARST pass (detect async resets in processes).
+Found async reset \reset_n in `\reset_ctrl.$proc$D:/Home-Automation-SoC/rtl/rtl_top/reset_ctrl.sv:36$250'.
+
+12.6. Executing PROC_ROM pass (convert switches to ROMs).
+Converted 0 switches.
+<suppressed ~3 debug messages>
+
+12.7. Executing PROC_MUX pass (convert decision trees to multiplexers).
+Creating decoders for process `\reset_ctrl.$proc$D:/Home-Automation-SoC/rtl/rtl_top/reset_ctrl.sv:36$250'.
+     1/2: $0\active[0:0]
+     2/2: $0\cnt[7:0]
+
+12.8. Executing PROC_DLATCH pass (convert process syncs to latches).
+
+12.9. Executing PROC_DFF pass (convert process syncs to FFs).
+Creating register for signal `\reset_ctrl.\cnt' using process `\reset_ctrl.$proc$D:/Home-Automation-SoC/rtl/rtl_top/reset_ctrl.sv:36$250'.
+  created $adff cell `$procdff$278' with positive edge clock and positive level reset.
+Creating register for signal `\reset_ctrl.\active' using process `\reset_ctrl.$proc$D:/Home-Automation-SoC/rtl/rtl_top/reset_ctrl.sv:36$250'.
+  created $adff cell `$procdff$283' with positive edge clock and positive level reset.
+
+12.10. Executing PROC_MEMWR pass (convert process memory writes to cells).
+
+12.11. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Found and cleaned up 3 empty switches in `\reset_ctrl.$proc$D:/Home-Automation-SoC/rtl/rtl_top/reset_ctrl.sv:36$250'.
+Removing empty process `reset_ctrl.$proc$D:/Home-Automation-SoC/rtl/rtl_top/reset_ctrl.sv:36$250'.
+Cleaned up 3 empty switches.
+
+12.12. Executing OPT_EXPR pass (perform const folding).
+Optimizing module reset_ctrl.
+<suppressed ~7 debug messages>
+
+13. Executing FLATTEN pass (flatten design).
+
+14. Executing TECHMAP pass (map to technology primitives).
+
+14.1. Executing Verilog-2005 frontend: D:/Home-Automation-SoC/build/asic_evidence/sky130_map.v
+Parsing Verilog input from `D:/Home-Automation-SoC/build/asic_evidence/sky130_map.v' to AST representation.
+Generating RTLIL representation for module `$not'.
+Generating RTLIL representation for module `$logic_and'.
+Generating RTLIL representation for module `$logic_or'.
+Generating RTLIL representation for module `$and'.
+Generating RTLIL representation for module `$or'.
+Generating RTLIL representation for module `$xor'.
+Generating RTLIL representation for module `$mux'.
+Generating RTLIL representation for module `$dff'.
+Generating RTLIL representation for module `$adff'.
+Generating RTLIL representation for module `$eq'.
+Generating RTLIL representation for module `$logic_not'.
+Generating RTLIL representation for module `$pmux'.
+Successfully finished Verilog frontend.
+
+14.2. Continuing TECHMAP pass.
+Using template $paramod$fe2472242c070f3b22e97f6c8c19c3569e575d97$not for cells of type $not.
+Using template $paramod$fe2472242c070f3b22e97f6c8c19c3569e575d97$logic_not for cells of type $logic_not.
+Using template $paramod$mux\WIDTH=32'00000000000000000000000000001000 for cells of type $mux.
+Using template $paramod$9ce242455975a7b100259795bfb3e5a1eb7fbfb0$adff for cells of type $adff.
+Using template $paramod$794c0bd98b15cc3bd3c4a6443b98e6168c5f739e$logic_not for cells of type $logic_not.
+Using template $paramod$mux\WIDTH=32'00000000000000000000000000000001 for cells of type $mux.
+Using template $paramod$962e27c44b17bd05322c97c83c1ab6a4e9c39873$adff for cells of type $adff.
+Using template $paramod$fc972a7a46956c1788f3cb5257b53c8f1df2d0cc$and for cells of type $and.
+No more expansions possible.
+<suppressed ~134 debug messages>
+
+15. Executing CHECK pass (checking for obvious problems).
+Checking module reset_ctrl...
+Warning: Wire reset_ctrl.$and$D:/Home-Automation-SoC/rtl/rtl_top/reset_ctrl.sv:51$256_Y is used but has no driver.
+Warning: Wire reset_ctrl.$not$D:/Home-Automation-SoC/rtl/rtl_top/reset_ctrl.sv:52$257_Y is used but has no driver.
+Warning: Wire reset_ctrl.\cnt [7] is used but has no driver.
+Warning: Wire reset_ctrl.\cnt [6] is used but has no driver.
+Warning: Wire reset_ctrl.\cnt [5] is used but has no driver.
+Warning: Wire reset_ctrl.\cnt [4] is used but has no driver.
+Warning: Wire reset_ctrl.\cnt [3] is used but has no driver.
+Warning: Wire reset_ctrl.\cnt [2] is used but has no driver.
+Warning: Wire reset_ctrl.\cnt [1] is used but has no driver.
+Warning: Wire reset_ctrl.\cnt [0] is used but has no driver.
+Found and reported 10 problems.
+
+16. Printing statistics.
+
+=== reset_ctrl ===
+
+        +----------Local Count, excluding submodules.
+        | 
+       81 wires
+      207 wire bits
+        7 public wires
+       14 public wire bits
+        5 ports
+        5 port bits
+       44 cells
+        1   $sub
+        1   sky130_fd_sc_hd__and2_1
+        9   sky130_fd_sc_hd__dfrtp_1
+        6   sky130_fd_sc_hd__inv_1
+       27   sky130_fd_sc_hd__mux2_1
+
+17. Executing Verilog backend.
+
+17.1. Executing BMUXMAP pass.
+
+17.2. Executing DEMUXMAP pass.
+Dumping module `\reset_ctrl'.
+
+18. Executing Verilog-2005 frontend: D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv
+Parsing SystemVerilog input from `D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv' to AST representation.
+Generating RTLIL representation for module `\watchdog'.
+Successfully finished Verilog frontend.
+
+19. Executing HIERARCHY pass (managing design hierarchy).
+
+19.1. Analyzing design hierarchy..
+Top module:  \watchdog
+
+19.2. Analyzing design hierarchy..
+Top module:  \watchdog
+Removing unused module `\reset_ctrl'.
+Removed 1 unused modules.
+
+20. Executing PROC pass (convert processes to netlists).
+
+20.1. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Cleaned up 0 empty switches.
+
+20.2. Executing PROC_RMDEAD pass (remove dead branches from decision trees).
+Marked 1 switch rules as full_case in process $proc$D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv:78$304 in module watchdog.
+Marked 2 switch rules as full_case in process $proc$D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv:42$291 in module watchdog.
+Removed a total of 0 dead cases.
+
+20.3. Executing PROC_PRUNE pass (remove redundant assignments in processes).
+Removed 0 redundant assignments.
+Promoted 1 assignment to connection.
+
+20.4. Executing PROC_INIT pass (extract init attributes).
+
+20.5. Executing PROC_ARST pass (detect async resets in processes).
+Found async reset \presetn in `\watchdog.$proc$D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv:42$291'.
+
+20.6. Executing PROC_ROM pass (convert switches to ROMs).
+Converted 0 switches.
+<suppressed ~8 debug messages>
+
+20.7. Executing PROC_MUX pass (convert decision trees to multiplexers).
+Creating decoders for process `\watchdog.$proc$D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv:78$304'.
+     1/1: $1\prdata[31:0]
+Creating decoders for process `\watchdog.$proc$D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv:42$291'.
+     1/6: $0\locked[0:0]
+     2/6: $0\expired[0:0]
+     3/6: $0\reset_en[0:0]
+     4/6: $0\enable[0:0]
+     5/6: $0\count[31:0]
+     6/6: $0\load[31:0]
+
+20.8. Executing PROC_DLATCH pass (convert process syncs to latches).
+No latch inferred for signal `\watchdog.\prdata' from process `\watchdog.$proc$D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv:78$304'.
+
+20.9. Executing PROC_DFF pass (convert process syncs to FFs).
+Creating register for signal `\watchdog.\load' using process `\watchdog.$proc$D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv:42$291'.
+  created $adff cell `$procdff$367' with positive edge clock and positive level reset.
+Creating register for signal `\watchdog.\count' using process `\watchdog.$proc$D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv:42$291'.
+  created $adff cell `$procdff$372' with positive edge clock and positive level reset.
+Creating register for signal `\watchdog.\enable' using process `\watchdog.$proc$D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv:42$291'.
+  created $adff cell `$procdff$377' with positive edge clock and positive level reset.
+Creating register for signal `\watchdog.\reset_en' using process `\watchdog.$proc$D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv:42$291'.
+  created $adff cell `$procdff$382' with positive edge clock and positive level reset.
+Creating register for signal `\watchdog.\expired' using process `\watchdog.$proc$D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv:42$291'.
+  created $adff cell `$procdff$387' with positive edge clock and positive level reset.
+Creating register for signal `\watchdog.\locked' using process `\watchdog.$proc$D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv:42$291'.
+  created $adff cell `$procdff$392' with positive edge clock and positive level reset.
+
+20.10. Executing PROC_MEMWR pass (convert process memory writes to cells).
+
+20.11. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Found and cleaned up 1 empty switch in `\watchdog.$proc$D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv:78$304'.
+Removing empty process `watchdog.$proc$D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv:78$304'.
+Found and cleaned up 7 empty switches in `\watchdog.$proc$D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv:42$291'.
+Removing empty process `watchdog.$proc$D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv:42$291'.
+Cleaned up 8 empty switches.
+
+20.12. Executing OPT_EXPR pass (perform const folding).
+Optimizing module watchdog.
+<suppressed ~21 debug messages>
+
+21. Executing FLATTEN pass (flatten design).
+
+22. Executing TECHMAP pass (map to technology primitives).
+
+22.1. Executing Verilog-2005 frontend: D:/Home-Automation-SoC/build/asic_evidence/sky130_map.v
+Parsing Verilog input from `D:/Home-Automation-SoC/build/asic_evidence/sky130_map.v' to AST representation.
+Generating RTLIL representation for module `$not'.
+Generating RTLIL representation for module `$logic_and'.
+Generating RTLIL representation for module `$logic_or'.
+Generating RTLIL representation for module `$and'.
+Generating RTLIL representation for module `$or'.
+Generating RTLIL representation for module `$xor'.
+Generating RTLIL representation for module `$mux'.
+Generating RTLIL representation for module `$dff'.
+Generating RTLIL representation for module `$adff'.
+Generating RTLIL representation for module `$eq'.
+Generating RTLIL representation for module `$logic_not'.
+Generating RTLIL representation for module `$pmux'.
+Successfully finished Verilog frontend.
+
+22.2. Continuing TECHMAP pass.
+Using template $paramod$fe2472242c070f3b22e97f6c8c19c3569e575d97$not for cells of type $not.
+Using template $paramod$fc972a7a46956c1788f3cb5257b53c8f1df2d0cc$logic_and for cells of type $logic_and.
+Using template $paramod$eec9d408d2df934b18b2ce837938d941e199fe33$logic_not for cells of type $logic_not.
+Using template $paramod$a7c6771dfc0f33e62db8b0fd69a83d761f8349a6$eq for cells of type $eq.
+Using template $paramod$fc972a7a46956c1788f3cb5257b53c8f1df2d0cc$logic_or for cells of type $logic_or.
+Using template $paramod$fe2472242c070f3b22e97f6c8c19c3569e575d97$logic_not for cells of type $logic_not.
+Using template $paramod$6df9461acb0f358960a2bd74832610cf2835c090$eq for cells of type $eq.
+Using template $paramod$mux\WIDTH=32'00000000000000000000000000000001 for cells of type $mux.
+Using template $paramod$962e27c44b17bd05322c97c83c1ab6a4e9c39873$adff for cells of type $adff.
+Using template $paramod$mux\WIDTH=32'00000000000000000000000000100000 for cells of type $mux.
+Using template $paramod$c418587a7fd29f7a285b3a42b7f90b811707d00c$adff for cells of type $adff.
+Using template $paramod$8fabc56b80a569262acfc42757a02ca0b8e91278$pmux for cells of type $pmux.
+Using template $paramod$7b82b845ca947ba5097cdf7893106c9caa6eef29$logic_not for cells of type $logic_not.
+Using template $paramod$b098bc6f249c0ac91c4d6e19d54b23c285914115$pmux for cells of type $pmux.
+No more expansions possible.
+<suppressed ~266 debug messages>
+
+23. Executing CHECK pass (checking for obvious problems).
+Checking module watchdog...
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[31].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[30].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[29].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[28].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[27].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[26].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[25].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[24].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[23].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[22].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[21].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[20].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[19].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[18].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[17].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[16].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[15].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[14].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[13].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[12].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[11].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[10].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[9].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[8].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[7].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[6].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[5].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[4].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[3].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[2].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[1].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.$procmux$306.genblk1.g_pmux_bit[0].mux_chain [3] is used but has no driver.
+Warning: Wire watchdog.\expired is used but has no driver.
+Warning: Wire watchdog.$not$D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv:76$303_Y is used but has no driver.
+Warning: Wire watchdog.\count [31] is used but has no driver.
+Warning: Wire watchdog.\count [30] is used but has no driver.
+Warning: Wire watchdog.\count [29] is used but has no driver.
+Warning: Wire watchdog.\count [28] is used but has no driver.
+Warning: Wire watchdog.\count [27] is used but has no driver.
+Warning: Wire watchdog.\count [26] is used but has no driver.
+Warning: Wire watchdog.\count [25] is used but has no driver.
+Warning: Wire watchdog.\count [24] is used but has no driver.
+Warning: Wire watchdog.\count [23] is used but has no driver.
+Warning: Wire watchdog.\count [22] is used but has no driver.
+Warning: Wire watchdog.\count [21] is used but has no driver.
+Warning: Wire watchdog.\count [20] is used but has no driver.
+Warning: Wire watchdog.\count [19] is used but has no driver.
+Warning: Wire watchdog.\count [18] is used but has no driver.
+Warning: Wire watchdog.\count [17] is used but has no driver.
+Warning: Wire watchdog.\count [16] is used but has no driver.
+Warning: Wire watchdog.\count [15] is used but has no driver.
+Warning: Wire watchdog.\count [14] is used but has no driver.
+Warning: Wire watchdog.\count [13] is used but has no driver.
+Warning: Wire watchdog.\count [12] is used but has no driver.
+Warning: Wire watchdog.\count [11] is used but has no driver.
+Warning: Wire watchdog.\count [10] is used but has no driver.
+Warning: Wire watchdog.\count [9] is used but has no driver.
+Warning: Wire watchdog.\count [8] is used but has no driver.
+Warning: Wire watchdog.\count [7] is used but has no driver.
+Warning: Wire watchdog.\count [6] is used but has no driver.
+Warning: Wire watchdog.\count [5] is used but has no driver.
+Warning: Wire watchdog.\count [4] is used but has no driver.
+Warning: Wire watchdog.\count [3] is used but has no driver.
+Warning: Wire watchdog.\count [2] is used but has no driver.
+Warning: Wire watchdog.\count [1] is used but has no driver.
+Warning: Wire watchdog.\count [0] is used but has no driver.
+Found and reported 66 problems.
+
+24. Printing statistics.
+
+=== watchdog ===
+
+        +----------Local Count, excluding submodules.
+        | 
+      375 wires
+     2573 wire bits
+       19 public wires
+      177 public wire bits
+       12 ports
+      108 port bits
+      629 cells
+        1   $sub
+        7   sky130_fd_sc_hd__and2_1
+       68   sky130_fd_sc_hd__dfrtp_1
+       11   sky130_fd_sc_hd__inv_1
+      429   sky130_fd_sc_hd__mux2_1
+        1   sky130_fd_sc_hd__or2_1
+      112   sky130_fd_sc_hd__xor2_1
+
+25. Executing Verilog backend.
+
+25.1. Executing BMUXMAP pass.
+
+25.2. Executing DEMUXMAP pass.
+Dumping module `\watchdog'.
+
+Warnings: 80 unique messages, 80 total
+End of script. Logfile hash: 0b8572fd64
+Yosys 0.69+154 (git sha1 30d62572e-dirty, Release, GNU /usr/bin/x86_64-w64-mingw32-g++ 15.2.1)
+Time spent: 4% 9x read_verilog (0 sec), 4% 6x write_verilog (0 sec), ...

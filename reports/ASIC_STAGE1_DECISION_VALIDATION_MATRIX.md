@@ -1,0 +1,53 @@
+# ASIC Stage 1 — Decision Validation Matrix
+
+**Date:** 2026-11-15  
+**Purpose:** Validate each of the 12 pending architecture decisions against actual repository state, reports, and machine-readable evidence  
+**Current main HEAD:** `d6791cdb1742964033fadc63fa508b1ececf0c3b`  
+**Stage 1 status:** READY FOR APPROVAL, NOT COMPLETE (2/10 acceptance criteria met)  
+
+---
+
+## Validation Matrix
+
+| ID | Status | Recommendation | RTL Impact | Verification Impact | Physical-Design Impact | Power Impact | Area Impact | Timing Impact | Blocker Dependency | Evidence Consistency |
+|---|---|---|---|---|---|---|---|---|---|---|
+| **ARC-006** | READY FOR APPROVAL | C-prime: 50 MHz core, /2 25 MHz peripheral, external 32.768 kHz AON; no PLL | RTL: clock gating, dividers; `has_soc.sv:107-108` has `core_clk = clk & core_clk_en_q`, `periph_clk = clk & periph_clk_en_q` — needs /2 divider insertion; no existing PLL/ divider | CDC: new crossings under C-prime require 2-FF synchronizers for static signals, handshake for events; AON wake/interrupt paths need formal properties | No UPF needed at Stage 1; isolation/retention deferred to Stage 10 | Clock domains: AON + core/periph switchable; board PMIC rails 1.0 V/3.3 V | No area change — clock netlist only | SDC: generated 25 MHz peripheral clock; retire conflicting 20/40 ns SDC files | BLK-001 (clock architecture unapproved) | `architecture/clock_architecture.json` valid; CSV has 31 paths; discrepancy D-01/D-02 |
+| **ARC-036** | READY FOR APPROVAL | CDC scope follows C-prime: core/periph synchronous handshake, core/AON async with 2-FF and handshakes; formal properties | RTL: no async FIFO; only 2-FF synchronizers for data pins; pulse/handshake for events | Verification: 31 inventoried paths; critical crossings: `spi_miso`, `i2c_sda`, JTAG TMS/TDI; new: APB handshake, AON wake, reset release, PLIC sync | No PD impact at Stage 1 | No power change | No area change | APB handshake, AON wake/reset release, PLIC interrupt sync need formal properties | BLK-003 (SDC not approvable) | `reports/ASIC_STAGE1_CDC_RDC_ARCHITECTURE.md` has 31-row matrix; discrepancy D-03/D-04 |
+| **ARC-065** | READY FOR APPROVAL | Formal CDC property set: reset synchronizers, AON wake handshake, APB request/response, PLIC interrupt sync; no async FIFO | RTL: none needed (no async FIFO claimed); existing synchronizer patterns validated | Verification: properties for AON wake, reset release, APB handshake, PLIC sync; formal verification optional at Stage 2+ | No PD impact | No power change | No area change | Same as ARC-036; CDC properties supplement ARC-036 scope | ARC-036 dependent | `reports/ASIC_STAGE1_CDC_RDC_ARCHITECTURE.md` §3.2; CSV 31 paths consistent |
+| **TD-001** | READY FOR APPROVAL | 16 KB boot ROM; change RTL ADDR_WIDTH from 16 to 14 | `has_addr_map.sv`: ROM `ADDR_WIDTH=16` maps to 64 KB vs 16 KB map; change to 14 reduces to 16 KB; firmware linker already assumes 16 KB | Verification: ROM contents consistent with 16 KB map; firmware compiles with ADDR_WIDTH=14 | No PD impact (ROM is mask/OTP) | No power change | SRAM/ROM area: 16 KB vs 64 KB RTL reduces decode logic | No SDC impact; boot timing changes | BLK-002 (memory size contradiction resolved) | `reports/ASIC_STAGE1_MEMORY_ARCHITECTURE.md`; RTL ADDR_WIDTH=16 maps to 64 KB vs 16 KB map |
+| **TD-003** | READY FOR APPROVAL | 128 KB SRAM; change RTL ADDR_WIDTH from 18 to 17 | `has_addr_map.sv`: SRAM `ADDR_WIDTH=18` maps to 256 KB vs 128 KB map; change to 17 gives 128 KB; unreachable half of array under 18 | Verification: SRAM contents, read/write patterns; synthesis with ADDR_WIDTH=17 | SRAM macro selection affects PDN; 128 KB target vs 256 KB RTL | Power: larger array = more dynamic power; 128 KB reduces than 256 KB | Area: 128 KB vs 256 KB RTL reduces SRAM area significantly | No SDC impact; memory array timing | BLK-002 (memory size contradiction resolved) | `reports/ASIC_STAGE1_MEMORY_ARCHITECTURE.md`; RTL ADDR_WIDTH=18 maps 256 KB vs 128 KB map |
+| **TD-005** | READY FOR APPROVAL | Two 1.8 V SoC domains (AON + switchable core/periph); board PMIC 1.0 V/3.3 V | RTL: power switches, isolation cells, retention cells in AON boundary; no UPF/CPF at Stage 1 | Verification: power-up sequences, domain retention in sleep; no formal power verification | PD: power domain boundaries, level shifters, isolation cells; no production UPF | Core intent: two domains; board PMIC provides 1.0 V/3.3 V; no on-chip 3.3 V pads exist | AON domain retention reduces leakage; switchable domain saves power when off | No direct timing; clock gating across domains affects SDC | BLK-005 (no UPF), BLK-008 (no UPF/power intent) | `reports/ASIC_STAGE1_POWER_ARCHITECTURE.md`; P-B two-domain plan; sky130hd has no 3.3 V pads |
+| **TD-006** | READY FOR APPROVAL | 32-bit wide 128 KB and 32 KB SRAM macros; do not tile 4 KB 128-bit macro | RTL: sram wrapper parameters; macro width changes; 44-macro tiling for 128 KB with 4 KB macro = 31.8 mm²; 32-bit macro estimated <4.3 mm² (not yet characterized) | Verification: macro interface; port compatibility; byte-mask behavior | PD: macro availability, LEF, library cells; 44-macro tiling exceeds 10 mm² target; 32-bit macro reduces area significantly | SRAM density: 32-bit macros reduce area vs 4 KB × 44 macro tiling | Area: estimated ~4.3 mm² for 32-bit macros (vs 31.8 mm² for 44×4 KB); not yet characterized from Liberty | Macro timing via Liberty .lib; 44-macro tiling = 31.8 mm² > 10 mm² target | BLK-005 (macro integration), BLK-020 (macro area target) | `reports/ASIC_STAGE1_MEMORY_ARCHITECTURE.md`; `architecture/memory_architecture.json`; 4 KB macro = 0.7221 mm² |
+| **TD-007** | READY FOR APPROVAL | S1: hardware SHA-256 + ECDSA-P256 with OTP/secure element; S3 fallback if no OTP; S0 only as explicit descope removing security claims | RTL: boot ROM verification logic; image format; no crypto engine currently | Verification: image authenticity; OTA not implemented; boot fails closed currently | No PD impact (no crypto IP at Stage 1) | No power change | No area change | No SDC impact | BLK-023 (no OTP/crypto/TRNG); BLK-006 (secure boot no verifier) | `reports/ASIC_STAGE1_SECURITY_BOOT_ARCHITECTURE.md`; S1/S3/S0 options; boot.c fails closed |
+| **TD-009** | READY FOR APPROVAL | Decide scan/ATPG tool or partner before Stage 7; scan insertion must precede synthesis freeze | RTL: no scan flops, no test modes; test access limited to JTAG | Verification: no ATPG patterns; MBIST not present; JTAG test access only | PD: scan insertion adds test points; tool flow not defined | No power change | No area change (scan may add ~5% area) | No SDC impact | BLK-007 (no DFT); depends on tool vendor/partner selection | `reports/ASIC_STAGE1_DECISION_PACKAGE.md` §12; no scan/ATPG in RTL |
+| **TD-010** | READY FOR APPROVAL | 50 MHz core + generated 25 MHz peripheral clock; retire conflicting 20 ns/40 ns SDC files | RTL: clock generator already has 50 MHz core; /2 divider for 25 MHz peripheral; SDC files need update | Verification: timing signoff with two clocks; old SDC files conflict | PD: CTS with two clocks; glitch logic with generated clock | No power change | No area change | SDC: primary 50 MHz; generated 25 MHz; remove 20 ns/40 ns files | BLK-003 (SDC not approvable); BLK-010 (clock definitions) | `reports/ASIC_STAGE1_CLOCK_ARCHITECTURE.md`; `ASIC_STAGE1_DECISION_PACKAGE.md` §9 |
+| **TD-016** | READY FOR APPROVAL | Remove 32-bit `ext_irq[31:0]` and 3 internal handshake pins; add BOOT_MODE[1:0], PMIC_ALERT/IRQ, RF_CTRL[1:0], UART1 → 54 of 56 I/O | `has_soc.sv:25-62`: 81 pad signals vs 56 QFN-64 I/O; ext_irq tied unused; mux 8 PLIC IRQs onto GPIO | Interface: 54 of 56 I/O usable; 2 dead I/O; pinmux changes | No PD impact (pinout is top-level); package QFN-64 fixed | No power change | No area change | No SDC impact; pin constraints in SDC | BLK-019 (pin budget); BLK-021 (no 3.3 V pads) | `reports/ASIC_STAGE1_INTERFACE_AND_ADDRESS_MAP.md` §6; `has_soc.sv:25-62`; 81 pad signals vs 56 I/O |
+| **TD-017** | READY FOR APPROVAL | Re-baseline SRS to implementable product: RV32IM machine-mode, 1 UART, 1 SPI, 1 I2C, 16 GPIO, 4 PWM, 1 I2S TX, CLINT/PLIC 8 sources, 16 KB ROM/32 KB TCM/128 KB SRAM; defer crypto, OTA, second UART, LPTIM | RTL: machine-mode only; no C/U/PMP; firmware already assumes subset; address map, interrupt controller already limited | Verification: 124 requirements traced; 8 IMPLEMENTED, 38 PARTIAL, 39 NOT_IMPLEMENTED, 19 NOT_VERIFIED, 6 ESTIMATED, 6 NOT_STARTED, 5 BLOCKED, 2 FAILED, 1 AT_RISK | No PD impact directly; descopes reduce pin count, power, area | SRS descopes reduce power (fewer peripherals), area (smaller macro needs), timing (less IP) | SRS descopes reduce target area and pin count | No direct SDC impact | Depends on ARC-006 (clock), TD-001/003 (memory), TD-016 (pins) | `reports/ASIC_STAGE1_REQUIREMENTS_TRACEABILITY.csv` (124 rows); discrepancy D-05 through D-17 |
+
+---
+
+## Consistency Checks
+
+| Check | Result | Notes |
+|---|---|---|
+| `architecture/decision_status.json` vs `TAPEOUT_DECISION_REGISTER.md` | Agree on 13 canonical decisions | JSON is authoritative; register has additional traceability entries |
+| All 12 pending decisions marked READY FOR APPROVAL | Yes | No decision marked APPROVED without owner sign-off |
+| Machine-readable files parse valid | Yes | 3 JSON, 3 CSV all valid |
+| Discrepancy counts match audit | Yes | 17 discrepancies D-01..D-17 in architecture audit |
+| Evidence hashes verified | Yes | 19 Stage 1 evidence entries, 0 mismatches |
+| No fabricated approvals | Yes | All 12 pending awaiting explicit owner authorization |
+| No crypto/OTP claims without basis | Yes | TD-007 S1 requires OTP/secure element; none exists (BLK-023) |
+
+---
+
+## Validation Deliverable
+
+`reports/ASIC_STAGE1_DECISION_VALIDATION_MATRIX.md` — Complete
+
+**Summary:** All 12 pending architecture decisions are technically validated against the repository state and reports. Each recommendation is consistent with the existing RTL, verification evidence, and machine-readable records. All decisions remain READY FOR APPROVAL, awaiting explicit user/design-owner authorization. No decision can be approved without owner sign-off.
+
+**Next phase:** Phase 2 — Technical revalidation of architectural recommendations using existing evidence.
+
+---
+
+**This matrix confirms:** Stage 1 is **READY FOR APPROVAL, NOT COMPLETE**. All 12 pending decisions are validated and technically sound based on existing evidence. No contradictions found between recommendations and repository state. Approval requires explicit project-owner authorization for each of the 12 decisions. Stage 2 must not start before approval.

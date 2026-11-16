@@ -12,6 +12,8 @@
 //
 // Memory map: see has_addr_map_pkg
 //------------------------------------------------------------------------------
+import has_addr_map_pkg::*;
+
 module has_soc #(
   // verilog_lint: waive explicit-parameter-storage-type
   parameter BOOT_ROM_FILE  = "",
@@ -61,8 +63,6 @@ module has_soc #(
   output logic         wake_req,
   input  logic         wake_ack
 );
-
-  import has_addr_map_pkg::*;
 
   //--------------------------------------------------------------------------
   // Reset controller
@@ -246,10 +246,10 @@ module has_soc #(
   //--------------------------------------------------------------------------
   logic [5:0]  s_awvalid, s_awready, s_wvalid, s_wready;
   logic [5:0]  s_bvalid, s_bready, s_arvalid, s_arready, s_rvalid, s_rready;
-  logic [31:0] s_awaddr [6], s_araddr [6], s_wdata [6], s_rdata [6];
-  logic [2:0]  s_awprot [6], s_arprot [6];
-  logic [3:0]  s_wstrb [6];
-  logic [1:0]  s_bresp [6], s_rresp [6];
+  logic [5:0] [31:0] s_awaddr, s_araddr, s_wdata, s_rdata;
+  logic [5:0] [2:0]  s_awprot, s_arprot;
+  logic [5:0] [3:0]  s_wstrb;
+  logic [5:0] [1:0]  s_bresp, s_rresp;
 
   axi_lite_interconnect axi_ic (
     .clk         (core_clk),
