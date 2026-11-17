@@ -423,6 +423,7 @@ const PROTOCOL_TESTS = [
   { name: 'jtag_proto', top: 'tb_jtag_proto',     tb: 'sim/sim_top/tb_jtag_proto.v',     src: ['rtl/rtl_peripherals/debug_jtag.sv'], marker: 'JTAG PROTOCOL: ALL TESTS PASSED' },
   { name: 'wdog_audit', top: 'tb_watchdog_audit', tb: 'sim/sim_top/tb_watchdog_audit.v', src: ['rtl/rtl_peripherals/watchdog.sv'],   marker: 'WATCHDOG AUDIT: ALL TESTS PASSED' },
   { name: 'sram_audit', top: 'tb_sram_audit',     tb: 'sim/sim_top/tb_sram_audit.v',     src: ['rtl/rtl_top/sram.sv'],               marker: 'SRAM AUDIT: ALL TESTS PASSED' },
+  { name: 'i2c_xfer',   top: 'tb_i2c_xfer',       tb: 'sim/sim_top/tb_i2c_xfer.v',       src: ['rtl/rtl_peripherals/i2c_ctrl.sv'],   marker: 'TB_I2C_XFER: ALL TESTS PASSED' },
 ];
 
 function protocolTests() {

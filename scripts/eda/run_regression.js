@@ -40,6 +40,7 @@ const UART = ['rtl/rtl_peripherals/uart.sv'];
 const RST = ['rtl/rtl_top/reset_ctrl.sv'];
 const PLIC = ['rtl/rtl_peripherals/plic.sv'];
 const SPI  = ['rtl/rtl_peripherals/spi_ctrl.sv'];
+const I2C  = ['rtl/rtl_peripherals/i2c_ctrl.sv'];
 const JTAG = ['rtl/rtl_peripherals/debug_jtag.sv'];
 const WDOG = ['rtl/rtl_peripherals/watchdog.sv'];
 const SRAM = ['rtl/rtl_top/sram.sv'];
@@ -57,6 +58,10 @@ const TESTS = [
   { name: 'gpio',                          tb: 'sim/sim_top/tb_gpio.v',  src: null, marker: 'ALL TESTS PASSED' },
   { name: 'spi',                           tb: 'sim/sim_top/tb_spi.v',   src: null, marker: 'ALL TESTS PASSED' },
   { name: 'i2c',                           tb: 'sim/sim_top/tb_i2c.v',   src: null, marker: 'ALL TESTS PASSED' },
+  // Transaction-level I2C: address/payload/ACK/NACK/STOP against a reactive
+  // slave model.  Kept separate from 'i2c' above, which exercises register
+  // programming and never checks what actually appears on the wire.
+  { name: 'i2c transaction (write/read/nack)', tb: 'sim/sim_top/tb_i2c_xfer.v', src: I2C, marker: 'TB_I2C_XFER: ALL TESTS PASSED' },
   { name: 'pwm',                           tb: 'sim/sim_top/tb_pwm.v',   src: null, marker: 'ALL TESTS PASSED' },
   { name: 'timer',                         tb: 'sim/sim_top/tb_timer.v', src: null, marker: 'ALL TESTS PASSED' },
   { name: 'watchdog',                      tb: 'sim/sim_top/tb_watchdog.v', src: null, marker: 'ALL TESTS PASSED' },
@@ -207,7 +212,12 @@ function prepareImages() {
     const stale = step.outputs.filter(o => fs.existsSync(path.join(ROOT, o)) &&
                                            fs.statSync(path.join(ROOT, o)).mtimeMs < startedAt);
     const ok = status === 0 && !missing.length && !stale.length;
-    const why = status !== 0 ? `exit ${status}`
+    // Carry the driver's own reason ("BLOCKED: no RISC-V toolchain ...") into
+    // the log, so an infrastructure failure is not reported as a bare code.
+    const reason = status !== 0
+      ? (text.split('\n').map(l => l.trim()).find(l => /^(BLOCKED|FATAL|ERROR|error):/.test(l)) || '')
+      : '';
+    const why = status !== 0 ? `exit ${status}${reason ? ': ' + reason : ''}`
               : missing.length ? `not produced: ${missing.join(', ')}`
               : `stale: ${stale.join(', ')}`;
     if (!ok && !firstError) firstError = `${step.label}: ${why}`;

@@ -211,7 +211,7 @@ MEMORY MAP
    0x0000_0000  16 KB  Boot ROM     0x0001_0000  32 KB  TCM     0x2000_0000  128 KB  SRAM     0x4000_0000  64 MB  QSPI flash
 
 INTERRUPTS  CLINT: software + timer      PLIC: 8 sources, 1 context, 7-bit priority
-VERIFIED    Regression PASS 17/17 (Icarus)   ·   full-SoC boot 7/7 (Verilator C++ model)
+VERIFIED    Regression PASS 27/27 (Icarus)   ·   gate 9/9   ·   full-SoC boot 7/7 (Verilator)
 NOT YET     Secure boot · OTA signing · flash program/erase · retention · deep-sleep gating
 ```
 
@@ -323,7 +323,7 @@ reports `prefers-reduced-motion: reduce`).
 ### Reproducing the Verification
 
 ```bash
-# Icarus regression (26 testbenches)
+# Icarus regression (27 testbenches)
 node scripts/eda/run_regression.js
 
 # Verilator C++ model of the full SoC
@@ -389,7 +389,7 @@ wsl -d Ubuntu-24.04 -- bash /mnt/d/tools/verify_tools_wsl.sh
 | Reset controller                                         | 15/15               | PASS     | `tb_reset_ctrl.v`                               |
 | Power manager                                            | 16/16               | PASS     | `tb_power_mgr.v`                                |
 | CLINT/PLIC/GPIO/SPI/I²C/PWM/timer/watchdog/I²S/SRAM/JTAG | Various             | PASS     | Individual testbenches                          |
-| **Regression suite**                                     | **26/26**           | **PASS** | `run_regression.js` (Icarus)                    |
+| **Regression suite**                                     | **27/27**           | **PASS** | `run_regression.js` (Icarus)                    |
 | **Unified gate** (`verify.js`)                           | **9/9**             | **PASS** | `scripts/verify.js`, exit 0                     |
 | Formal (SymbiYosys)                                      | 6/6                 | PASS     | `run_formal.js`                                 |
 | PLIC bounds / CSR arch / APB integrated / reset recovery | 0 failures          | PASS     | `tb_plic_bounds.v`, `tb_csr_arch.v`, `tb_apb_integrated.v`, `tb_reset_recovery.v` |
@@ -474,6 +474,7 @@ All EDA tools for this project live under `D:\tools` (WSL: `/mnt/d/tools`); the 
 | No KiCad project files                    | PCB limited to documentation + BOM prose    | KiCad 10.0.8 is installed; schematic/layout still to be drawn           |
 | No `python` (only the Windows Store stub) | `scripts/fw_build/build_fw.py` cannot run   | Use `build_fw.js`, or `D:\tools\venv\Scripts\python.exe`                |
 | No Sky130 RAM macro ≥ 64 KB               | TD-006 (full-SoC TCM/RAM mapping) blocked   | Sky130 has no 64KB+ RAM macro in the verified subset; the boot ROM and both SRAMs remain `$mem_v2` |
+| Full-SoC gate-level synthesis             | No full-SoC area or timing number          | `rtl/rtl_top/axi_lite_interconnect.sv:57` blocks gate-level synthesis; unchanged since `358939c` |
 | `$sr` unmapped                             | SR-latch behavioral cells stay unmapped     | No Sky130 SR-latch cell in the verified subset                          |
 | Yosys ABC `-liberty` broken in this build | No area/timing optimisation; counts are pre-ABC | Yosys `0.69+154` (sha `30d62572e-dirty`) reports ABC `-liberty` failures; workaround or Yosys rebuild needed            |
 | Back-end tools not runnable on this shell | No place/route, DRC/LVS, GDS authored here  | OpenLane 2 / Magic / Netgen are installed but not driven end-to-end on this Windows shell                                 |
@@ -535,9 +536,16 @@ export PATH="/d/tools/mingw64/bin:$PATH"
 node scripts/eda/run_regression.js
 ```
 
-Expected: `PASS 26 / 26` (exit 0). The `firmware (C demo)` entry is the slowest
+Expected: `PASS 27 / 27` (exit 0). The `firmware (C demo)` entry is the slowest
 one (\~1 min of wall clock: it simulates 35.7 ms of SoC time, including the
-20 ms watchdog window).
+20 ms watchdog window). No environment variables are needed: the firmware image
+steps discover the installed RISC-V GCC themselves.
+
+The suite also covers transaction-level I²C (`tb_i2c_xfer.v`: address, payload,
+ACK/NACK and STOP against a reactive slave model). It is registered in both
+entry points, so the bug class it was written for — a write DATA byte that is
+never transmitted, and a master that drives SDA instead of releasing it for the
+read NACK — now fails the gate instead of passing unnoticed.
 
 ### 2. Build Boot Firmware and Run Full-SoC Test
 
@@ -550,12 +558,17 @@ vvp build/sim/tb_boot.vvp
 
 ### 3. Build and Run C Firmware
 
-RISC-V toolchain is available at `/d/tools/xpack-riscv-none-elf-gcc-12.2.0-2/bin`:
+The xPack GCC at `/d/tools/xpack-riscv-none-elf-gcc-12.2.0-2/bin` is discovered
+automatically (it does not need to be on `PATH`): `scripts/fw_build/toolchain.js`
+probes `$RISCV_GCC_PREFIX`, then `$RISCV_TOOLCHAIN_BIN`, then `PATH`, then
+`xpack-riscv-none-elf-gcc-*` under the tool root (`D:\tools`), newest first. An
+explicit override that does not work is an error (exit 2), never a silent switch
+to a different compiler.
 
 ```bash
 export PATH="/d/tools/oss-cad-suite/lib:/d/tools/oss-cad-suite/bin:$PATH"
-RISCV_TOOLCHAIN_BIN="/d/tools/xpack-riscv-none-elf-gcc-12.2.0-2/bin" node scripts/fw_build/build_fw.js
-node scripts/fw_build/gen_fw_mem.js build/fw/firmware.elf /d/tools/xpack-riscv-none-elf-gcc-12.2.0-2/bin
+node scripts/fw_build/build_fw.js
+node scripts/fw_build/gen_fw_mem.js build/fw/firmware.elf
 iverilog -g2012 -o build/sim/tb_firmware.vvp -s tb_firmware sim/sim_top/tb_firmware.v \
   $(grep -v '^//' rtl/filelist.f | tr '\n' ' ')
 vvp build/sim/tb_firmware.vvp
@@ -707,6 +720,20 @@ Expected output ends with:
 * Placement and CTS re-run on the existing approved flow: byte-identical DEF/ODB to the baseline (the patch does not touch `timer.sv`), 0 timing violations — a flow-regression check, not a measure of the patch's physical cost
 
 * Report: `reports/SOC_CLOSURE_PATCH_REVIEW_AND_PD_IMPACT.md`. Published to `main` directly, no pull request.
+
+### Session 8 — Buffy (DeepSeek V4.1 Flash)
+
+* Registered the transaction-level I²C testbench `sim/sim_top/tb_i2c_xfer.v` in **both** entry points (`run_regression.js` and `verify.js` protocol tests). Regression grew **26 → 27** entries, protocol tests **5 → 6**
+
+* Proven to catch the bug class it was written for: against one-line mutants of `i2c_ctrl.sv` it fails with `FAIL: DATA byte was not transmitted` and `FAIL: master did not release SDA for NACK` (exit 1 each). The gate was also shown to fail closed on a compile error, a simulator failure and a missing PASS marker
+
+* Firmware build discovery moved into `scripts/fw_build/toolchain.js` and shared by `build_fw.js` and `gen_fw_mem.js`: `$RISCV_GCC_PREFIX` → `$RISCV_TOOLCHAIN_BIN` → `PATH` → `xpack-riscv-none-elf-gcc-*` under `D:\tools` (newest first). The regression no longer needs environment variables
+
+* Fail-closed behaviour re-verified: a missing or unusable toolchain exits 2 and the dependent test becomes `IMAGE-FAIL` (exit 1), never a stale-image PASS — demonstrated by planting a valid image and then forcing the toolchain failure
+
+* Measured with `RISCV_TOOLCHAIN_BIN` and `RISCV_GCC_PREFIX` unset: regression **PASS 27/27** (exit 0), unified gate **9 passed / 0 failed / 0 blocked** (exit 0), firmware images rebuilt from source with their SHA-256 recorded
+
+* Remaining blockers unchanged: full-SoC gate-level synthesis (above), secure boot, OTA signing, flash program/erase, retention across reset, deep-sleep gating, and no FPGA hardware or Vivado
 
 ***
 

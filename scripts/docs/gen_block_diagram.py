@@ -199,7 +199,7 @@ def build():
     c.text(0, 52, "MEMORY MAP")
     c.text(3, 53, "0x0000_0000  16 KB  Boot ROM     0x0001_0000  32 KB  TCM     0x2000_0000  128 KB  SRAM     0x4000_0000  64 MB  QSPI flash")
     c.text(0, 55, "INTERRUPTS  CLINT: software + timer      PLIC: 8 sources, 1 context, 7-bit priority")
-    c.text(0, 56, "VERIFIED    Regression PASS 17/17 (Icarus)   ·   full-SoC boot 7/7 (Verilator C++ model)")
+    c.text(0, 56, "VERIFIED    Regression PASS 27/27 (Icarus)   ·   gate 9/9   ·   full-SoC boot 7/7 (Verilator)")
     c.text(0, 57, "NOT YET     Secure boot · OTA signing · flash program/erase · retention · deep-sleep gating")
 
     check(c)

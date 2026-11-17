@@ -7,11 +7,13 @@
  * the machine this was developed on).  Kept as a second driver rather than a
  * replacement so either environment works.
  *
- * Toolchain discovery:
- *   1. $RISCV_GCC_PREFIX + gcc in PATH
- *   2. $RISCV_TOOLCHAIN_BIN (a directory to prepend to PATH)
- *   3. riscv-none-elf-, riscv32-unknown-elf-, riscv64-unknown-elf-, riscv32-elf-
- *      looked up in PATH
+ * Toolchain discovery is shared with gen_fw_mem.js, see toolchain.js:
+ *   1. $RISCV_GCC_PREFIX
+ *   2. $RISCV_TOOLCHAIN_BIN
+ *   3. PATH
+ *   4. xpack-riscv-none-elf-gcc-* installed under D:\tools but not on PATH
+ * An explicit override that does not work fails the build (exit 2) instead of
+ * falling back to some other compiler.
  *
  * Usage:
  *   node scripts/fw_build/build_fw.js [--verbose]
@@ -20,6 +22,7 @@
 const { spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const { findToolchain } = require('./toolchain');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const FW = path.join(ROOT, 'firmware', 'bare_metal');
@@ -36,30 +39,6 @@ const CFLAGS = [
 ];
 
 const SRC = ['startup.S', 'main.c', 'drivers.c', 'boot.c', 'host_comm.c', 'ota.c'];
-const PREFIXES = ['riscv-none-elf-', 'riscv32-unknown-elf-', 'riscv64-unknown-elf-', 'riscv32-elf-'];
-
-function envWith(prefix) {
-  const env = { ...process.env };
-  const bin = process.env.RISCV_TOOLCHAIN_BIN;
-  if (bin) env.PATH = bin + path.delimiter + (env.PATH || env.Path || '');
-  return env;
-}
-
-function which(cmd, env) {
-  const r = spawnSync(cmd, ['--version'], { env, encoding: 'utf8' });
-  return r.status === 0 ? cmd : null;
-}
-
-function findToolchain() {
-  const env = envWith();
-  if (process.env.RISCV_GCC_PREFIX) {
-    if (which(process.env.RISCV_GCC_PREFIX + 'gcc', env)) return { prefix: process.env.RISCV_GCC_PREFIX, env };
-  }
-  for (const p of PREFIXES) {
-    if (which(p + 'gcc', env)) return { prefix: p, env };
-  }
-  return null;
-}
 
 function run(cmd, args, opts = {}) {
   const r = spawnSync(cmd, args, { encoding: 'utf8', ...opts });
@@ -69,13 +48,13 @@ function run(cmd, args, opts = {}) {
 }
 
 const tc = findToolchain();
-if (!tc) {
-  console.error('BLOCKED: no RISC-V toolchain found.');
+if (tc.error) {
+  console.error('BLOCKED: ' + tc.error);
   console.error('  Set RISCV_GCC_PREFIX (e.g. riscv-none-elf-) or RISCV_TOOLCHAIN_BIN.');
   process.exit(2);
 }
 const { prefix, env } = tc;
-console.log(`toolchain: ${prefix}gcc`);
+console.log(`toolchain: ${tc.binDir ? path.join(tc.binDir, prefix + 'gcc') : prefix + 'gcc'} [${tc.source}]`);
 run(`${prefix}gcc`, ['--version'], { env });
 for (const s of ['startup.S', 'main.c', 'drivers.c', 'boot.c', 'host_comm.c', 'ota.c']) {
   if (!fs.existsSync(path.join(FW, s))) { console.error(`missing source ${s}`); process.exit(1); }

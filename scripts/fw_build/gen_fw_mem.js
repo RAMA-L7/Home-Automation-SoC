@@ -9,33 +9,27 @@
  *
  * Usage:
  *   node scripts/fw_build/gen_fw_mem.js <firmware.elf> [toolchain-bin-dir]
+ *
+ * The toolchain is resolved by toolchain.js, i.e. the same compiler build_fw.js
+ * used, including an xPack GCC installed under D:\tools but not on PATH.
  */
 const { spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const { findToolchain } = require('./toolchain');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const elf = process.argv[2] || path.join(ROOT, 'build', 'fw', 'firmware.elf');
-const binDir = process.argv[3] || process.env.RISCV_TOOLCHAIN_BIN || '';
 
-const PREFIXES = ['riscv-none-elf-', 'riscv32-unknown-elf-', 'riscv64-unknown-elf-', 'riscv32-elf-'];
-
-function env() {
-  const e = { ...process.env };
-  if (binDir) e.PATH = binDir + path.delimiter + (e.PATH || '');
-  return e;
+// An explicit third argument still pins one bin directory.
+const tc = findToolchain(process.argv[3] ? { binDir: process.argv[3] } : {});
+if (tc.error) {
+  console.error('BLOCKED: ' + tc.error);
+  process.exit(2);
 }
-function pick(tool) {
-  for (const p of PREFIXES) {
-    const r = spawnSync(p + tool, ['--version'], { env: env(), encoding: 'utf8' });
-    if (r.status === 0) return p + tool;
-  }
-  return null;
-}
-
-const objcopy = pick('objcopy');
-if (!objcopy) {
-  console.error('BLOCKED: no RISC-V objcopy found (set RISCV_TOOLCHAIN_BIN)');
+const objcopy = tc.prefix + 'objcopy';
+if (spawnSync(objcopy, ['--version'], { env: tc.env, encoding: 'utf8' }).status !== 0) {
+  console.error(`BLOCKED: ${objcopy} did not run (toolchain from ${tc.source})`);
   process.exit(2);
 }
 if (!fs.existsSync(elf)) {
@@ -48,7 +42,7 @@ const OUT = path.dirname(elf);
 function sectionWords(section) {
   const bin = path.join(OUT, section.replace(/[^A-Za-z0-9]/g, '_') + '.bin');
   const r = spawnSync(objcopy, ['-O', 'binary', '--only-section=' + section, elf, bin],
-                      { env: env(), encoding: 'utf8' });
+                      { env: tc.env, encoding: 'utf8' });
   if (r.status !== 0) {
     console.error(`objcopy --only-section=${section} failed: ${(r.stderr || '').trim()}`);
     process.exit(1);
