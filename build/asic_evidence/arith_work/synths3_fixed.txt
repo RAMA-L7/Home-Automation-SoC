@@ -1,0 +1,578 @@
+
+ /----------------------------------------------------------------------------\
+ |  yosys -- Yosys Open SYnthesis Suite                                       |
+ |  Copyright (C) 2012 - 2026  Claire Xenia Wolf <claire@yosyshq.com>         |
+ |  Distributed under an ISC-like license, type "license" to see terms        |
+ \----------------------------------------------------------------------------/
+ Yosys 0.69+154 (git sha1 30d62572e-dirty, Release, GNU /usr/bin/x86_64-w64-mingw32-g++ 15.2.1)
+
+-- Executing script file `build/asic_evidence/arith_work/synth_3mods.ys' --
+
+1. Executing Verilog-2005 frontend: build/asic_evidence/arith_test.v
+Parsing SystemVerilog input from `build/asic_evidence/arith_test.v' to AST representation.
+Generating RTLIL representation for module `\arith_test'.
+Successfully finished Verilog frontend.
+
+2. Executing HIERARCHY pass (managing design hierarchy).
+
+2.1. Analyzing design hierarchy..
+Top module:  \arith_test
+
+2.2. Analyzing design hierarchy..
+Top module:  \arith_test
+Removed 0 unused modules.
+
+3. Executing PROC pass (convert processes to netlists).
+
+3.1. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Cleaned up 0 empty switches.
+
+3.2. Executing PROC_RMDEAD pass (remove dead branches from decision trees).
+Marked 1 switch rules as full_case in process $proc$build/asic_evidence/arith_test.v:14$6 in module arith_test.
+Removed 1 dead cases from process $proc$build/asic_evidence/arith_test.v:5$3 in module arith_test.
+Marked 1 switch rules as full_case in process $proc$build/asic_evidence/arith_test.v:5$3 in module arith_test.
+Removed a total of 1 dead cases.
+
+3.3. Executing PROC_PRUNE pass (remove redundant assignments in processes).
+Removed 0 redundant assignments.
+Promoted 1 assignment to connection.
+
+3.4. Executing PROC_INIT pass (extract init attributes).
+
+3.5. Executing PROC_ARST pass (detect async resets in processes).
+Found async reset \rst_n in `\arith_test.$proc$build/asic_evidence/arith_test.v:14$6'.
+
+3.6. Executing PROC_ROM pass (convert switches to ROMs).
+Converted 0 switches.
+<suppressed ~2 debug messages>
+
+3.7. Executing PROC_MUX pass (convert decision trees to multiplexers).
+Creating decoders for process `\arith_test.$proc$build/asic_evidence/arith_test.v:14$6'.
+     1/1: $0\y[3:0]
+Creating decoders for process `\arith_test.$proc$build/asic_evidence/arith_test.v:5$3'.
+     1/1: $1\alu[3:0]
+
+3.8. Executing PROC_DLATCH pass (convert process syncs to latches).
+No latch inferred for signal `\arith_test.\alu' from process `\arith_test.$proc$build/asic_evidence/arith_test.v:5$3'.
+
+3.9. Executing PROC_DFF pass (convert process syncs to FFs).
+Creating register for signal `\arith_test.\y' using process `\arith_test.$proc$build/asic_evidence/arith_test.v:14$6'.
+  created $adff cell `$procdff$20' with positive edge clock and positive level reset.
+
+3.10. Executing PROC_MEMWR pass (convert process memory writes to cells).
+
+3.11. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Found and cleaned up 1 empty switch in `\arith_test.$proc$build/asic_evidence/arith_test.v:14$6'.
+Removing empty process `arith_test.$proc$build/asic_evidence/arith_test.v:14$6'.
+Found and cleaned up 1 empty switch in `\arith_test.$proc$build/asic_evidence/arith_test.v:5$3'.
+Removing empty process `arith_test.$proc$build/asic_evidence/arith_test.v:5$3'.
+Cleaned up 2 empty switches.
+
+3.12. Executing OPT_EXPR pass (perform const folding).
+Optimizing module arith_test.
+<suppressed ~4 debug messages>
+
+4. Executing FLATTEN pass (flatten design).
+
+5. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \arith_test..
+Removed 2 unused cells and 11 unused wires.
+<suppressed ~3 debug messages>
+
+6. Executing Liberty frontend: build/asic_evidence/sky130_full_subset.lib
+Imported 32 cell types from liberty file.
+
+7. Executing TECHMAP pass (map to technology primitives).
+
+7.1. Executing Verilog-2005 frontend: build/asic_evidence/sky130_map.v
+Parsing Verilog input from `build/asic_evidence/sky130_map.v' to AST representation.
+Generating RTLIL representation for module `$not'.
+Generating RTLIL representation for module `$and'.
+Generating RTLIL representation for module `$or'.
+Generating RTLIL representation for module `$xor'.
+Generating RTLIL representation for module `$reduce_or'.
+Generating RTLIL representation for module `$reduce_bool'.
+Generating RTLIL representation for module `$reduce_and'.
+Generating RTLIL representation for module `$reduce_xor'.
+Generating RTLIL representation for module `$logic_and'.
+Generating RTLIL representation for module `$logic_or'.
+Generating RTLIL representation for module `$logic_not'.
+Generating RTLIL representation for module `$eq'.
+Generating RTLIL representation for module `$ne'.
+Generating RTLIL representation for module `$mux'.
+Generating RTLIL representation for module `$pmux'.
+Generating RTLIL representation for module `$dff'.
+Generating RTLIL representation for module `$adff'.
+Generating RTLIL representation for module `$add'.
+Generating RTLIL representation for module `$sub'.
+Generating RTLIL representation for module `$lt'.
+Generating RTLIL representation for module `$gt'.
+Generating RTLIL representation for module `$ge'.
+Generating RTLIL representation for module `$le'.
+Generating RTLIL representation for module `$_NOT_'.
+Generating RTLIL representation for module `$_AND_'.
+Generating RTLIL representation for module `$_NAND_'.
+Generating RTLIL representation for module `$_OR_'.
+Generating RTLIL representation for module `$_NOR_'.
+Generating RTLIL representation for module `$_XOR_'.
+Generating RTLIL representation for module `$_XNOR_'.
+Generating RTLIL representation for module `$_ANDNOT_'.
+Generating RTLIL representation for module `$_ORNOT_'.
+Generating RTLIL representation for module `$_MUX_'.
+Generating RTLIL representation for module `$_DFF_P_'.
+Generating RTLIL representation for module `$_DFF_N_'.
+Generating RTLIL representation for module `$_DFF_PN0_'.
+Generating RTLIL representation for module `$_DFF_PP0_'.
+Generating RTLIL representation for module `$_DFF_PN1_'.
+Generating RTLIL representation for module `$_DFF_PP1_'.
+Generating RTLIL representation for module `$_DFF_NN0_'.
+Generating RTLIL representation for module `$_DFF_NP0_'.
+Generating RTLIL representation for module `$_DFF_NN1_'.
+Generating RTLIL representation for module `$_DFF_NP1_'.
+Successfully finished Verilog frontend.
+
+7.2. Continuing TECHMAP pass.
+Using template $paramod$740b056ede97228d3eae64ea2fdc81f0a33e0fe7$add for cells of type $add.
+Using template $paramod$740b056ede97228d3eae64ea2fdc81f0a33e0fe7$sub for cells of type $sub.
+Using template $paramod$740b056ede97228d3eae64ea2fdc81f0a33e0fe7$and for cells of type $and.
+Using template $paramod$740b056ede97228d3eae64ea2fdc81f0a33e0fe7$or for cells of type $or.
+Using template $paramod$3198200f846c6dcece31f25fc425414977dcb699$eq for cells of type $eq.
+Using template $paramod$0376c8604a27ad05f4a3a19bc2c261cd33ca2fa4$logic_not for cells of type $logic_not.
+Using template $paramod$20d3ee62d72123142eb855d7ddafd835e31ba009$pmux for cells of type $pmux.
+Using template $paramod$mux\WIDTH=32'00000000000000000000000000000100 for cells of type $mux.
+Using template $paramod$bd0826b470cd902605bd728602c25a4cecc7145f$adff for cells of type $adff.
+Using template $paramod$2b6654071699e3cbb2a51b9d5305141962875f1b$logic_not for cells of type $logic_not.
+No more expansions possible.
+<suppressed ~203 debug messages>
+
+8. Executing HIERARCHY pass (managing design hierarchy).
+Attribute `top' found on module `arith_test'. Setting top module to arith_test.
+
+8.1. Analyzing design hierarchy..
+Top module:  \arith_test
+
+8.2. Analyzing design hierarchy..
+Top module:  \arith_test
+Removed 0 unused modules.
+
+9. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \arith_test..
+Removed 6 unused cells and 87 unused wires.
+<suppressed ~7 debug messages>
+
+10. Executing CHECK pass (checking for obvious problems).
+Checking module arith_test...
+Found and reported 0 problems.
+Renaming module \arith_test to \arith_test_mapped.
+
+11. Printing statistics.
+
+=== arith_test_mapped ===
+
+        +----------Local Count, excluding submodules.
+        | 
+       56 wires
+      119 wire bits
+       11 public wires
+       30 public wire bits
+        8 ports
+       18 port bits
+       93 cells
+       16   sky130_fd_sc_hd__and2_1
+        4   sky130_fd_sc_hd__dfrtp_1
+        9   sky130_fd_sc_hd__inv_1
+       20   sky130_fd_sc_hd__mux2_1
+       22   sky130_fd_sc_hd__or2_1
+       22   sky130_fd_sc_hd__xor2_1
+
+12. Executing Verilog backend.
+
+12.1. Executing BMUXMAP pass.
+
+12.2. Executing DEMUXMAP pass.
+Dumping module `\arith_test_mapped'.
+
+13. Executing Verilog-2005 frontend: rtl/rtl_top/reset_ctrl.sv
+Parsing SystemVerilog input from `rtl/rtl_top/reset_ctrl.sv' to AST representation.
+Generating RTLIL representation for module `\reset_ctrl'.
+Successfully finished Verilog frontend.
+
+14. Executing HIERARCHY pass (managing design hierarchy).
+
+14.1. Analyzing design hierarchy..
+Top module:  \reset_ctrl
+
+14.2. Analyzing design hierarchy..
+Top module:  \reset_ctrl
+Removed 0 unused modules.
+
+15. Executing PROC pass (convert processes to netlists).
+
+15.1. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Cleaned up 0 empty switches.
+
+15.2. Executing PROC_RMDEAD pass (remove dead branches from decision trees).
+Marked 3 switch rules as full_case in process $proc$rtl/rtl_top/reset_ctrl.sv:36$21 in module reset_ctrl.
+Removed a total of 0 dead cases.
+
+15.3. Executing PROC_PRUNE pass (remove redundant assignments in processes).
+Removed 0 redundant assignments.
+Promoted 0 assignments to connections.
+
+15.4. Executing PROC_INIT pass (extract init attributes).
+
+15.5. Executing PROC_ARST pass (detect async resets in processes).
+Found async reset \reset_n in `\reset_ctrl.$proc$rtl/rtl_top/reset_ctrl.sv:36$21'.
+
+15.6. Executing PROC_ROM pass (convert switches to ROMs).
+Converted 0 switches.
+<suppressed ~3 debug messages>
+
+15.7. Executing PROC_MUX pass (convert decision trees to multiplexers).
+Creating decoders for process `\reset_ctrl.$proc$rtl/rtl_top/reset_ctrl.sv:36$21'.
+     1/2: $0\cnt[7:0]
+     2/2: $0\active[0:0]
+
+15.8. Executing PROC_DLATCH pass (convert process syncs to latches).
+
+15.9. Executing PROC_DFF pass (convert process syncs to FFs).
+Creating register for signal `\reset_ctrl.\active' using process `\reset_ctrl.$proc$rtl/rtl_top/reset_ctrl.sv:36$21'.
+  created $adff cell `$procdff$49' with positive edge clock and positive level reset.
+Creating register for signal `\reset_ctrl.\cnt' using process `\reset_ctrl.$proc$rtl/rtl_top/reset_ctrl.sv:36$21'.
+  created $adff cell `$procdff$54' with positive edge clock and positive level reset.
+
+15.10. Executing PROC_MEMWR pass (convert process memory writes to cells).
+
+15.11. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Found and cleaned up 3 empty switches in `\reset_ctrl.$proc$rtl/rtl_top/reset_ctrl.sv:36$21'.
+Removing empty process `reset_ctrl.$proc$rtl/rtl_top/reset_ctrl.sv:36$21'.
+Cleaned up 3 empty switches.
+
+15.12. Executing OPT_EXPR pass (perform const folding).
+Optimizing module reset_ctrl.
+<suppressed ~7 debug messages>
+
+16. Executing FLATTEN pass (flatten design).
+
+17. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \reset_ctrl..
+Removed 4 unused cells and 16 unused wires.
+<suppressed ~5 debug messages>
+
+18. Executing Liberty frontend: build/asic_evidence/sky130_full_subset.lib
+Imported 32 cell types from liberty file.
+
+19. Executing TECHMAP pass (map to technology primitives).
+
+19.1. Executing Verilog-2005 frontend: build/asic_evidence/sky130_map.v
+Parsing Verilog input from `build/asic_evidence/sky130_map.v' to AST representation.
+Generating RTLIL representation for module `$not'.
+Generating RTLIL representation for module `$and'.
+Generating RTLIL representation for module `$or'.
+Generating RTLIL representation for module `$xor'.
+Generating RTLIL representation for module `$reduce_or'.
+Generating RTLIL representation for module `$reduce_bool'.
+Generating RTLIL representation for module `$reduce_and'.
+Generating RTLIL representation for module `$reduce_xor'.
+Generating RTLIL representation for module `$logic_and'.
+Generating RTLIL representation for module `$logic_or'.
+Generating RTLIL representation for module `$logic_not'.
+Generating RTLIL representation for module `$eq'.
+Generating RTLIL representation for module `$ne'.
+Generating RTLIL representation for module `$mux'.
+Generating RTLIL representation for module `$pmux'.
+Generating RTLIL representation for module `$dff'.
+Generating RTLIL representation for module `$adff'.
+Generating RTLIL representation for module `$add'.
+Generating RTLIL representation for module `$sub'.
+Generating RTLIL representation for module `$lt'.
+Generating RTLIL representation for module `$gt'.
+Generating RTLIL representation for module `$ge'.
+Generating RTLIL representation for module `$le'.
+Generating RTLIL representation for module `$_NOT_'.
+Generating RTLIL representation for module `$_AND_'.
+Generating RTLIL representation for module `$_NAND_'.
+Generating RTLIL representation for module `$_OR_'.
+Generating RTLIL representation for module `$_NOR_'.
+Generating RTLIL representation for module `$_XOR_'.
+Generating RTLIL representation for module `$_XNOR_'.
+Generating RTLIL representation for module `$_ANDNOT_'.
+Generating RTLIL representation for module `$_ORNOT_'.
+Generating RTLIL representation for module `$_MUX_'.
+Generating RTLIL representation for module `$_DFF_P_'.
+Generating RTLIL representation for module `$_DFF_N_'.
+Generating RTLIL representation for module `$_DFF_PN0_'.
+Generating RTLIL representation for module `$_DFF_PP0_'.
+Generating RTLIL representation for module `$_DFF_PN1_'.
+Generating RTLIL representation for module `$_DFF_PP1_'.
+Generating RTLIL representation for module `$_DFF_NN0_'.
+Generating RTLIL representation for module `$_DFF_NP0_'.
+Generating RTLIL representation for module `$_DFF_NN1_'.
+Generating RTLIL representation for module `$_DFF_NP1_'.
+Successfully finished Verilog frontend.
+
+19.2. Continuing TECHMAP pass.
+Using template $paramod$mux\WIDTH=32'00000000000000000000000000000001 for cells of type $mux.
+Using template $paramod$794c0bd98b15cc3bd3c4a6443b98e6168c5f739e$logic_not for cells of type $logic_not.
+Using template $paramod$962e27c44b17bd05322c97c83c1ab6a4e9c39873$adff for cells of type $adff.
+Using template $paramod$mux\WIDTH=32'00000000000000000000000000001000 for cells of type $mux.
+Using template $paramod$a1bc51c02ce12ac21eb18988e83292af48ed7d72$sub for cells of type $sub.
+Using template $paramod$9ce242455975a7b100259795bfb3e5a1eb7fbfb0$adff for cells of type $adff.
+Using template $paramod$fe2472242c070f3b22e97f6c8c19c3569e575d97$not for cells of type $not.
+Using template $paramod$fc972a7a46956c1788f3cb5257b53c8f1df2d0cc$and for cells of type $and.
+No more expansions possible.
+<suppressed ~166 debug messages>
+
+20. Executing HIERARCHY pass (managing design hierarchy).
+Attribute `top' found on module `reset_ctrl'. Setting top module to reset_ctrl.
+
+20.1. Analyzing design hierarchy..
+Top module:  \reset_ctrl
+
+20.2. Analyzing design hierarchy..
+Top module:  \reset_ctrl
+Removed 0 unused modules.
+
+21. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \reset_ctrl..
+Removed 3 unused cells and 70 unused wires.
+<suppressed ~4 debug messages>
+
+22. Executing CHECK pass (checking for obvious problems).
+Checking module reset_ctrl...
+Found and reported 0 problems.
+Renaming module \reset_ctrl to \reset_ctrl_mapped.
+
+23. Printing statistics.
+
+=== reset_ctrl_mapped ===
+
+        +----------Local Count, excluding submodules.
+        | 
+       48 wires
+       99 wire bits
+        7 public wires
+       14 public wire bits
+        5 ports
+        5 port bits
+       93 cells
+       15   sky130_fd_sc_hd__and2_1
+        9   sky130_fd_sc_hd__dfrtp_1
+       11   sky130_fd_sc_hd__inv_1
+       27   sky130_fd_sc_hd__mux2_1
+       15   sky130_fd_sc_hd__or2_1
+       16   sky130_fd_sc_hd__xor2_1
+
+24. Executing Verilog backend.
+
+24.1. Executing BMUXMAP pass.
+
+24.2. Executing DEMUXMAP pass.
+Dumping module `\reset_ctrl_mapped'.
+
+25. Executing Verilog-2005 frontend: rtl/rtl_peripherals/watchdog.sv
+Parsing SystemVerilog input from `rtl/rtl_peripherals/watchdog.sv' to AST representation.
+Generating RTLIL representation for module `\watchdog'.
+Successfully finished Verilog frontend.
+
+26. Executing HIERARCHY pass (managing design hierarchy).
+
+26.1. Analyzing design hierarchy..
+Top module:  \watchdog
+
+26.2. Analyzing design hierarchy..
+Top module:  \watchdog
+Removed 0 unused modules.
+
+27. Executing PROC pass (convert processes to netlists).
+
+27.1. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Cleaned up 0 empty switches.
+
+27.2. Executing PROC_RMDEAD pass (remove dead branches from decision trees).
+Marked 1 switch rules as full_case in process $proc$rtl/rtl_peripherals/watchdog.sv:78$74 in module watchdog.
+Marked 2 switch rules as full_case in process $proc$rtl/rtl_peripherals/watchdog.sv:42$61 in module watchdog.
+Removed a total of 0 dead cases.
+
+27.3. Executing PROC_PRUNE pass (remove redundant assignments in processes).
+Removed 0 redundant assignments.
+Promoted 1 assignment to connection.
+
+27.4. Executing PROC_INIT pass (extract init attributes).
+
+27.5. Executing PROC_ARST pass (detect async resets in processes).
+Found async reset \presetn in `\watchdog.$proc$rtl/rtl_peripherals/watchdog.sv:42$61'.
+
+27.6. Executing PROC_ROM pass (convert switches to ROMs).
+Converted 0 switches.
+<suppressed ~8 debug messages>
+
+27.7. Executing PROC_MUX pass (convert decision trees to multiplexers).
+Creating decoders for process `\watchdog.$proc$rtl/rtl_peripherals/watchdog.sv:78$74'.
+     1/1: $1\prdata[31:0]
+Creating decoders for process `\watchdog.$proc$rtl/rtl_peripherals/watchdog.sv:42$61'.
+     1/6: $0\load[31:0]
+     2/6: $0\count[31:0]
+     3/6: $0\enable[0:0]
+     4/6: $0\reset_en[0:0]
+     5/6: $0\expired[0:0]
+     6/6: $0\locked[0:0]
+
+27.8. Executing PROC_DLATCH pass (convert process syncs to latches).
+No latch inferred for signal `\watchdog.\prdata' from process `\watchdog.$proc$rtl/rtl_peripherals/watchdog.sv:78$74'.
+
+27.9. Executing PROC_DFF pass (convert process syncs to FFs).
+Creating register for signal `\watchdog.\locked' using process `\watchdog.$proc$rtl/rtl_peripherals/watchdog.sv:42$61'.
+  created $adff cell `$procdff$137' with positive edge clock and positive level reset.
+Creating register for signal `\watchdog.\expired' using process `\watchdog.$proc$rtl/rtl_peripherals/watchdog.sv:42$61'.
+  created $adff cell `$procdff$142' with positive edge clock and positive level reset.
+Creating register for signal `\watchdog.\reset_en' using process `\watchdog.$proc$rtl/rtl_peripherals/watchdog.sv:42$61'.
+  created $adff cell `$procdff$147' with positive edge clock and positive level reset.
+Creating register for signal `\watchdog.\enable' using process `\watchdog.$proc$rtl/rtl_peripherals/watchdog.sv:42$61'.
+  created $adff cell `$procdff$152' with positive edge clock and positive level reset.
+Creating register for signal `\watchdog.\count' using process `\watchdog.$proc$rtl/rtl_peripherals/watchdog.sv:42$61'.
+  created $adff cell `$procdff$157' with positive edge clock and positive level reset.
+Creating register for signal `\watchdog.\load' using process `\watchdog.$proc$rtl/rtl_peripherals/watchdog.sv:42$61'.
+  created $adff cell `$procdff$162' with positive edge clock and positive level reset.
+
+27.10. Executing PROC_MEMWR pass (convert process memory writes to cells).
+
+27.11. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Found and cleaned up 1 empty switch in `\watchdog.$proc$rtl/rtl_peripherals/watchdog.sv:78$74'.
+Removing empty process `watchdog.$proc$rtl/rtl_peripherals/watchdog.sv:78$74'.
+Found and cleaned up 7 empty switches in `\watchdog.$proc$rtl/rtl_peripherals/watchdog.sv:42$61'.
+Removing empty process `watchdog.$proc$rtl/rtl_peripherals/watchdog.sv:42$61'.
+Cleaned up 8 empty switches.
+
+27.12. Executing OPT_EXPR pass (perform const folding).
+Optimizing module watchdog.
+<suppressed ~21 debug messages>
+
+28. Executing FLATTEN pass (flatten design).
+
+29. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \watchdog..
+Removed 8 unused cells and 40 unused wires.
+<suppressed ~9 debug messages>
+
+30. Executing Liberty frontend: build/asic_evidence/sky130_full_subset.lib
+Imported 32 cell types from liberty file.
+
+31. Executing TECHMAP pass (map to technology primitives).
+
+31.1. Executing Verilog-2005 frontend: build/asic_evidence/sky130_map.v
+Parsing Verilog input from `build/asic_evidence/sky130_map.v' to AST representation.
+Generating RTLIL representation for module `$not'.
+Generating RTLIL representation for module `$and'.
+Generating RTLIL representation for module `$or'.
+Generating RTLIL representation for module `$xor'.
+Generating RTLIL representation for module `$reduce_or'.
+Generating RTLIL representation for module `$reduce_bool'.
+Generating RTLIL representation for module `$reduce_and'.
+Generating RTLIL representation for module `$reduce_xor'.
+Generating RTLIL representation for module `$logic_and'.
+Generating RTLIL representation for module `$logic_or'.
+Generating RTLIL representation for module `$logic_not'.
+Generating RTLIL representation for module `$eq'.
+Generating RTLIL representation for module `$ne'.
+Generating RTLIL representation for module `$mux'.
+Generating RTLIL representation for module `$pmux'.
+Generating RTLIL representation for module `$dff'.
+Generating RTLIL representation for module `$adff'.
+Generating RTLIL representation for module `$add'.
+Generating RTLIL representation for module `$sub'.
+Generating RTLIL representation for module `$lt'.
+Generating RTLIL representation for module `$gt'.
+Generating RTLIL representation for module `$ge'.
+Generating RTLIL representation for module `$le'.
+Generating RTLIL representation for module `$_NOT_'.
+Generating RTLIL representation for module `$_AND_'.
+Generating RTLIL representation for module `$_NAND_'.
+Generating RTLIL representation for module `$_OR_'.
+Generating RTLIL representation for module `$_NOR_'.
+Generating RTLIL representation for module `$_XOR_'.
+Generating RTLIL representation for module `$_XNOR_'.
+Generating RTLIL representation for module `$_ANDNOT_'.
+Generating RTLIL representation for module `$_ORNOT_'.
+Generating RTLIL representation for module `$_MUX_'.
+Generating RTLIL representation for module `$_DFF_P_'.
+Generating RTLIL representation for module `$_DFF_N_'.
+Generating RTLIL representation for module `$_DFF_PN0_'.
+Generating RTLIL representation for module `$_DFF_PP0_'.
+Generating RTLIL representation for module `$_DFF_PN1_'.
+Generating RTLIL representation for module `$_DFF_PP1_'.
+Generating RTLIL representation for module `$_DFF_NN0_'.
+Generating RTLIL representation for module `$_DFF_NP0_'.
+Generating RTLIL representation for module `$_DFF_NN1_'.
+Generating RTLIL representation for module `$_DFF_NP1_'.
+Successfully finished Verilog frontend.
+
+31.2. Continuing TECHMAP pass.
+Using template $paramod$eec9d408d2df934b18b2ce837938d941e199fe33$logic_not for cells of type $logic_not.
+Using template $paramod$mux\WIDTH=32'00000000000000000000000000100000 for cells of type $mux.
+Using template $paramod$fc972a7a46956c1788f3cb5257b53c8f1df2d0cc$logic_and for cells of type $logic_and.
+Using template $paramod$c418587a7fd29f7a285b3a42b7f90b811707d00c$adff for cells of type $adff.
+Using template $paramod$a7c6771dfc0f33e62db8b0fd69a83d761f8349a6$eq for cells of type $eq.
+Using template $paramod$6df9461acb0f358960a2bd74832610cf2835c090$eq for cells of type $eq.
+Using template $paramod$mux\WIDTH=32'00000000000000000000000000000001 for cells of type $mux.
+Using template $paramod$962e27c44b17bd05322c97c83c1ab6a4e9c39873$adff for cells of type $adff.
+Using template $paramod$8fabc56b80a569262acfc42757a02ca0b8e91278$pmux for cells of type $pmux.
+Using template $paramod$fbc7873bff55778c0b3173955b7e4bce1d9d6834$sub for cells of type $sub.
+Using template $paramod$7b82b845ca947ba5097cdf7893106c9caa6eef29$logic_not for cells of type $logic_not.
+Using template $paramod$fc972a7a46956c1788f3cb5257b53c8f1df2d0cc$logic_or for cells of type $logic_or.
+Using template $paramod$fe2472242c070f3b22e97f6c8c19c3569e575d97$logic_not for cells of type $logic_not.
+Using template $paramod$b098bc6f249c0ac91c4d6e19d54b23c285914115$pmux for cells of type $pmux.
+Using template $paramod$fe2472242c070f3b22e97f6c8c19c3569e575d97$not for cells of type $not.
+No more expansions possible.
+<suppressed ~307 debug messages>
+
+32. Executing HIERARCHY pass (managing design hierarchy).
+Attribute `top' found on module `watchdog'. Setting top module to watchdog.
+
+32.1. Analyzing design hierarchy..
+Top module:  \watchdog
+
+32.2. Analyzing design hierarchy..
+Top module:  \watchdog
+Removed 0 unused modules.
+
+33. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \watchdog..
+Removed 3 unused cells and 488 unused wires.
+<suppressed ~4 debug messages>
+
+34. Executing CHECK pass (checking for obvious problems).
+Checking module watchdog...
+Found and reported 0 problems.
+Renaming module \watchdog to \watchdog_mapped.
+
+35. Printing statistics.
+
+=== watchdog_mapped ===
+
+        +----------Local Count, excluding submodules.
+        | 
+      297 wires
+     1178 wire bits
+       19 public wires
+      177 public wire bits
+       12 ports
+      108 port bits
+     1036 cells
+       69   sky130_fd_sc_hd__and2_1
+       68   sky130_fd_sc_hd__dfrtp_1
+       50   sky130_fd_sc_hd__inv_1
+      429   sky130_fd_sc_hd__mux2_1
+      244   sky130_fd_sc_hd__or2_1
+      176   sky130_fd_sc_hd__xor2_1
+
+36. Executing Verilog backend.
+
+36.1. Executing BMUXMAP pass.
+
+36.2. Executing DEMUXMAP pass.
+Dumping module `\watchdog_mapped'.
+
+End of script. Logfile hash: a772c38245
+Yosys 0.69+154 (git sha1 30d62572e-dirty, Release, GNU /usr/bin/x86_64-w64-mingw32-g++ 15.2.1)
+Time spent: 3% 9x read_verilog (0 sec), 3% 6x write_verilog (0 sec), ...

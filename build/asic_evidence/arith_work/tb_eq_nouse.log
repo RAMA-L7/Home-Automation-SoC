@@ -1,0 +1,5 @@
+FATAL: tb_equiv requires -DUSE_MAPPED (mapped netlist).
+       Refusing to compare the RTL against itself.
+FATAL: tb_equiv.v:55: 
+       Time: 0  Scope: tb_equiv
+=== RTL vs Sky130-mapped arith_test ===

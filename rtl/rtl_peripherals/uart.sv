@@ -63,9 +63,10 @@ module uart #(
   wire [15:0] div_eff = (div == 16'd0) ? 16'd1 : div;
   wire bit_tick = (div_cnt == 16'd0);
 
+  // `div` is driven only by the APB register block below; a second driver here
+  // made synthesis report conflicting drivers for uart.div[*].
   always_ff @(posedge pclk or negedge presetn) begin
     if (!presetn) begin
-      div     <= 16'(RESET_DIV);
       div_cnt <= 16'd0;
     end else begin
       if (div_cnt == 16'd0) div_cnt <= div_eff - 16'd1;
@@ -258,6 +259,7 @@ module uart #(
   //--------------------------------------------------------------------------
   always_ff @(posedge pclk or negedge presetn) begin
     if (!presetn) begin
+      div <= 16'(RESET_DIV);
       ier <= 8'd0; lcr <= 8'd0; mcr <= 8'd0; spr <= 8'd0;
       fcr <= 8'd0; dlab <= 1'b0;
     end else if (penable && pwrite) begin

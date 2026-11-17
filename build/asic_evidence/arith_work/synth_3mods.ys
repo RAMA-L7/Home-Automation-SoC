@@ -1,25 +1,56 @@
-read_liberty D:/Home-Automation-SoC/build/asic_evidence/sky130_full_subset.lib
-read_verilog -sv D:/Home-Automation-SoC/build/asic_evidence/arith_test.v
-hierarchy
+# 3-module Sky130 techmap validation.
+# Run from the repository root:
+#   yosys -s build/asic_evidence/arith_work/synth_3mods.ys
+#
+# Ordering note: the Liberty library is read with `-lib` (blackbox models) and
+# AFTER elaboration. Reading it before `hierarchy -top` makes Yosys purge the
+# unused cell modules, which then leaves the techmap instances pointing at
+# missing modules (that produced the earlier "used but has no driver" warnings).
+
+# ------------------------------- arith_test --------------------------------
+read_verilog -sv build/asic_evidence/arith_test.v
+hierarchy -check -top arith_test
 proc
 flatten
-techmap -map D:/Home-Automation-SoC/build/asic_evidence/sky130_map.v
-check
+opt_clean
+read_liberty -lib build/asic_evidence/sky130_full_subset.lib
+techmap -map build/asic_evidence/sky130_map.v
+hierarchy -check
+opt_clean
+check -assert
+rename arith_test arith_test_mapped
 stat
-write_verilog D:/Home-Automation-SoC/build/asic_evidence/arith_work/arith_test_full_mapped.v
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/reset_ctrl.sv
+write_verilog -noattr build/asic_evidence/arith_work/arith_test_mapped.v
+design -reset
+
+# ------------------------------- reset_ctrl --------------------------------
+read_verilog -sv rtl/rtl_top/reset_ctrl.sv
 hierarchy -check -top reset_ctrl
 proc
 flatten
-techmap -map D:/Home-Automation-SoC/build/asic_evidence/sky130_map.v
-check
+opt_clean
+read_liberty -lib build/asic_evidence/sky130_full_subset.lib
+techmap -map build/asic_evidence/sky130_map.v
+hierarchy -check
+opt_clean
+check -assert
+rename reset_ctrl reset_ctrl_mapped
 stat
-write_verilog D:/Home-Automation-SoC/build/asic_evidence/arith_work/reset_ctrl_mapped.v
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv
+write_verilog -noattr build/asic_evidence/arith_work/reset_ctrl_mapped.v
+design -reset
+
+# -------------------------------- watchdog ---------------------------------
+read_verilog -sv rtl/rtl_peripherals/watchdog.sv
 hierarchy -check -top watchdog
 proc
 flatten
-techmap -map D:/Home-Automation-SoC/build/asic_evidence/sky130_map.v
-check
+opt_clean
+read_liberty -lib build/asic_evidence/sky130_full_subset.lib
+techmap -map build/asic_evidence/sky130_map.v
+hierarchy -check
+opt_clean
+check -assert
+rename watchdog watchdog_mapped
 stat
-write_verilog D:/Home-Automation-SoC/build/asic_evidence/arith_work/watchdog_mapped.v
+write_verilog -noattr build/asic_evidence/arith_work/watchdog_mapped.v
+design -reset

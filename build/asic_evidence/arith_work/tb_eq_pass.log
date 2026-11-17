@@ -1,0 +1,3 @@
+=== RTL vs Sky130-mapped arith_test ===
+PASS: 1028 checks, RTL and mapped netlist agree
+tb_equiv.v:105: $finish called at 2060000 (1ps)

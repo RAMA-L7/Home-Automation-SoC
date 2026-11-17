@@ -1,0 +1,15 @@
+read_verilog -sv build/asic_evidence/arith_work/ops_test.v
+hierarchy -check -top ops_test
+proc
+flatten
+opt_clean
+read_liberty -lib build/asic_evidence/sky130_full_subset.lib
+techmap -map +/techmap.v
+techmap -map build/asic_evidence/sky130_map.v
+techmap -map build/asic_evidence/sky130_map.v
+hierarchy -check
+opt_clean
+check -assert
+rename ops_test ops_test_mapped
+stat
+write_verilog -noattr build/asic_evidence/arith_work/ops_test_mapped.v

@@ -1,46 +1,51 @@
+# Full-SoC Sky130 techmap attempt (repository-relative paths).
+# Run from the repository root:
+#   yosys -s build/asic_evidence/arith_work/synth_soc.ys
+#
+# `flatten` is intentionally NOT used: the behavioural SRAM models expand to
+# ~65k flops + ~131k muxes for the 256 KB SRAM and the run dies with
+# std::bad_alloc.  That is a memory-model size problem, not a mapping gap.
+# Without flatten the per-module cell counts are still produced.
 
-
-
-
-read_liberty D:/Home-Automation-SoC/build/asic_evidence/sky130_full_subset.lib
-
-
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/reset_ctrl.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/axi_lite_interconnect.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/axi_lite_to_apb.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/boot_rom.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/has_addr_map.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/intc_axi.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/req_gnt_to_axi_lite.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/watchdog.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/plic.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/clint.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/debug_jtag.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/power_mgr.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/i2c_ctrl.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/spi_ctrl.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/power_mgr_regs.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/i2s.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/gpio.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/timer.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/pwm.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/uart.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_peripherals/qspi_flash_ctrl.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/riscv_core.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/sram.sv
-read_verilog -sv D:/Home-Automation-SoC/rtl/rtl_top/has_soc.sv
-
+read_verilog -sv rtl/rtl_top/reset_ctrl.sv
+read_verilog -sv rtl/rtl_top/axi_lite_interconnect.sv
+read_verilog -sv rtl/rtl_top/axi_lite_to_apb.sv
+read_verilog -sv rtl/rtl_top/boot_rom.sv
+read_verilog -sv rtl/rtl_top/has_addr_map.sv
+read_verilog -sv rtl/rtl_top/intc_axi.sv
+read_verilog -sv rtl/rtl_top/req_gnt_to_axi_lite.sv
+read_verilog -sv rtl/rtl_peripherals/watchdog.sv
+read_verilog -sv rtl/rtl_peripherals/plic.sv
+read_verilog -sv rtl/rtl_peripherals/clint.sv
+read_verilog -sv rtl/rtl_peripherals/debug_jtag.sv
+read_verilog -sv rtl/rtl_peripherals/power_mgr.sv
+read_verilog -sv rtl/rtl_peripherals/i2c_ctrl.sv
+read_verilog -sv rtl/rtl_peripherals/spi_ctrl.sv
+read_verilog -sv rtl/rtl_peripherals/power_mgr_regs.sv
+read_verilog -sv rtl/rtl_peripherals/i2s.sv
+read_verilog -sv rtl/rtl_peripherals/gpio.sv
+read_verilog -sv rtl/rtl_peripherals/timer.sv
+read_verilog -sv rtl/rtl_peripherals/pwm.sv
+read_verilog -sv rtl/rtl_peripherals/uart.sv
+read_verilog -sv rtl/rtl_peripherals/qspi_flash_ctrl.sv
+read_verilog -sv rtl/rtl_top/riscv_core.sv
+read_verilog -sv rtl/rtl_top/sram.sv
+read_verilog -sv rtl/rtl_top/has_soc.sv
 
 hierarchy -check -top has_soc
 
-
 proc
+memory_collect
+opt_clean
 
+read_liberty -lib build/asic_evidence/sky130_full_subset.lib
+# Standard Yosys expansion first (mul/div/mod/shift/neg -> add/sub/gates),
+# then the Sky130 cell map for the resulting simple cells.
+techmap -map +/techmap.v
+techmap -map build/asic_evidence/sky130_map.v
+techmap -map build/asic_evidence/sky130_map.v
+hierarchy -check
+opt_clean
 
-memory
-
-
-
-techmap -map D:/Home-Automation-SoC/build/asic_evidence/sky130_map.v
 check
 stat

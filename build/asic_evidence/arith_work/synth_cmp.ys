@@ -1,0 +1,13 @@
+read_verilog -sv build/asic_evidence/arith_work/cmp_test.v
+hierarchy -check -top cmp_test
+proc
+flatten
+opt_clean
+read_liberty -lib build/asic_evidence/sky130_full_subset.lib
+techmap -map build/asic_evidence/sky130_map.v
+hierarchy -check
+opt_clean
+check -assert
+rename cmp_test cmp_test_mapped
+stat
+write_verilog -noattr build/asic_evidence/arith_work/cmp_test_mapped.v

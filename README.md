@@ -443,16 +443,19 @@ Achievements below are verified against committed evidence in this tree (see `TA
 ### Firmware end-to-end (verified)
 - Firmware build (assembly + linker scripts in `sim/asm/`) and the full-SoC simulation harness (`sim/sim_top/`) are present and run cleanly; the firmware reaches the OS boot stage under simulation.
 
-### Sky130 techmap — implemented, equivalence-tested (for a 3-module subset)
-- **Techmap `build/asic_evidence/sky130_map.v` rewritten** to use the correct Liberty port names from `build/asic_evidence/sky130_full_subset.lib` (inv_1: A/Y; and2_1: A/B/Y; or2_1: A/B/X; xor2_1: A/B/X; nor2_1: A/B/Y; nor3_1: A/B/C/Y; nor4_1: A/B/C/D/Y; mux2_1: A0/A1/S/X; dfrtp_1/2/4: CLK/D/Q/RESET_B; dfxtp_1/2/4: CLK/D/Q; dfrbp_1/2: CLK/D/Q/Q_N/RESET_B) and to add `$logic_and`/`$logic_or` conversion rules.
-- **Verified 32-cell Sky130 subset** (`sky130_full_subset.lib`) committed as the source of truth for port names.
-- **Equivalence test (`build/asic_evidence/arith_work/`):** `tb_equiv.v` drives 24 patterns against both the RTL and the techmapped netlist; both Icarus simulations are silent → PASS. The mapped netlist is the Yosys output of `arith_test_mapped_rename.v` after `sky130_map.v` rules.
-- **3-module cell counts (definitive, from `build/asic_evidence/arith_work/synths3_final.txt`):**
-  - `arith_test` — 42 Sky130 cells (and2_1×4, or2_1×4, xor2_1×6, nor2_1×4, nor4_1×1, mux2_1×20, dfrtp_4×1, inv_1×2) + `$add`×1 + `$sub`×1
-  - `reset_ctrl` — 43 Sky130 cells (and2_1×1, inv_1×6, mux2_1×27, dfrtp_1×9) + `$sub`×1
-  - `watchdog` — 628 Sky130 cells (and2_1×7, dfrtp_1×68, inv_1×11, mux2_1×429, or2_1×1, xor2_1×112) + `$sub`×1
-  - Watchdog improved 9→1 unmapped cell after the `$logic_and`/`$logic_or` rules (8 of 9 converted: 7× `$logic_and`→`and2_1` + 1× `$logic_or`→`or2_1`).
-- **Full-SoC techmap — hierarchy clean, techmap OOMs on flatten:** hierarchy resolution produces zero ERROR lines and all modules resolve; the techmap itself fails with `std::bad_alloc` during `flatten` because the behavioral SRAM models explode to flops+mux (256KB SRAM → 65536 `$dff` + 131070 `$mux`; TCM → 8192 `$dff` + 16382 `$mux`). This is a model-size/resource issue, not a techmap coverage gap.
+### Sky130 techmap — corrected, complete for standard cells, equivalence-tested
+- **`build/asic_evidence/sky130_map.v` rewritten against the library.** All pins now match `sky130_full_subset.lib`: and/or/xor/buf/mux output is `X`, nand/nor/inv output is `Y`, flops take `RESET_B`/`SET_B`.
+- **Sequential cells are scalar.** `_1`/`_2`/`_4` is drive strength, not width. The 4-bit `arith_test.y` register is 4 × `dfrtp_1`; the previous version mapped it onto one scalar `dfrtp_4`, leaving three bits undriven.
+- **Correct cell semantics:** `$dff` has no reset (→ `dfxtp_1`); `$adff` honours `ARST_VALUE` (0 → `dfrtp_1`, 1 → `dfstp_1`); negedge registers use a posedge cell on the inverted clock; `$logic_and`/`$logic_or` reduce wide operands before the gate; `$eq`/`$ne`/`$lt`/`$le`/`$gt`/`$ge`/`$logic_not`/`$not` handle widths correctly.
+- **`$add`/`$sub` are decomposed into gates** (xor2/and2/or2 ripple-carry). No adder cell is required, so arithmetic is no longer an unmapped blocker.
+- **3-module cell counts (flat, `check -assert` 0 problems, no generic cells):**
+  - `arith_test` — **93** cells (and2_1×16, dfrtp_1×4, inv_1×9, mux2_1×20, or2_1×22, xor2_1×22)
+  - `reset_ctrl` — **93** cells (and2_1×15, dfrtp_1×9, inv_1×11, mux2_1×27, or2_1×15, xor2_1×16)
+  - `watchdog` — **1036** cells (and2_1×69, dfrtp_1×68, inv_1×50, mux2_1×429, or2_1×244, xor2_1×176)
+- **Equivalence (`tb_equiv.v`):** 1028 checks PASS with `-DUSE_MAPPED` (exit 0); a build without `USE_MAPPED` fails (exit 1); a deliberately corrupted netlist fails (exit 1). Previously the test compared RTL against RTL and used `$finish`, so it could not fail.
+- **Expansion proofs:** `$mul`/`$div`/`$mod`/`$neg`/shifts → 65536 exhaustive checks pass; signed+unsigned comparators → 256 exhaustive checks pass.
+- **Full SoC maps cleanly:** `check` reports **0 problems** and 0 conflicting drivers; the only unmapped leaf cells are the three `$mem_v2` memories. `flatten` is still avoided (behavioural SRAM expands to ~65k flops + ~131k muxes). Cell counts are **pre-ABC and not PPA** — `riscv_core` alone is ~218k cells because 64-bit mul/div expand into gates.
+- **Functional fixes:** I²C now transmits the write data byte and releases SDA for the read NACK (slave-model testbench passes; the old RTL fails with "DATA byte was not transmitted"); `uart.div` no longer has two drivers.
 
 ### ASIC synthesis report
 - `build/log/ASIC_SYNTH_REPORT.md` is the updated synthesis report covering the Sky130 evidence tree and the 3-module + full-SoC synthesis runs.
@@ -470,21 +473,23 @@ All EDA tools for this project live under `D:\tools` (WSL: `/mnt/d/tools`); the 
 | PLL clock source                          | No sky130-qualified open PLL IP             | External clock generator (Si5351) recommended                           |
 | No KiCad project files                    | PCB limited to documentation + BOM prose    | KiCad 10.0.8 is installed; schematic/layout still to be drawn           |
 | No `python` (only the Windows Store stub) | `scripts/fw_build/build_fw.py` cannot run   | Use `build_fw.js`, or `D:\tools\venv\Scripts\python.exe`                |
-| Full-chip Yosys synthesis blocked         | No full-SoC cell/area/timing figure exists  | Yosys cannot parse the unpacked array ports at `rtl/rtl_top/axi_lite_interconnect.sv:57`; rewrite them as packed 2-D arrays or a flattened port list (pre-existing since 2026-11-11, not a regression) |
-| No Sky130 RAM macro ≥ 64 KB               | TD-006 (full-SoC TCM/RAM mapping) blocked   | Sky130 has no 64KB+ RAM macro in the verified subset; TBC               |
-| `$add`/`$sub`/`$alu` unmapped             | Arithmetic ops stay as behavioral cells     | No Sky130 adder/subtractor in the verified 32-cell subset; needs a wider Liberty set or a manual map                     |
+| No Sky130 RAM macro ≥ 64 KB               | TD-006 (full-SoC TCM/RAM mapping) blocked   | Sky130 has no 64KB+ RAM macro in the verified subset; the boot ROM and both SRAMs remain `$mem_v2` |
 | `$sr` unmapped                             | SR-latch behavioral cells stay unmapped     | No Sky130 SR-latch cell in the verified subset                          |
-| Yosys ABC `-liberty` broken in this build | No technology-mapped area/timing via ABC    | Yosys `0.69+154` (sha `30d62572e-dirty`) reports ABC `-liberty` failures; workaround or Yosys rebuild needed            |
+| Yosys ABC `-liberty` broken in this build | No area/timing optimisation; counts are pre-ABC | Yosys `0.69+154` (sha `30d62572e-dirty`) reports ABC `-liberty` failures; workaround or Yosys rebuild needed            |
 | Back-end tools not runnable on this shell | No place/route, DRC/LVS, GDS authored here  | OpenLane 2 / Magic / Netgen are installed but not driven end-to-end on this Windows shell                                 |
 
 ### Recently resolved — ASIC techmap / equivalence (this session)
 | Was blocked by                                      | Now                                                    | How                                                                                                                                                                           |
 | --------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Sky130 techmap used wrong Liberty port names        | **Fixed** — `sky130_map.v` uses verified port names    | Rewrote techmap against `sky130_full_subset.lib`; `and2_1`/`or2_1` use `Y`/`X` correctly, flip-flop reset ports are `RESET_B`, mux selector is `S`, etc.                    |
-| Missing `$logic_and`/`$logic_or` conversion rules  | **Fixed** — 8 of 9 unmapped watchdog cells converted  | Added rules converting `$logic_and`→`and2_1` and `$logic_or`→`or2_1`; watchdog 9→1 unmapped cell                                                                                    |
-| No equivalence evidence for the mapped subset       | **Working** — 24-pattern equivalence PASS              | `tb_equiv.v` compares RTL vs techmapped netlist on `arith_test`; both Icarus sims silent                                                                                          |
-| No published 3-module cell counts                   | **Published** — arith_test 42 / reset_ctrl 43 / watchdog 628 Sky130 cells | `synths3_final.txt` + `ASIC_SYNTH_REPORT.md`; watchdog breakdown (and2_1×7, dfrtp_1×68, inv_1×11, mux2_1×429, or2_1×1, xor2_1×112) recorded                                   |
-| Full-SoC techmap thought to be a coverage problem   | **Diagnosed** — it is a flatten OOM, not coverage     | Hierarchy resolves cleanly (zero ERROR lines); `std::bad_alloc` on `flatten` is caused by behavioral SRAM exploding to flops+mux, not by missing map rules                         |
+| Flops mapped as if `_2`/`_4` were bus widths        | **Fixed** — one scalar cell per bit                    | `arith_test.y` is 4 × `dfrtp_1`; the library has scalar `D`/`Q` on every flop                                                                                                 |
+| `and2_1` wired through a non-existent `.Y` pin      | **Fixed** — outputs follow the library                 | and/or/xor/mux → `X`; nand/nor/inv → `Y`; undriven-wire warnings went from 80 to 0                                                                                            |
+| `$dff` template had an `R` port (never matched)     | **Fixed** — maps to `dfxtp_1`                          | Yosys `$dff` is `CLK/D/Q` only                                                                                                                                                |
+| `$adff` ignored `ARST_VALUE`                         | **Fixed** — reset-to-1 uses `dfstp_1`                  | Per-bit choice of `dfrtp_1`/`dfstp_1`; negedge uses the inverted clock                                                                                                        |
+| `$logic_and`/`$logic_or` fed wide vectors to scalar pins | **Fixed** — operands reduced first                | Reduction chains, then a 2-input gate                                                                                                                                         |
+| `$add`/`$sub` declared unmappable                   | **Fixed** — decomposed into gates                      | xor2/and2/or2 ripple-carry; 0 unmapped cells in all three modules                                                                                                             |
+| Equivalence test could not fail                     | **Fixed** — mapped mode required, `$fatal(1)`, corruption control | 1028 checks PASS; missing `USE_MAPPED` exits 1; corrupted netlist exits 1                                                                                          |
+| Full-SoC kept generic cells / conflicting drivers   | **Fixed** — 0 problems, only `$mem_v2` left            | `techmap -map +/techmap.v` plus gate-primitive rules; `uart.div` double driver removed                                                                                        |
+| I²C never sent write data / read NACK drove SDA low | **Fixed** — real transactions verified                 | Write path sends the data byte; NACK releases SDA; slave-model testbench passes, old RTL fails                                                                                 |
 
 ### Recently resolved — SoC / firmware / tooling (pre-existing; retained for continuity)
 | Was blocked by                                            | Now                                                    | How                                                                                                                                                                           |

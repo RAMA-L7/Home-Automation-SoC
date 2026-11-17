@@ -1,416 +1,881 @@
-// Technology mapping: Yosys internal cells -> Sky130 HD cells
-// Loaded by techmap to replace internal cells with Sky130 target cells
+// ---------------------------------------------------------------------------
+// Sky130 HD technology map for Yosys `techmap`.
 //
-// Cells available in the verified Sky130 HD subset (sky130_full_subset.lib):
-//   comb: inv_1, buf_1, and2_1/3/4, nand2_1/3_1/4_1, or2_1/3_1/4_1,
-//          nor2_1/3_1/4_1, xor2_1/xor3_1, mux2_1, mux4_1
-//   seq:  dfrtp_1/2/4, dfxtp_1/2/4, dfrbp_1/2, dfstp_1/2/4
-//   No adder cells, no SR-latch cells in the verified subset.
+// Corrections vs. the previous version (see ASIC_* review findings):
+//   * Port names taken from the library itself (sky130_full_subset.lib):
+//       inv_1            A -> Y
+//       buf_1            A -> X          <-- output is X, not Y
+//       and2_1/and3_1/and4_1  ... -> X  <-- output is X, not Y
+//       or2_1/or3_1/or4_1     ... -> X
+//       xor2_1/xor3_1         ... -> X
+//       nand2_1/nand3_1/nand4_1 ... -> Y
+//       nor2_1/nor3_1/nor4_1    ... -> Y
+//       mux2_1           A0,A1,S -> X
+//       mux4_1           A0..A3,S0,S1 -> X
+//       dfrtp_1/2/4      CLK,D -> Q, RESET_B     (scalar pins)
+//       dfstp_1/2/4      CLK,D -> Q, SET_B       (scalar pins)
+//       dfxtp_1/2/4      CLK,D -> Q              (scalar pins)
+//       dfrbp_1/2        CLK,D -> Q,Q_N, RESET_B (scalar pins)
+//     The _1/_2/_4 suffix is DRIVE STRENGTH, not bus width. Every sky130 HD
+//     sequential cell has 1-bit D and Q. This file therefore instantiates one
+//     scalar cell per bit for every register, and never connects a vector to a
+//     scalar pin.
 //
-// PORT NAMES are taken from the Liberty data (RTLIL cell declarations in
-// arith_test.rtlil / sky130_full_subset.lib) and MUST match exactly:
-//   inv_1:  A, Y
-//   and2_1: A, B, Y       or3_1: A, B, C, X   or4_1: A, B, C, D, X
-//   or2_1:  A, B, X       nor2_1: A, B, Y      nor4_1: A, B, C, D, Y
-//   xor2_1: A, B, X       nand2_1: A, B, Y
-//   mux2_1: A0, A1, S, X
-//   dfrtp_1/2/4: CLK, D, Q, RESET_B   (posedge clk, async reset active-low)
-//   dfxtp_1/2/4: CLK, D, Q            (posedge clk, NO async reset)
-//   dfrbp_1/2:   CLK, D, Q, Q_N, RESET_B  (negedge clk, async reset active-low)
+//   * `$dff` has NO reset port in Yosys (ports are CLK, D, Q). It is mapped to
+//     dfxtp_1 (also reset-less). The previous file declared an `R` port, so it
+//     could never match a real `$dff` cell.
+//   * `$adff` now honours ARST_VALUE: reset-to-0 uses dfrtp (RESET_B),
+//     reset-to-1 uses dfstp (SET_B). The previous file declared ARST_VALUE but
+//     ignored it, silently resetting every flop to 0.
+//   * `$logic_and` / `$logic_or` reduce each operand to a boolean before the
+//     2-input gate. The previous file fed wide vectors into scalar pins.
+//   * `$eq` / `$ne` / `$logic_not` / `$not` handle any width by extending
+//     operands to the result width and building a gate-level chain; the
+//     previous bitwise-XNOR hack produced wrong values for Y_WIDTH > 1.
+//   * `$add` / `$sub` are decomposed into ordinary gates (xor2/and2/or2 carry
+//     chain). Dedicated adder cells are not required; arithmetic therefore no
+//     longer has to stay unmapped.
 //
-// Strategy for multi-bit Yosys cells: decompose to WIDTH identical single-bit
-// target cells.  This preserves bitwise behaviour exactly and uses only cells
-// that already exist in the verified liberty subset.
+// Anything not covered here is left as a Yosys internal cell, so `check` and
+// `stat` report it instead of it being silently mis-mapped.
+// ---------------------------------------------------------------------------
 
-// $not -> inv_1  (1-bit and multi-bit)
+// =========================== bitwise invert ================================
+// $not: Y = ~A, with A extended (sign or zero) to Y_WIDTH.
 module $not (A, Y);
   parameter A_SIGNED = 0;
-  parameter A_WIDTH = 1;
-  parameter Y_WIDTH = 1;
-  input [A_WIDTH-1:0] A;
+  parameter A_WIDTH  = 1;
+  parameter Y_WIDTH  = 1;
+  input  [A_WIDTH-1:0] A;
   output [Y_WIDTH-1:0] Y;
+  genvar i;
   generate
-    if (A_WIDTH == 1 && Y_WIDTH == 1) begin
-      sky130_fd_sc_hd__inv_1 u_inv (.A(A), .Y(Y));
-    end else if (A_WIDTH == Y_WIDTH) begin
-      genvar i;
-      for (i = 0; i < A_WIDTH; i = i + 1) begin : g_inv
-        sky130_fd_sc_hd__inv_1 u_inv_bit (.A(A[i]), .Y(Y[i]));
+    for (i = 0; i < Y_WIDTH; i = i + 1) begin : g_bit
+      wire a_bit;
+      if (i < A_WIDTH) begin : g_in
+        assign a_bit = A[i];
+      end else begin : g_ext
+        assign a_bit = A_SIGNED ? A[A_WIDTH-1] : 1'b0;
       end
+      sky130_fd_sc_hd__inv_1 u_inv (.A(a_bit), .Y(Y[i]));
     end
   endgenerate
 endmodule
 
-// $logic_and -> and2_1  (1-bit AND reduction, 2 single-bit inputs)
-// Yosys $logic_and: Y = & (A & B) for 1-bit inputs — equivalent to 2-input AND.
-// Parameters: A_WIDTH=1, B_WIDTH=1, Y_WIDTH=1 always.
-module $logic_and (A, B, Y);
-  parameter A_SIGNED = 0;
-  parameter B_SIGNED = 0;
-  parameter A_WIDTH = 1;
-  parameter B_WIDTH = 1;
-  parameter Y_WIDTH = 1;
-  input [A_WIDTH-1:0] A;
-  input [B_WIDTH-1:0] B;
-  output [Y_WIDTH-1:0] Y;
-  sky130_fd_sc_hd__and2_1 u_and (.A(A), .B(B), .Y(Y));
-endmodule
-
-// $logic_or -> or2_1  (1-bit OR reduction, 2 single-bit inputs)
-// Yosys $logic_or: Y = | (A | B) for 1-bit inputs — equivalent to 2-input OR.
-module $logic_or (A, B, Y);
-  parameter A_SIGNED = 0;
-  parameter B_SIGNED = 0;
-  parameter A_WIDTH = 1;
-  parameter B_WIDTH = 1;
-  parameter Y_WIDTH = 1;
-  input [A_WIDTH-1:0] A;
-  input [B_WIDTH-1:0] B;
-  output [Y_WIDTH-1:0] Y;
-  sky130_fd_sc_hd__or2_1 u_or (.A(A), .B(B), .X(Y));
-endmodule
-
-// $and (2-input) -> and2_1  (1-bit and multi-bit)
+// =========================== 2-input bitwise ===============================
 module $and (A, B, Y);
   parameter A_SIGNED = 0;
   parameter B_SIGNED = 0;
-  parameter A_WIDTH = 1;
-  parameter B_WIDTH = 1;
-  parameter Y_WIDTH = 1;
-  input [A_WIDTH-1:0] A;
-  input [B_WIDTH-1:0] B;
+  parameter A_WIDTH  = 1;
+  parameter B_WIDTH  = 1;
+  parameter Y_WIDTH  = 1;
+  input  [A_WIDTH-1:0] A;
+  input  [B_WIDTH-1:0] B;
   output [Y_WIDTH-1:0] Y;
+  genvar i;
   generate
-    if (A_WIDTH == 1 && B_WIDTH == 1 && Y_WIDTH == 1) begin
-      sky130_fd_sc_hd__and2_1 u_and (.A(A), .B(B), .Y(Y));
-    end else if (A_WIDTH == B_WIDTH && B_WIDTH == Y_WIDTH) begin
-      genvar i;
-      for (i = 0; i < A_WIDTH; i = i + 1) begin : g_and
-        sky130_fd_sc_hd__and2_1 u_and_bit (.A(A[i]), .B(B[i]), .Y(Y[i]));
+    for (i = 0; i < Y_WIDTH; i = i + 1) begin : g_bit
+      wire a_bit, b_bit;
+      if (i < A_WIDTH) begin : g_a_in
+        assign a_bit = A[i];
+      end else begin : g_a_ext
+        assign a_bit = A_SIGNED ? A[A_WIDTH-1] : 1'b0;
       end
+      if (i < B_WIDTH) begin : g_b_in
+        assign b_bit = B[i];
+      end else begin : g_b_ext
+        assign b_bit = B_SIGNED ? B[B_WIDTH-1] : 1'b0;
+      end
+      // and2_1 output pin is X
+      sky130_fd_sc_hd__and2_1 u_and (.A(a_bit), .B(b_bit), .X(Y[i]));
     end
   endgenerate
 endmodule
 
-// $or (2-input) -> or2_1  (1-bit and multi-bit)
-// Liberty or2_1 pins: A, B, X  (output is named X, NOT Y)
 module $or (A, B, Y);
   parameter A_SIGNED = 0;
   parameter B_SIGNED = 0;
-  parameter A_WIDTH = 1;
-  parameter B_WIDTH = 1;
-  parameter Y_WIDTH = 1;
-  input [A_WIDTH-1:0] A;
-  input [B_WIDTH-1:0] B;
+  parameter A_WIDTH  = 1;
+  parameter B_WIDTH  = 1;
+  parameter Y_WIDTH  = 1;
+  input  [A_WIDTH-1:0] A;
+  input  [B_WIDTH-1:0] B;
   output [Y_WIDTH-1:0] Y;
+  genvar i;
   generate
-    if (A_WIDTH == 1 && B_WIDTH == 1 && Y_WIDTH == 1) begin
-      sky130_fd_sc_hd__or2_1 u_or (.A(A), .B(B), .X(Y));
-    end else if (A_WIDTH == B_WIDTH && B_WIDTH == Y_WIDTH) begin
-      genvar i;
-      for (i = 0; i < A_WIDTH; i = i + 1) begin : g_or
-        sky130_fd_sc_hd__or2_1 u_or_bit (.A(A[i]), .B(B[i]), .X(Y[i]));
+    for (i = 0; i < Y_WIDTH; i = i + 1) begin : g_bit
+      wire a_bit, b_bit;
+      if (i < A_WIDTH) begin : g_a_in
+        assign a_bit = A[i];
+      end else begin : g_a_ext
+        assign a_bit = A_SIGNED ? A[A_WIDTH-1] : 1'b0;
       end
+      if (i < B_WIDTH) begin : g_b_in
+        assign b_bit = B[i];
+      end else begin : g_b_ext
+        assign b_bit = B_SIGNED ? B[B_WIDTH-1] : 1'b0;
+      end
+      sky130_fd_sc_hd__or2_1 u_or (.A(a_bit), .B(b_bit), .X(Y[i]));
     end
   endgenerate
 endmodule
 
-// $xor (2-input) -> xor2_1  (1-bit and multi-bit)
-// Liberty xor2_1 pins: A, B, X
 module $xor (A, B, Y);
   parameter A_SIGNED = 0;
   parameter B_SIGNED = 0;
-  parameter A_WIDTH = 1;
-  parameter B_WIDTH = 1;
-  parameter Y_WIDTH = 1;
-  input [A_WIDTH-1:0] A;
-  input [B_WIDTH-1:0] B;
+  parameter A_WIDTH  = 1;
+  parameter B_WIDTH  = 1;
+  parameter Y_WIDTH  = 1;
+  input  [A_WIDTH-1:0] A;
+  input  [B_WIDTH-1:0] B;
   output [Y_WIDTH-1:0] Y;
+  genvar i;
   generate
-    if (A_WIDTH == 1 && B_WIDTH == 1 && Y_WIDTH == 1) begin
-      sky130_fd_sc_hd__xor2_1 u_xor (.A(A), .B(B), .X(Y));
-    end else if (A_WIDTH == B_WIDTH && B_WIDTH == Y_WIDTH) begin
-      genvar i;
-      for (i = 0; i < A_WIDTH; i = i + 1) begin : g_xor
-        sky130_fd_sc_hd__xor2_1 u_xor_bit (.A(A[i]), .B(B[i]), .X(Y[i]));
+    for (i = 0; i < Y_WIDTH; i = i + 1) begin : g_bit
+      wire a_bit, b_bit;
+      if (i < A_WIDTH) begin : g_a_in
+        assign a_bit = A[i];
+      end else begin : g_a_ext
+        assign a_bit = A_SIGNED ? A[A_WIDTH-1] : 1'b0;
       end
+      if (i < B_WIDTH) begin : g_b_in
+        assign b_bit = B[i];
+      end else begin : g_b_ext
+        assign b_bit = B_SIGNED ? B[B_WIDTH-1] : 1'b0;
+      end
+      sky130_fd_sc_hd__xor2_1 u_xor (.A(a_bit), .B(b_bit), .X(Y[i]));
     end
   endgenerate
 endmodule
 
-// $mux -> mux2_1  (1-bit and multi-bit)
-// Yosys $mux: Y = S ? B : A   (S active-high selects B)
-// Sky130 mux2_1 Liberty pins: A0, A1, S, X
-//   Function: X = (A0 & !S) | (A1 & S)
-//   Map: A0=A (in0), A1=B (in1), S=S, X=Y  -> Y = (A & !S) | (B & S) = S ? B : A
-module $mux (S, B, A, Y);
+// =========================== reductions ====================================
+// All reductions are built as explicit gate chains so the map never emits a
+// reduction operator that would itself need mapping again.
+
+module $reduce_or (A, Y);
+  parameter A_SIGNED = 0;
+  parameter A_WIDTH  = 1;
+  parameter Y_WIDTH  = 1;
+  input  [A_WIDTH-1:0] A;
+  output [Y_WIDTH-1:0] Y;
+  wire [A_WIDTH:0] chain;
+  assign chain[0] = 1'b0;
+  genvar i;
+  generate
+    for (i = 0; i < A_WIDTH; i = i + 1) begin : g_or
+      sky130_fd_sc_hd__or2_1 u_or (.A(chain[i]), .B(A[i]), .X(chain[i+1]));
+    end
+  endgenerate
+  assign Y = chain[A_WIDTH];
+endmodule
+
+module $reduce_bool (A, Y);
+  parameter A_SIGNED = 0;
+  parameter A_WIDTH  = 1;
+  parameter Y_WIDTH  = 1;
+  input  [A_WIDTH-1:0] A;
+  output [Y_WIDTH-1:0] Y;
+  wire [A_WIDTH:0] chain;
+  assign chain[0] = 1'b0;
+  genvar i;
+  generate
+    for (i = 0; i < A_WIDTH; i = i + 1) begin : g_or
+      sky130_fd_sc_hd__or2_1 u_or (.A(chain[i]), .B(A[i]), .X(chain[i+1]));
+    end
+  endgenerate
+  assign Y = chain[A_WIDTH];
+endmodule
+
+module $reduce_and (A, Y);
+  parameter A_SIGNED = 0;
+  parameter A_WIDTH  = 1;
+  parameter Y_WIDTH  = 1;
+  input  [A_WIDTH-1:0] A;
+  output [Y_WIDTH-1:0] Y;
+  wire [A_WIDTH:0] chain;
+  assign chain[0] = 1'b1;
+  genvar i;
+  generate
+    for (i = 0; i < A_WIDTH; i = i + 1) begin : g_and
+      sky130_fd_sc_hd__and2_1 u_and (.A(chain[i]), .B(A[i]), .X(chain[i+1]));
+    end
+  endgenerate
+  assign Y = chain[A_WIDTH];
+endmodule
+
+module $reduce_xor (A, Y);
+  parameter A_SIGNED = 0;
+  parameter A_WIDTH  = 1;
+  parameter Y_WIDTH  = 1;
+  input  [A_WIDTH-1:0] A;
+  output [Y_WIDTH-1:0] Y;
+  wire [A_WIDTH:0] chain;
+  assign chain[0] = 1'b0;
+  genvar i;
+  generate
+    for (i = 0; i < A_WIDTH; i = i + 1) begin : g_xor
+      sky130_fd_sc_hd__xor2_1 u_xor (.A(chain[i]), .B(A[i]), .X(chain[i+1]));
+    end
+  endgenerate
+  assign Y = chain[A_WIDTH];
+endmodule
+
+// =========================== logical ops ===================================
+// $logic_and: Y = (A != 0) && (B != 0).  Reduce both operands to booleans.
+module $logic_and (A, B, Y);
+  parameter A_SIGNED = 0;
+  parameter B_SIGNED = 0;
+  parameter A_WIDTH  = 1;
+  parameter B_WIDTH  = 1;
+  parameter Y_WIDTH  = 1;
+  input  [A_WIDTH-1:0] A;
+  input  [B_WIDTH-1:0] B;
+  output [Y_WIDTH-1:0] Y;
+  wire [A_WIDTH:0] ra;
+  wire [B_WIDTH:0] rb;
+  assign ra[0] = 1'b0;
+  assign rb[0] = 1'b0;
+  genvar i;
+  generate
+    for (i = 0; i < A_WIDTH; i = i + 1) begin : g_ra
+      sky130_fd_sc_hd__or2_1 u_ra (.A(ra[i]), .B(A[i]), .X(ra[i+1]));
+    end
+    for (i = 0; i < B_WIDTH; i = i + 1) begin : g_rb
+      sky130_fd_sc_hd__or2_1 u_rb (.A(rb[i]), .B(B[i]), .X(rb[i+1]));
+    end
+  endgenerate
+  sky130_fd_sc_hd__and2_1 u_and (.A(ra[A_WIDTH]), .B(rb[B_WIDTH]), .X(Y));
+endmodule
+
+module $logic_or (A, B, Y);
+  parameter A_SIGNED = 0;
+  parameter B_SIGNED = 0;
+  parameter A_WIDTH  = 1;
+  parameter B_WIDTH  = 1;
+  parameter Y_WIDTH  = 1;
+  input  [A_WIDTH-1:0] A;
+  input  [B_WIDTH-1:0] B;
+  output [Y_WIDTH-1:0] Y;
+  wire [A_WIDTH:0] ra;
+  wire [B_WIDTH:0] rb;
+  assign ra[0] = 1'b0;
+  assign rb[0] = 1'b0;
+  genvar i;
+  generate
+    for (i = 0; i < A_WIDTH; i = i + 1) begin : g_ra
+      sky130_fd_sc_hd__or2_1 u_ra (.A(ra[i]), .B(A[i]), .X(ra[i+1]));
+    end
+    for (i = 0; i < B_WIDTH; i = i + 1) begin : g_rb
+      sky130_fd_sc_hd__or2_1 u_rb (.A(rb[i]), .B(B[i]), .X(rb[i+1]));
+    end
+  endgenerate
+  sky130_fd_sc_hd__or2_1 u_or (.A(ra[A_WIDTH]), .B(rb[B_WIDTH]), .X(Y));
+endmodule
+
+// $logic_not: Y = (A == 0).  NOR of all bits.
+module $logic_not (A, Y);
+  parameter A_SIGNED = 0;
+  parameter A_WIDTH  = 1;
+  parameter Y_WIDTH  = 1;
+  input  [A_WIDTH-1:0] A;
+  output [Y_WIDTH-1:0] Y;
+  wire [A_WIDTH:0] ra;
+  assign ra[0] = 1'b0;
+  genvar i;
+  generate
+    for (i = 0; i < A_WIDTH; i = i + 1) begin : g_ra
+      sky130_fd_sc_hd__or2_1 u_ra (.A(ra[i]), .B(A[i]), .X(ra[i+1]));
+    end
+  endgenerate
+  sky130_fd_sc_hd__inv_1 u_inv (.A(ra[A_WIDTH]), .Y(Y));
+endmodule
+
+// =========================== equality ======================================
+// $eq: Y = (A == B), operands extended to the comparison width.
+module $eq (A, B, Y);
+  parameter A_SIGNED = 0;
+  parameter B_SIGNED = 0;
+  parameter A_WIDTH  = 1;
+  parameter B_WIDTH  = 1;
+  parameter Y_WIDTH  = 1;
+  input  [A_WIDTH-1:0] A;
+  input  [B_WIDTH-1:0] B;
+  output [Y_WIDTH-1:0] Y;
+  localparam CW = (A_WIDTH > B_WIDTH) ? A_WIDTH : B_WIDTH;
+  wire [CW-1:0] x;
+  wire [CW:0]   r;
+  assign r[0] = 1'b0;
+  genvar i;
+  generate
+    for (i = 0; i < CW; i = i + 1) begin : g_bit
+      wire a_bit, b_bit;
+      if (i < A_WIDTH) begin : g_a_in
+        assign a_bit = A[i];
+      end else begin : g_a_ext
+        assign a_bit = A_SIGNED ? A[A_WIDTH-1] : 1'b0;
+      end
+      if (i < B_WIDTH) begin : g_b_in
+        assign b_bit = B[i];
+      end else begin : g_b_ext
+        assign b_bit = B_SIGNED ? B[B_WIDTH-1] : 1'b0;
+      end
+      sky130_fd_sc_hd__xor2_1 u_xor (.A(a_bit), .B(b_bit), .X(x[i]));
+      sky130_fd_sc_hd__or2_1  u_or  (.A(r[i]),  .B(x[i]),  .X(r[i+1]));
+    end
+  endgenerate
+  sky130_fd_sc_hd__inv_1 u_inv (.A(r[CW]), .Y(Y));
+endmodule
+
+// $ne: Y = (A != B).
+module $ne (A, B, Y);
+  parameter A_SIGNED = 0;
+  parameter B_SIGNED = 0;
+  parameter A_WIDTH  = 1;
+  parameter B_WIDTH  = 1;
+  parameter Y_WIDTH  = 1;
+  input  [A_WIDTH-1:0] A;
+  input  [B_WIDTH-1:0] B;
+  output [Y_WIDTH-1:0] Y;
+  localparam CW = (A_WIDTH > B_WIDTH) ? A_WIDTH : B_WIDTH;
+  wire [CW-1:0] x;
+  wire [CW:0]   r;
+  assign r[0] = 1'b0;
+  genvar i;
+  generate
+    for (i = 0; i < CW; i = i + 1) begin : g_bit
+      wire a_bit, b_bit;
+      if (i < A_WIDTH) begin : g_a_in
+        assign a_bit = A[i];
+      end else begin : g_a_ext
+        assign a_bit = A_SIGNED ? A[A_WIDTH-1] : 1'b0;
+      end
+      if (i < B_WIDTH) begin : g_b_in
+        assign b_bit = B[i];
+      end else begin : g_b_ext
+        assign b_bit = B_SIGNED ? B[B_WIDTH-1] : 1'b0;
+      end
+      sky130_fd_sc_hd__xor2_1 u_xor (.A(a_bit), .B(b_bit), .X(x[i]));
+      sky130_fd_sc_hd__or2_1  u_or  (.A(r[i]),  .B(x[i]),  .X(r[i+1]));
+    end
+  endgenerate
+  assign Y = r[CW];
+endmodule
+
+// =========================== mux ===========================================
+module $mux (A, B, S, Y);
   parameter WIDTH = 1;
-  input S;
-  input [WIDTH-1:0] B;
-  input [WIDTH-1:0] A;
+  input  [WIDTH-1:0] A;
+  input  [WIDTH-1:0] B;
+  input              S;
   output [WIDTH-1:0] Y;
+  genvar i;
   generate
-    if (WIDTH == 1) begin
-      sky130_fd_sc_hd__mux2_1 u_mux (.A0(A), .A1(B), .S(S), .X(Y));
-    end else begin
-      genvar i;
-      for (i = 0; i < WIDTH; i = i + 1) begin : g_mux
-        sky130_fd_sc_hd__mux2_1 u_mux_bit (.A0(A[i]), .A1(B[i]), .S(S), .X(Y[i]));
+    for (i = 0; i < WIDTH; i = i + 1) begin : g_bit
+      // mux2_1: X = (A0 & !S) | (A1 & S); Yosys $mux: Y = S ? B : A
+      sky130_fd_sc_hd__mux2_1 u_mux (.A0(A[i]), .A1(B[i]), .S(S), .X(Y[i]));
+    end
+  endgenerate
+endmodule
+
+module $pmux (A, B, S, Y);
+  parameter WIDTH   = 1;
+  parameter S_WIDTH = 1;
+  input  [WIDTH-1:0]          A;
+  input  [WIDTH*S_WIDTH-1:0]  B;
+  input  [S_WIDTH-1:0]        S;
+  output [WIDTH-1:0]          Y;
+  genvar i, k;
+  generate
+    if (S_WIDTH == 1) begin : g_one
+      sky130_fd_sc_hd__mux2_1 u_mux (.A0(A), .A1(B), .S(S[0]), .X(Y));
+    end else begin : g_many
+      for (i = 0; i < WIDTH; i = i + 1) begin : g_bit
+        wire [S_WIDTH-1:0] chain;
+        sky130_fd_sc_hd__mux2_1 u_m0 (.A0(A[i]), .A1(B[i]), .S(S[0]), .X(chain[0]));
+        for (k = 1; k < S_WIDTH; k = k + 1) begin : g_k
+          sky130_fd_sc_hd__mux2_1 u_mk (.A0(chain[k-1]), .A1(B[k*WIDTH+i]), .S(S[k]), .X(chain[k]));
+        end
+        assign Y[i] = chain[S_WIDTH-1];
       end
     end
   endgenerate
 endmodule
 
-// $sff -> dfrtp_1/dfxtp_1/dfrbp_1  (1-bit and multi-bit)
-// Yosys $dff: q <= d on clock edge; R is async reset.
-// RESET_POLARITY==0: active-low reset (R=1 means reset)
-//   -> dfrtp (posedge) .CLK(CLK) .D(D) .Q(Q) .RESET_B(R)
-//   -> dfrbp (negedge) .CLK(CLK) .D(D) .Q(Q) .RESET_B(R)
-// RESET_POLARITY==1: active-high reset
-//   -> dfxtp (posedge, no reset pin!) — CANNOT implement active-high async reset
-//      with dfxtp (no reset pin).  For active-high async reset we must use
-//      dfrtp/dfrbp with inverted reset: .RESET_B(~R)
-//      -> dfrtp: .RESET_B(~R)  (invert active-high R to active-low RESET_B)
-//      -> dfrbp: .RESET_B(~R)
-// Native multi-bit cells used where WIDTH matches.
-module $dff (CLK, D, Q, R);
+// =========================== registers =====================================
+// $dff: CLK, D, Q only (no reset in Yosys).  -> dfxtp_1 (no reset pin either).
+// A negedge register is built as a posedge cell clocked by the inverted clock,
+// which is exactly equivalent and avoids needing a negedge cell.
+module $dff (CLK, D, Q);
   parameter WIDTH = 1;
   parameter CLK_POLARITY = 1;
-  parameter RESET_POLARITY = 0;
-  input CLK;
-  input [WIDTH-1:0] D;
+  input  CLK;
+  input  [WIDTH-1:0] D;
   output [WIDTH-1:0] Q;
-  input R;
+
+  wire clk_n;
   generate
-    if (WIDTH == 1) begin
-      if (CLK_POLARITY == 1) begin
-        if (RESET_POLARITY == 0) begin
-          sky130_fd_sc_hd__dfrtp_1 u_dff (.CLK(CLK), .D(D), .Q(Q), .RESET_B(R));
-        end else begin
-          // active-high reset: invert to RESET_B for dfrtp
-          sky130_fd_sc_hd__dfrtp_1 u_dff (.CLK(CLK), .D(D), .Q(Q), .RESET_B(~R));
-        end
-      end else begin
-        if (RESET_POLARITY == 0) begin
-          sky130_fd_sc_hd__dfrbp_1 u_dff (.CLK(CLK), .D(D), .Q(Q), .RESET_B(R));
-        end else begin
-          sky130_fd_sc_hd__dfrbp_1 u_dff (.CLK(CLK), .D(D), .Q(Q), .RESET_B(~R));
-        end
-      end
-    end else if (CLK_POLARITY == 1 && RESET_POLARITY == 0 && WIDTH == 4) begin
-      sky130_fd_sc_hd__dfrtp_4 u_dff (.CLK(CLK), .D(D), .Q(Q), .RESET_B(R));
-    end else if (CLK_POLARITY == 1 && RESET_POLARITY == 1 && WIDTH == 4) begin
-      sky130_fd_sc_hd__dfrtp_4 u_dff (.CLK(CLK), .D(D), .Q(Q), .RESET_B(~R));
-    end else if (CLK_POLARITY == 1 && WIDTH == 2) begin
-      if (RESET_POLARITY == 0) begin
-        sky130_fd_sc_hd__dfrtp_2 u_dff (.CLK(CLK), .D(D), .Q(Q), .RESET_B(R));
-      end else begin
-        sky130_fd_sc_hd__dfrtp_2 u_dff (.CLK(CLK), .D(D), .Q(Q), .RESET_B(~R));
-      end
-    end else if (CLK_POLARITY == 0 && WIDTH == 2) begin
-      if (RESET_POLARITY == 0) begin
-        sky130_fd_sc_hd__dfrbp_2 u_dff (.CLK(CLK), .D(D), .Q(Q), .RESET_B(R));
-      end else begin
-        sky130_fd_sc_hd__dfrbp_2 u_dff (.CLK(CLK), .D(D), .Q(Q), .RESET_B(~R));
-      end
-    end else begin
-      genvar i;
-      for (i = 0; i < WIDTH; i = i + 1) begin : g_dff
-        if (CLK_POLARITY == 1) begin
-          if (RESET_POLARITY == 0) begin
-            sky130_fd_sc_hd__dfrtp_1 u_dff_bit (.CLK(CLK), .D(D[i]), .Q(Q[i]), .RESET_B(R));
-          end else begin
-            sky130_fd_sc_hd__dfrtp_1 u_dff_bit (.CLK(CLK), .D(D[i]), .Q(Q[i]), .RESET_B(~R));
-          end
-        end else begin
-          if (RESET_POLARITY == 0) begin
-            sky130_fd_sc_hd__dfrbp_1 u_dff_bit (.CLK(CLK), .D(D[i]), .Q(Q[i]), .RESET_B(R));
-          end else begin
-            sky130_fd_sc_hd__dfrbp_1 u_dff_bit (.CLK(CLK), .D(D[i]), .Q(Q[i]), .RESET_B(~R));
-          end
-        end
-      end
+    if (CLK_POLARITY == 0) begin : g_clk_inv
+      sky130_fd_sc_hd__inv_1 u_clk (.A(CLK), .Y(clk_n));
+    end else begin : g_clk_pass
+      assign clk_n = CLK;
+    end
+  endgenerate
+
+  genvar i;
+  generate
+    for (i = 0; i < WIDTH; i = i + 1) begin : g_bit
+      sky130_fd_sc_hd__dfxtp_1 u_ff (.CLK(clk_n), .D(D[i]), .Q(Q[i]));
     end
   endgenerate
 endmodule
 
-// $adff -> dfrtp_1/dfxtp_1/dfrbp_1  (1-bit and multi-bit)
-// Yosys $adff: async reset, q <= d on clock edge, q <= ARST_VALUE when ARST active.
-// ARST_POLARITY==0: active-low  (ARST=0 means reset) -> dfrtp .RESET_B(ARST)
-// ARST_POLARITY==1: active-high -> dfrtp .RESET_B(~ARST)
-// ARST_VALUE honoured by Yosys before techmap (flop init state).
-// dfxtp has NO reset pin — cannot implement async reset.  Use dfrtp/dfrbp with
-// inverted reset for active-high case.
+// $adff: async reset to ARST_VALUE.  reset-to-0 -> dfrtp (RESET_B),
+// reset-to-1 -> dfstp (SET_B).  Polarity handled by a single shared inverter.
 module $adff (CLK, ARST, D, Q);
   parameter WIDTH = 1;
   parameter CLK_POLARITY = 1;
   parameter ARST_POLARITY = 1;
   parameter ARST_VALUE = 0;
-  input CLK;
-  input ARST;
-  input [WIDTH-1:0] D;
+  input  CLK;
+  input  ARST;
+  input  [WIDTH-1:0] D;
   output [WIDTH-1:0] Q;
+
+  // arst_n is "reset asserted" in active-low form: 0 means reset.
+  wire arst_n;
+  // clk_n equals CLK for a posedge register and ~CLK for a negedge register,
+  // so a single posedge cell type covers both polarities.
+  wire clk_n;
   generate
-    if (WIDTH == 1) begin
-      if (CLK_POLARITY == 1) begin
-        if (ARST_POLARITY == 1) begin
-          sky130_fd_sc_hd__dfrtp_1 u_dff (.CLK(CLK), .D(D), .Q(Q), .RESET_B(~ARST));
-        end else begin
-          sky130_fd_sc_hd__dfrtp_1 u_dff (.CLK(CLK), .D(D), .Q(Q), .RESET_B(ARST));
-        end
-      end else begin
-        if (ARST_POLARITY == 1) begin
-          sky130_fd_sc_hd__dfrbp_1 u_dff (.CLK(CLK), .D(D), .Q(Q), .RESET_B(~ARST));
-        end else begin
-          sky130_fd_sc_hd__dfrbp_1 u_dff (.CLK(CLK), .D(D), .Q(Q), .RESET_B(ARST));
-        end
-      end
-    end else if (CLK_POLARITY == 1 && ARST_POLARITY == 0 && WIDTH == 4) begin
-      sky130_fd_sc_hd__dfrtp_4 u_dff (.CLK(CLK), .D(D), .Q(Q), .RESET_B(ARST));
-    end else if (CLK_POLARITY == 1 && ARST_POLARITY == 1 && WIDTH == 4) begin
-      sky130_fd_sc_hd__dfrtp_4 u_dff (.CLK(CLK), .D(D), .Q(Q), .RESET_B(~ARST));
-    end else if (CLK_POLARITY == 1 && ARST_POLARITY == 0 && WIDTH == 2) begin
-      sky130_fd_sc_hd__dfrtp_2 u_dff (.CLK(CLK), .D(D), .Q(Q), .RESET_B(ARST));
-    end else if (CLK_POLARITY == 1 && ARST_POLARITY == 1 && WIDTH == 2) begin
-      sky130_fd_sc_hd__dfrtp_2 u_dff (.CLK(CLK), .D(D), .Q(Q), .RESET_B(~ARST));
-    end else if (CLK_POLARITY == 0 && WIDTH == 2) begin
-      if (ARST_POLARITY == 0) begin
-        sky130_fd_sc_hd__dfrbp_2 u_dff (.CLK(CLK), .D(D), .Q(Q), .RESET_B(ARST));
-      end else begin
-        sky130_fd_sc_hd__dfrbp_2 u_dff (.CLK(CLK), .D(D), .Q(Q), .RESET_B(~ARST));
-      end
-    end else begin
-      genvar i;
-      for (i = 0; i < WIDTH; i = i + 1) begin : g_adff
-        if (CLK_POLARITY == 1) begin
-          if (ARST_POLARITY == 1) begin
-            sky130_fd_sc_hd__dfrtp_1 u_dff_bit (.CLK(CLK), .D(D[i]), .Q(Q[i]), .RESET_B(~ARST));
-          end else begin
-            sky130_fd_sc_hd__dfrtp_1 u_dff_bit (.CLK(CLK), .D(D[i]), .Q(Q[i]), .RESET_B(ARST));
-          end
-        end else begin
-          if (ARST_POLARITY == 1) begin
-            sky130_fd_sc_hd__dfrbp_1 u_dff_bit (.CLK(CLK), .D(D[i]), .Q(Q[i]), .RESET_B(~ARST));
-          end else begin
-            sky130_fd_sc_hd__dfrbp_1 u_dff_bit (.CLK(CLK), .D(D[i]), .Q(Q[i]), .RESET_B(ARST));
-          end
-        end
+    if (ARST_POLARITY == 1) begin : g_pol_inv
+      sky130_fd_sc_hd__inv_1 u_pol (.A(ARST), .Y(arst_n));
+    end else begin : g_pol_pass
+      assign arst_n = ARST;
+    end
+    if (CLK_POLARITY == 0) begin : g_clk_inv
+      sky130_fd_sc_hd__inv_1 u_clk (.A(CLK), .Y(clk_n));
+    end else begin : g_clk_pass
+      assign clk_n = CLK;
+    end
+  endgenerate
+
+  genvar i;
+  generate
+    for (i = 0; i < WIDTH; i = i + 1) begin : g_bit
+      if (((ARST_VALUE >> i) & 1) == 0) begin : g_reset0
+        sky130_fd_sc_hd__dfrtp_1 u_ff (.CLK(clk_n), .D(D[i]), .Q(Q[i]), .RESET_B(arst_n));
+      end else begin : g_reset1
+        sky130_fd_sc_hd__dfstp_1 u_ff (.CLK(clk_n), .D(D[i]), .Q(Q[i]), .SET_B(arst_n));
       end
     end
   endgenerate
 endmodule
 
-// $eq -> xor2_1 + reduce-nor of xor bits (1-bit and multi-bit)
-// Yosys $eq(A,B): Y = (A == B)  ->  1 if all bits equal, else 0.
-// Implementation: Y = ~(| (A ^ B))  i.e. NOR of all bitwise-xor bits.
-// Uses only xor2_1 (A,B,X) + nor2_1/nor3_1/nor4_1 (A,B[,C[,D]],Y).
-module $eq (A, B, Y);
+// =========================== arithmetic ====================================
+// $add: ripple-carry sum of A and B extended to Y_WIDTH.
+//   p = a ^ b ;  y = p ^ c ;  c' = (a & b) | (c & p)
+module $add (A, B, Y);
   parameter A_SIGNED = 0;
   parameter B_SIGNED = 0;
-  parameter A_WIDTH = 1;
-  parameter B_WIDTH = 1;
-  parameter Y_WIDTH = 1;
-  input [A_WIDTH-1:0] A;
-  input [B_WIDTH-1:0] B;
+  parameter A_WIDTH  = 1;
+  parameter B_WIDTH  = 1;
+  parameter Y_WIDTH  = 1;
+  input  [A_WIDTH-1:0] A;
+  input  [B_WIDTH-1:0] B;
   output [Y_WIDTH-1:0] Y;
+  wire [Y_WIDTH:0] c;
+  assign c[0] = 1'b0;
+  genvar i;
   generate
-    if (A_WIDTH == 1 && B_WIDTH == 1 && Y_WIDTH == 1) begin
-      // 1-bit equality: Y = ~(A ^ B) -> xor2_1 (A,B,X) + inv_1 (A,Y)
-      wire xor_bit;
-      sky130_fd_sc_hd__xor2_1 u_xor (.A(A), .B(B), .X(xor_bit));
-      sky130_fd_sc_hd__inv_1 u_inv (.A(xor_bit), .Y(Y));
-    end else if (A_WIDTH == B_WIDTH && A_WIDTH == Y_WIDTH && Y_WIDTH > 1) begin
-      genvar i;
-      for (i = 0; i < A_WIDTH; i = i + 1) begin : g_eq
-        wire xor_bit;
-        sky130_fd_sc_hd__xor2_1 u_xor (.A(A[i]), .B(B[i]), .X(xor_bit));
-        sky130_fd_sc_hd__inv_1 u_inv (.A(xor_bit), .Y(Y[i]));
+    for (i = 0; i < Y_WIDTH; i = i + 1) begin : g_bit
+      wire a_bit, b_bit, p, g1, g2;
+      if (i < A_WIDTH) begin : g_a_in
+        assign a_bit = A[i];
+      end else begin : g_a_ext
+        assign a_bit = A_SIGNED ? A[A_WIDTH-1] : 1'b0;
       end
-    end else if (A_WIDTH == B_WIDTH && Y_WIDTH == 1) begin
-      genvar i;
-      wire [A_WIDTH-1:0] xor_bits;
-      for (i = 0; i < A_WIDTH; i = i + 1) begin : g_xor
-        sky130_fd_sc_hd__xor2_1 u_xor (.A(A[i]), .B(B[i]), .X(xor_bits[i]));
+      if (i < B_WIDTH) begin : g_b_in
+        assign b_bit = B[i];
+      end else begin : g_b_ext
+        assign b_bit = B_SIGNED ? B[B_WIDTH-1] : 1'b0;
       end
-      if (A_WIDTH == 2) begin
-        sky130_fd_sc_hd__nor2_1 u_nor (.A(xor_bits[0]), .B(xor_bits[1]), .Y(Y));
-      end else if (A_WIDTH == 3) begin
-        sky130_fd_sc_hd__nor3_1 u_nor (.A(xor_bits[0]), .B(xor_bits[1]), .C(xor_bits[2]), .Y(Y));
-      end else if (A_WIDTH == 4) begin
-        sky130_fd_sc_hd__nor4_1 u_nor (.A(xor_bits[0]), .B(xor_bits[1]), .C(xor_bits[2]), .D(xor_bits[3]), .Y(Y));
-      end
+      sky130_fd_sc_hd__xor2_1 u_p (.A(a_bit), .B(b_bit), .X(p));
+      sky130_fd_sc_hd__xor2_1 u_s (.A(p), .B(c[i]), .X(Y[i]));
+      sky130_fd_sc_hd__and2_1 u_g1 (.A(a_bit), .B(b_bit), .X(g1));
+      sky130_fd_sc_hd__and2_1 u_g2 (.A(c[i]), .B(p), .X(g2));
+      sky130_fd_sc_hd__or2_1  u_c  (.A(g1), .B(g2), .X(c[i+1]));
     end
   endgenerate
 endmodule
 
-// $logic_not -> inv_1  (1-bit and multi-bit)
-// Yosys $logic_not(A): Y = ~A (bitwise logical NOT).
-module $logic_not (A, Y);
+// $sub: Y = A - B = A + (~B) + 1 (two's complement at width Y_WIDTH).
+module $sub (A, B, Y);
   parameter A_SIGNED = 0;
-  parameter A_WIDTH = 1;
-  parameter Y_WIDTH = 1;
-  input [A_WIDTH-1:0] A;
+  parameter B_SIGNED = 0;
+  parameter A_WIDTH  = 1;
+  parameter B_WIDTH  = 1;
+  parameter Y_WIDTH  = 1;
+  input  [A_WIDTH-1:0] A;
+  input  [B_WIDTH-1:0] B;
   output [Y_WIDTH-1:0] Y;
+  wire [Y_WIDTH:0] c;
+  assign c[0] = 1'b1;          // +1 for two's complement
+  genvar i;
   generate
-    if (A_WIDTH == 1 && Y_WIDTH == 1) begin
-      sky130_fd_sc_hd__inv_1 u_inv (.A(A), .Y(Y));
-    end else if (A_WIDTH == Y_WIDTH && A_WIDTH > 1) begin
-      genvar i;
-      for (i = 0; i < A_WIDTH; i = i + 1) begin : g_not
-        sky130_fd_sc_hd__inv_1 u_not_bit (.A(A[i]), .Y(Y[i]));
+    for (i = 0; i < Y_WIDTH; i = i + 1) begin : g_bit
+      wire a_bit, b_ext, b_bit, p, g1, g2;
+      if (i < A_WIDTH) begin : g_a_in
+        assign a_bit = A[i];
+      end else begin : g_a_ext
+        assign a_bit = A_SIGNED ? A[A_WIDTH-1] : 1'b0;
       end
-    end else if (Y_WIDTH == 1 && A_WIDTH > 1) begin
-      // Reduce: Y = ~(|A) = NOR of all bits
-      genvar i;
-      if (A_WIDTH == 2) begin
-        sky130_fd_sc_hd__nor2_1 u_nor (.A(A[0]), .B(A[1]), .Y(Y));
-      end else if (A_WIDTH == 3) begin
-        sky130_fd_sc_hd__nor3_1 u_nor (.A(A[0]), .B(A[1]), .C(A[2]), .Y(Y));
-      end else if (A_WIDTH == 4) begin
-        sky130_fd_sc_hd__nor4_1 u_nor (.A(A[0]), .B(A[1]), .C(A[2]), .D(A[3]), .Y(Y));
+      if (i < B_WIDTH) begin : g_b_in
+        assign b_ext = B[i];
+      end else begin : g_b_ext
+        assign b_ext = B_SIGNED ? B[B_WIDTH-1] : 1'b0;
       end
+      sky130_fd_sc_hd__inv_1  u_inv (.A(b_ext), .Y(b_bit));
+      sky130_fd_sc_hd__xor2_1 u_p   (.A(a_bit), .B(b_bit), .X(p));
+      sky130_fd_sc_hd__xor2_1 u_s   (.A(p),     .B(c[i]),  .X(Y[i]));
+      sky130_fd_sc_hd__and2_1 u_g1  (.A(a_bit), .B(b_bit), .X(g1));
+      sky130_fd_sc_hd__and2_1 u_g2  (.A(c[i]),  .B(p),     .X(g2));
+      sky130_fd_sc_hd__or2_1  u_c   (.A(g1),    .B(g2),    .X(c[i+1]));
     end
   endgenerate
 endmodule
 
-// $pmux -> tree of mux2_1 (general N:1 multi-bit)
-// Yosys $pmux: Y = S[0] ? B[0] : S[1] ? B[1] : ... : S[N-1] ? B[N-1] : A
-// S one-hot.  WIDTH=data width, S_WIDTH=N.
-// Yosys B is FLAT [WIDTH*S_WIDTH-1:0]: S_WIDTH sources concatenated, each WIDTH bits.
-// mux2_1 Liberty pins: A0, A1, S, X.  Function: X = (A0 & !S) | (A1 & S).
-module $pmux (A, B, S, Y);
-  parameter WIDTH = 1;
-  parameter S_WIDTH = 1;
-  input [WIDTH-1:0] A;
-  input [WIDTH*S_WIDTH-1:0] B;
-  input [S_WIDTH-1:0] S;
-  output [WIDTH-1:0] Y;
+// =========================== magnitude compare =============================
+// Unsigned/signed compare built as an LSB->MSB priority chain:
+//   F(i) = (a[i] < b[i]) | ((a[i] == b[i]) & F(i-1))
+// Signed operands are compared by inverting the top bit of both sides.
+// cell pattern per bit: xor2 (~diff), inv (~a / eq), and2, and2, or2
+
+module $lt (A, B, Y);
+  parameter A_SIGNED = 0;
+  parameter B_SIGNED = 0;
+  parameter A_WIDTH  = 1;
+  parameter B_WIDTH  = 1;
+  parameter Y_WIDTH  = 1;
+  input  [A_WIDTH-1:0] A;
+  input  [B_WIDTH-1:0] B;
+  output [Y_WIDTH-1:0] Y;
+  localparam CW = (A_WIDTH > B_WIDTH) ? A_WIDTH : B_WIDTH;
+  localparam SG = (A_SIGNED && B_SIGNED);
+  wire [CW-1:0]   a_ext, b_ext;
+  wire [CW:0]     lt;
+  assign lt[0] = 1'b0;
+  genvar i;
   generate
-    if (S_WIDTH == 1) begin
-      sky130_fd_sc_hd__mux2_1 u_mux (.A0(A), .A1(B), .S(S), .X(Y));
-    end else begin
-      genvar i, k;
-      for (i = 0; i < WIDTH; i = i + 1) begin : g_pmux_bit
-        wire [S_WIDTH-1:0] mux_chain;
-        sky130_fd_sc_hd__mux2_1 u_ch0 (.A0(A[i]), .A1(B[0*WIDTH + i]), .S(S[0]), .X(mux_chain[0]));
-        for (k = 1; k < S_WIDTH; k = k + 1) begin : g_ch
-          sky130_fd_sc_hd__mux2_1 u_chk (.A0(mux_chain[k-1]), .A1(B[k*WIDTH + i]), .S(S[k]), .X(mux_chain[k]));
-        end
-        assign Y[i] = mux_chain[S_WIDTH-1];
+    for (i = 0; i < CW; i = i + 1) begin : g_ext
+      if (i < A_WIDTH) begin : g_ai
+        assign a_ext[i] = A[i];
+      end else begin : g_ae
+        assign a_ext[i] = A_SIGNED ? A[A_WIDTH-1] : 1'b0;
+      end
+      if (i < B_WIDTH) begin : g_bi
+        assign b_ext[i] = B[i];
+      end else begin : g_be
+        assign b_ext[i] = B_SIGNED ? B[B_WIDTH-1] : 1'b0;
       end
     end
+    for (i = 0; i < CW; i = i + 1) begin : g_cmp
+      wire ae, be, na, diff, lti, eqi, andi;
+      if (SG && i == CW-1) begin : g_top
+        assign ae = ~a_ext[i];
+        assign be = ~b_ext[i];
+      end else begin : g_norm
+        assign ae = a_ext[i];
+        assign be = b_ext[i];
+      end
+      sky130_fd_sc_hd__xor2_1 u_x  (.A(ae),  .B(be),  .X(diff));
+      sky130_fd_sc_hd__inv_1  u_na (.A(ae),  .Y(na));
+      sky130_fd_sc_hd__and2_1 u_lt (.A(na),  .B(be),  .X(lti));
+      sky130_fd_sc_hd__inv_1  u_eq (.A(diff), .Y(eqi));
+      sky130_fd_sc_hd__and2_1 u_an (.A(eqi), .B(lt[i]), .X(andi));
+      sky130_fd_sc_hd__or2_1  u_or (.A(lti), .B(andi), .X(lt[i+1]));
+    end
   endgenerate
+  assign Y = lt[CW];
 endmodule
 
-// BLOCKERS (not mapped — documented, no invented cells):
-//
-// $add / $sub / $alu:
-//   No Sky130 HD arithmetic/adder cells exist in the verified 32-cell subset
-//   (sky130_full_subset.lib) and no Liberty timing is available for invented
-//   adder cells.  $add/$sub remain as unmapped Yosys cells after techmap.
-//   The $alu is already decomposed by Yosys proc into $pmux + $add/$sub/$and/$or
-//   + $eq comparators; the $and/$or paths now map, the $add/$sub paths do not.
-//
-// $sr (set-reset latch):
-//   No SR-latch cell exists in the verified subset.  The RISC-V CSR sticky bits
-//   and interrupt-pending latches will produce $sr cells that remain unmapped.
+// A > B  ==  B < A
+module $gt (A, B, Y);
+  parameter A_SIGNED = 0;
+  parameter B_SIGNED = 0;
+  parameter A_WIDTH  = 1;
+  parameter B_WIDTH  = 1;
+  parameter Y_WIDTH  = 1;
+  input  [A_WIDTH-1:0] A;
+  input  [B_WIDTH-1:0] B;
+  output [Y_WIDTH-1:0] Y;
+  localparam CW = (A_WIDTH > B_WIDTH) ? A_WIDTH : B_WIDTH;
+  localparam SG = (A_SIGNED && B_SIGNED);
+  wire [CW-1:0]   a_ext, b_ext;
+  wire [CW:0]     lt;
+  assign lt[0] = 1'b0;
+  genvar i;
+  generate
+    for (i = 0; i < CW; i = i + 1) begin : g_ext
+      if (i < A_WIDTH) begin : g_ai
+        assign a_ext[i] = A[i];
+      end else begin : g_ae
+        assign a_ext[i] = A_SIGNED ? A[A_WIDTH-1] : 1'b0;
+      end
+      if (i < B_WIDTH) begin : g_bi
+        assign b_ext[i] = B[i];
+      end else begin : g_be
+        assign b_ext[i] = B_SIGNED ? B[B_WIDTH-1] : 1'b0;
+      end
+    end
+    for (i = 0; i < CW; i = i + 1) begin : g_cmp
+      wire ae, be, na, diff, lti, eqi, andi;
+      if (SG && i == CW-1) begin : g_top
+        assign ae = ~b_ext[i];      // swapped: compute B < A
+        assign be = ~a_ext[i];
+      end else begin : g_norm
+        assign ae = b_ext[i];
+        assign be = a_ext[i];
+      end
+      sky130_fd_sc_hd__xor2_1 u_x  (.A(ae),  .B(be),  .X(diff));
+      sky130_fd_sc_hd__inv_1  u_na (.A(ae),  .Y(na));
+      sky130_fd_sc_hd__and2_1 u_lt (.A(na),  .B(be),  .X(lti));
+      sky130_fd_sc_hd__inv_1  u_eq (.A(diff), .Y(eqi));
+      sky130_fd_sc_hd__and2_1 u_an (.A(eqi), .B(lt[i]), .X(andi));
+      sky130_fd_sc_hd__or2_1  u_or (.A(lti), .B(andi), .X(lt[i+1]));
+    end
+  endgenerate
+  assign Y = lt[CW];
+endmodule
+
+// A >= B  ==  ~(A < B)
+module $ge (A, B, Y);
+  parameter A_SIGNED = 0;
+  parameter B_SIGNED = 0;
+  parameter A_WIDTH  = 1;
+  parameter B_WIDTH  = 1;
+  parameter Y_WIDTH  = 1;
+  input  [A_WIDTH-1:0] A;
+  input  [B_WIDTH-1:0] B;
+  output [Y_WIDTH-1:0] Y;
+  localparam CW = (A_WIDTH > B_WIDTH) ? A_WIDTH : B_WIDTH;
+  localparam SG = (A_SIGNED && B_SIGNED);
+  wire [CW-1:0]   a_ext, b_ext;
+  wire [CW:0]     lt;
+  assign lt[0] = 1'b0;
+  genvar i;
+  generate
+    for (i = 0; i < CW; i = i + 1) begin : g_ext
+      if (i < A_WIDTH) begin : g_ai
+        assign a_ext[i] = A[i];
+      end else begin : g_ae
+        assign a_ext[i] = A_SIGNED ? A[A_WIDTH-1] : 1'b0;
+      end
+      if (i < B_WIDTH) begin : g_bi
+        assign b_ext[i] = B[i];
+      end else begin : g_be
+        assign b_ext[i] = B_SIGNED ? B[B_WIDTH-1] : 1'b0;
+      end
+    end
+    for (i = 0; i < CW; i = i + 1) begin : g_cmp
+      wire ae, be, na, diff, lti, eqi, andi;
+      if (SG && i == CW-1) begin : g_top
+        assign ae = ~a_ext[i];
+        assign be = ~b_ext[i];
+      end else begin : g_norm
+        assign ae = a_ext[i];
+        assign be = b_ext[i];
+      end
+      sky130_fd_sc_hd__xor2_1 u_x  (.A(ae),  .B(be),  .X(diff));
+      sky130_fd_sc_hd__inv_1  u_na (.A(ae),  .Y(na));
+      sky130_fd_sc_hd__and2_1 u_lt (.A(na),  .B(be),  .X(lti));
+      sky130_fd_sc_hd__inv_1  u_eq (.A(diff), .Y(eqi));
+      sky130_fd_sc_hd__and2_1 u_an (.A(eqi), .B(lt[i]), .X(andi));
+      sky130_fd_sc_hd__or2_1  u_or (.A(lti), .B(andi), .X(lt[i+1]));
+    end
+  endgenerate
+  sky130_fd_sc_hd__inv_1 u_inv (.A(lt[CW]), .Y(Y));
+endmodule
+
+// A <= B  ==  ~(A > B)
+module $le (A, B, Y);
+  parameter A_SIGNED = 0;
+  parameter B_SIGNED = 0;
+  parameter A_WIDTH  = 1;
+  parameter B_WIDTH  = 1;
+  parameter Y_WIDTH  = 1;
+  input  [A_WIDTH-1:0] A;
+  input  [B_WIDTH-1:0] B;
+  output [Y_WIDTH-1:0] Y;
+  localparam CW = (A_WIDTH > B_WIDTH) ? A_WIDTH : B_WIDTH;
+  localparam SG = (A_SIGNED && B_SIGNED);
+  wire [CW-1:0]   a_ext, b_ext;
+  wire [CW:0]     lt;
+  assign lt[0] = 1'b0;
+  genvar i;
+  generate
+    for (i = 0; i < CW; i = i + 1) begin : g_ext
+      if (i < A_WIDTH) begin : g_ai
+        assign a_ext[i] = A[i];
+      end else begin : g_ae
+        assign a_ext[i] = A_SIGNED ? A[A_WIDTH-1] : 1'b0;
+      end
+      if (i < B_WIDTH) begin : g_bi
+        assign b_ext[i] = B[i];
+      end else begin : g_be
+        assign b_ext[i] = B_SIGNED ? B[B_WIDTH-1] : 1'b0;
+      end
+    end
+    for (i = 0; i < CW; i = i + 1) begin : g_cmp
+      wire ae, be, na, diff, lti, eqi, andi;
+      if (SG && i == CW-1) begin : g_top
+        assign ae = ~b_ext[i];      // swapped: compute B < A
+        assign be = ~a_ext[i];
+      end else begin : g_norm
+        assign ae = b_ext[i];
+        assign be = a_ext[i];
+      end
+      sky130_fd_sc_hd__xor2_1 u_x  (.A(ae),  .B(be),  .X(diff));
+      sky130_fd_sc_hd__inv_1  u_na (.A(ae),  .Y(na));
+      sky130_fd_sc_hd__and2_1 u_lt (.A(na),  .B(be),  .X(lti));
+      sky130_fd_sc_hd__inv_1  u_eq (.A(diff), .Y(eqi));
+      sky130_fd_sc_hd__and2_1 u_an (.A(eqi), .B(lt[i]), .X(andi));
+      sky130_fd_sc_hd__or2_1  u_or (.A(lti), .B(andi), .X(lt[i+1]));
+    end
+  endgenerate
+  sky130_fd_sc_hd__inv_1 u_inv (.A(lt[CW]), .Y(Y));
+endmodule
+
+// ================= Yosys gate primitives (from +/techmap.v) =================
+// After the standard `techmap -map +/techmap.v` expansion, the design can
+// contain internal gate primitives rather than word-level cells.  These map
+// one-to-one onto sky130 cells.
+
+module $_NOT_ (A, Y);
+  input A; output Y;
+  sky130_fd_sc_hd__inv_1 u (.A(A), .Y(Y));
+endmodule
+
+module $_AND_ (A, B, Y);
+  input A, B; output Y;
+  sky130_fd_sc_hd__and2_1 u (.A(A), .B(B), .X(Y));
+endmodule
+
+module $_NAND_ (A, B, Y);
+  input A, B; output Y;
+  sky130_fd_sc_hd__nand2_1 u (.A(A), .B(B), .Y(Y));
+endmodule
+
+module $_OR_ (A, B, Y);
+  input A, B; output Y;
+  sky130_fd_sc_hd__or2_1 u (.A(A), .B(B), .X(Y));
+endmodule
+
+module $_NOR_ (A, B, Y);
+  input A, B; output Y;
+  sky130_fd_sc_hd__nor2_1 u (.A(A), .B(B), .Y(Y));
+endmodule
+
+module $_XOR_ (A, B, Y);
+  input A, B; output Y;
+  sky130_fd_sc_hd__xor2_1 u (.A(A), .B(B), .X(Y));
+endmodule
+
+// $_XNOR_ : Y = ~(A ^ B)
+module $_XNOR_ (A, B, Y);
+  input A, B; output Y;
+  wire t;
+  sky130_fd_sc_hd__xor2_1 u_x (.A(A), .B(B), .X(t));
+  sky130_fd_sc_hd__inv_1  u_i (.A(t), .Y(Y));
+endmodule
+
+// $_ANDNOT_ : Y = A & ~B
+module $_ANDNOT_ (A, B, Y);
+  input A, B; output Y;
+  wire nb;
+  sky130_fd_sc_hd__inv_1  u_i (.A(B), .Y(nb));
+  sky130_fd_sc_hd__and2_1 u_a (.A(A), .B(nb), .X(Y));
+endmodule
+
+// $_ORNOT_ : Y = A | ~B
+module $_ORNOT_ (A, B, Y);
+  input A, B; output Y;
+  wire nb;
+  sky130_fd_sc_hd__inv_1 u_i (.A(B), .Y(nb));
+  sky130_fd_sc_hd__or2_1 u_o (.A(A), .B(nb), .X(Y));
+endmodule
+
+// $_MUX_ : Y = S ? B : A
+module $_MUX_ (A, B, S, Y);
+  input A, B, S; output Y;
+  sky130_fd_sc_hd__mux2_1 u (.A0(A), .A1(B), .S(S), .X(Y));
+endmodule
+
+// ---------------------------- gate-level flops -----------------------------
+// Port names: C (clock), R (reset), D, Q.  Name encodes clock edge, reset
+// polarity and reset value:  $_DFF_<C><R><V>_  with C,R in {P,N}, V in {0,1}.
+
+module $_DFF_P_ (C, D, Q);
+  input C, D; output Q;
+  sky130_fd_sc_hd__dfxtp_1 u (.CLK(C), .D(D), .Q(Q));
+endmodule
+
+module $_DFF_N_ (C, D, Q);
+  input C, D; output Q;
+  wire cn;
+  sky130_fd_sc_hd__inv_1 u_i (.A(C), .Y(cn));
+  sky130_fd_sc_hd__dfxtp_1 u (.CLK(cn), .D(D), .Q(Q));
+endmodule
+
+module $_DFF_PN0_ (C, R, D, Q);
+  input C, R, D; output Q;
+  sky130_fd_sc_hd__dfrtp_1 u (.CLK(C), .D(D), .Q(Q), .RESET_B(R));
+endmodule
+
+module $_DFF_PP0_ (C, R, D, Q);
+  input C, R, D; output Q;
+  wire rn;
+  sky130_fd_sc_hd__inv_1  u_i (.A(R), .Y(rn));
+  sky130_fd_sc_hd__dfrtp_1 u (.CLK(C), .D(D), .Q(Q), .RESET_B(rn));
+endmodule
+
+module $_DFF_PN1_ (C, R, D, Q);
+  input C, R, D; output Q;
+  sky130_fd_sc_hd__dfstp_1 u (.CLK(C), .D(D), .Q(Q), .SET_B(R));
+endmodule
+
+module $_DFF_PP1_ (C, R, D, Q);
+  input C, R, D; output Q;
+  wire rn;
+  sky130_fd_sc_hd__inv_1  u_i (.A(R), .Y(rn));
+  sky130_fd_sc_hd__dfstp_1 u (.CLK(C), .D(D), .Q(Q), .SET_B(rn));
+endmodule
+
+module $_DFF_NN0_ (C, R, D, Q);
+  input C, R, D; output Q;
+  wire cn;
+  sky130_fd_sc_hd__inv_1  u_i (.A(C), .Y(cn));
+  sky130_fd_sc_hd__dfrtp_1 u (.CLK(cn), .D(D), .Q(Q), .RESET_B(R));
+endmodule
+
+module $_DFF_NP0_ (C, R, D, Q);
+  input C, R, D; output Q;
+  wire cn, rn;
+  sky130_fd_sc_hd__inv_1  u_i (.A(C), .Y(cn));
+  sky130_fd_sc_hd__inv_1  u_r (.A(R), .Y(rn));
+  sky130_fd_sc_hd__dfrtp_1 u (.CLK(cn), .D(D), .Q(Q), .RESET_B(rn));
+endmodule
+
+module $_DFF_NN1_ (C, R, D, Q);
+  input C, R, D; output Q;
+  wire cn;
+  sky130_fd_sc_hd__inv_1  u_i (.A(C), .Y(cn));
+  sky130_fd_sc_hd__dfstp_1 u (.CLK(cn), .D(D), .Q(Q), .SET_B(R));
+endmodule
+
+module $_DFF_NP1_ (C, R, D, Q);
+  input C, R, D; output Q;
+  wire cn, rn;
+  sky130_fd_sc_hd__inv_1  u_i (.A(C), .Y(cn));
+  sky130_fd_sc_hd__inv_1  u_r (.A(R), .Y(rn));
+  sky130_fd_sc_hd__dfstp_1 u (.CLK(cn), .D(D), .Q(Q), .SET_B(rn));
+endmodule
