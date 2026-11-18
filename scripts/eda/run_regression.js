@@ -260,6 +260,13 @@ emit('revision: ' + spawnSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: RO
 emit('date    : ' + new Date().toISOString());
 emit('iverilog: ' + toolVersion('iverilog', ['-V']));
 emit('node    : ' + process.version);
+{
+  // Same resolver as the firmware drivers (F6), recorded so a regression log
+  // shows which compiler actually produced the images it just tested.
+  const tc = require(path.join(ROOT, 'scripts', 'fw_build', 'toolchain')).findToolchain();
+  emit('riscv   : ' + (tc.error ? 'BLOCKED — ' + tc.error
+                                : `${tc.gccPath} [${tc.source}] ${tc.version}`));
+}
 emit('');
 emit('firmware image provenance (rebuilt from source this run):');
 for (const line of provenance.lines) emit(line);

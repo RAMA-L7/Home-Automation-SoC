@@ -1,4 +1,11 @@
 # Home-Automation-SoC — Verification Results
+
+> **Historical snapshot (2026-11-12).** Numbers below (22/22 regression, 9/9 gate,
+> 22 files, 279 warnings) describe an earlier revision and an older gate. The
+> current verified state is RUN-0011: regression **27/27**, gate **10/10**, formal
+> **6/6**, Verilator boot **7/7**, 24 RTL files, lint 0 errors / 123 `-Wall`
+> warnings. See `research/runs/RUN-0011-evidence-provenance/evidence-matrix.md`.
+
 # Stage 4 Verification
 # Agent: OpenCode (nemotron-3.5-super-vl-free)
 

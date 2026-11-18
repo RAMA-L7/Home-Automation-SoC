@@ -22,7 +22,9 @@ setlocal EnableDelayedExpansion
 set TOOLS=D:\tools
 set OSS=%TOOLS%\oss-cad-suite
 set MINGW=%TOOLS%\mingw64
-set SHIM=%TOOLS%\verilator-shim
+rem Forward slashes: the substituted VERILATOR_ROOT goes into a makefile, where
+rem backslashes are escape characters and produce a bogus toolsverilator-shim path.
+set SHIM=D:/tools/verilator-shim
 set ROOT=D:\Home-Automation-SoC
 
 set TOP=%~1

@@ -384,19 +384,20 @@ module $pmux (A, B, S, Y);
   input  [WIDTH*S_WIDTH-1:0]  B;
   input  [S_WIDTH-1:0]        S;
   output [WIDTH-1:0]          Y;
+  // One scalar cell per bit, always. The former `S_WIDTH == 1` shortcut wired
+  // the whole A/B/Y vectors to a single scalar mux2_1, so for WIDTH > 1 the
+  // payload was truncated to bit 0 and the upper Y bits were left undriven.
+  // With S_WIDTH == 1 the chain below degenerates to exactly that one mux per
+  // bit, so the special case is not needed at all.
   genvar i, k;
   generate
-    if (S_WIDTH == 1) begin : g_one
-      sky130_fd_sc_hd__mux2_1 u_mux (.A0(A), .A1(B), .S(S[0]), .X(Y));
-    end else begin : g_many
-      for (i = 0; i < WIDTH; i = i + 1) begin : g_bit
-        wire [S_WIDTH-1:0] chain;
-        sky130_fd_sc_hd__mux2_1 u_m0 (.A0(A[i]), .A1(B[i]), .S(S[0]), .X(chain[0]));
-        for (k = 1; k < S_WIDTH; k = k + 1) begin : g_k
-          sky130_fd_sc_hd__mux2_1 u_mk (.A0(chain[k-1]), .A1(B[k*WIDTH+i]), .S(S[k]), .X(chain[k]));
-        end
-        assign Y[i] = chain[S_WIDTH-1];
+    for (i = 0; i < WIDTH; i = i + 1) begin : g_bit
+      wire [S_WIDTH-1:0] chain;
+      sky130_fd_sc_hd__mux2_1 u_m0 (.A0(A[i]), .A1(B[i]), .S(S[0]), .X(chain[0]));
+      for (k = 1; k < S_WIDTH; k = k + 1) begin : g_k
+        sky130_fd_sc_hd__mux2_1 u_mk (.A0(chain[k-1]), .A1(B[k*WIDTH+i]), .S(S[k]), .X(chain[k]));
       end
+      assign Y[i] = chain[S_WIDTH-1];
     end
   endgenerate
 endmodule

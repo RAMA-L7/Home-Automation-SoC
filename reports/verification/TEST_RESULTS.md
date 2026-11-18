@@ -1,4 +1,9 @@
 # Home-Automation-SoC — Verification Test Results
+
+> **Historical snapshot (2026-11-11).** Superseded by the regression suite and the
+> unified gate; current results are in
+> `research/runs/RUN-0011-evidence-provenance/evidence-matrix.md`
+> (regression 27/27, gate 10/10).
 # Agent: OpenCode (nemotron-3.5-super-vl-free)
 
 ## Test Results Summary

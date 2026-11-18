@@ -211,7 +211,7 @@ MEMORY MAP
    0x0000_0000  16 KB  Boot ROM     0x0001_0000  32 KB  TCM     0x2000_0000  128 KB  SRAM     0x4000_0000  64 MB  QSPI flash
 
 INTERRUPTS  CLINT: software + timer      PLIC: 8 sources, 1 context, 7-bit priority
-VERIFIED    Regression PASS 27/27 (Icarus)   ·   gate 9/9   ·   full-SoC boot 7/7 (Verilator)
+VERIFIED    Regression PASS 27/27 (Icarus)   ·   gate 10/10   ·   full-SoC boot 7/7 (Verilator)
 NOT YET     Secure boot · OTA signing · flash program/erase · retention · deep-sleep gating
 ```
 
@@ -275,11 +275,11 @@ reports `prefers-reduced-motion: reduce`).
 | ------------------------------ | ---------------------- | ------------- | -------------------------------------- | ------------------------------------------------- |
 | **Icarus Verilog**             | 14.0 (devel)           | Windows       | `D:\tools\oss-cad-suite\`              | **Working** — `iverilog` + `vvp`                  |
 | **Verilator** (lint)           | 5.053 devel            | Windows       | `D:\tools\oss-cad-suite\`              | **Working** — 0 lint errors                       |
-| **Verilator** (C++ sim)        | 5.053 devel            | Windows       | + `D:\tools\verilator-shim\`           | **Working** — full SoC 7/7 at \~20,000× real time |
+| **Verilator** (C++ sim)        | 5.053 devel            | Windows       | + `D:\tools\verilator-shim\`           | **Working** — full SoC 7/7 (4 ms simulated in 0.23 s) |
 | **MinGW-w64** (g++/ar/make)    | g++ 16.1.0, make 4.4.1 | Windows       | `D:\tools\mingw64\`                    | **Working** — use `-O2` (see registry trap 17)    |
 | **Verible** (SV lint/format)   | v0.0-4298              | Windows       | `D:\tools\verible\`                    | **Working** — 11 tools                            |
 | **SymbiYosys**                 | SBY v0.69              | Windows       | `D:\tools\oss-cad-suite\`              | **Working**                                       |
-| **Yosys** (native)             | 0.69+154               | Windows       | `D:\tools\oss-cad-suite\`              | **Working** — core synthesises, 226 cells         |
+| **Yosys** (native)             | 0.69+154               | Windows       | `D:\tools\oss-cad-suite\`              | **Working** — `synth -top riscv_core`: 44,323 cells, 0 problems |
 | **Yosys** (portable/WASM)      | 0.70                   | Windows + WSL | `D:\tools\venv\`, `D:\tools\venv-wsl\` | **Working** — no compiler needed                  |
 | **SymbiYosys** (portable/WASM) | SBY                    | Windows + WSL | `D:\tools\venv\`, `D:\tools\venv-wsl\` | **Working**                                       |
 | **cocotb**                     | 2.1.0                  | Windows       | `D:\tools\venv\`                       | **Working**                                       |
@@ -341,7 +341,7 @@ D:\tools\verify_tools.bat
 wsl -d Ubuntu-24.04 -- bash /mnt/d/tools/verify_tools_wsl.sh
 ```
 
-### RTL Files (22 SystemVerilog Files)
+### RTL Files (24 SystemVerilog Files)
 
 **Top-Level / SoC Integration (`rtl/rtl_top/`):**
 
@@ -381,6 +381,13 @@ wsl -d Ubuntu-24.04 -- bash /mnt/d/tools/verify_tools_wsl.sh
 
 ## 🧪 Verification Results (Measured)
 
+> **Provenance (re-run 2026-11-18, RUN-0011):** every number in this table was
+> reproduced at `025ef24` + the recorded dirty tree, with the commands and
+> artifact hashes in `research/runs/RUN-0011-evidence-provenance/`. The
+> Verilator build previously had no surviving executable in `build/obj_soc`;
+> it was rebuilt from source through `verilator_bin.exe`. Historical reports in
+> `reports/verification/` are snapshots of earlier commits, not current claims.
+
 | Test                                                     | Checks              | Result   | File                                            |
 | -------------------------------------------------------- | ------------------- | -------- | ----------------------------------------------- |
 | Boot firmware                                            | 7/7                 | PASS     | `tb_boot.v`                                     |
@@ -390,13 +397,13 @@ wsl -d Ubuntu-24.04 -- bash /mnt/d/tools/verify_tools_wsl.sh
 | Power manager                                            | 16/16               | PASS     | `tb_power_mgr.v`                                |
 | CLINT/PLIC/GPIO/SPI/I²C/PWM/timer/watchdog/I²S/SRAM/JTAG | Various             | PASS     | Individual testbenches                          |
 | **Regression suite**                                     | **27/27**           | **PASS** | `run_regression.js` (Icarus)                    |
-| **Unified gate** (`verify.js`)                           | **9/9**             | **PASS** | `scripts/verify.js`, exit 0                     |
+| **Unified gate** (`verify.js`)                           | **10/10**           | **PASS** | `scripts/verify.js`, exit 0                     |
 | Formal (SymbiYosys)                                      | 6/6                 | PASS     | `run_formal.js`                                 |
 | PLIC bounds / CSR arch / APB integrated / reset recovery | 0 failures          | PASS     | `tb_plic_bounds.v`, `tb_csr_arch.v`, `tb_apb_integrated.v`, `tb_reset_recovery.v` |
 | C firmware demo (boot → UART → watchdog reset → reboot)  | all markers         | PASS     | `tb_firmware.v`                                 |
-| **Verilator C++ full-SoC boot**                          | **7/7**             | **PASS** | `verilator_build_soc.bat` — \~20,000× real time |
-| Verilator lint                                           | 0 errors            | PASS     | All 22 RTL files                                |
-| Yosys synthesis (core)                                   | 226 cells, 0 errors | PASS     | `riscv_core.sv`                                 |
+| **Verilator C++ full-SoC boot**                          | **7/7**             | **PASS** | `verilator_build_soc.bat` — 4 ms simulated in 0.23 s |
+| Verilator lint (`-Wall`)                                 | 0 errors, 123 warnings, exit 1 | PASS (warnings only) | All 24 RTL files |
+| Yosys synthesis (core)                                   | 44,323 cells, 0 problems | PASS | `riscv_core.sv`, `synth -top riscv_core` |
 
 **`firmware (C demo)`** **— what it actually proves.** The bench runs the compiled C
 image (`build/fw/firmware.elf`, built with riscv-none-elf-gcc 12.2.0) on the RTL
@@ -436,7 +443,7 @@ the RTL does not implement.
 Achievements below are verified against committed evidence in this tree (see `TAPEOUT_EVIDENCE_REGISTRY.md` for the per-file SHA registry). "Verified" means the claim is reproducible from files that are published in `main`; it does not mean every downstream flow (place/route, GDS, FPGA programming) has been executed.
 
 ### SoC functional correctness (closed)
-- **Full-SoC Icarus Verilog simulation boots to U-Boot / Linux:** 7/7 consecutive boots at \~20,000× real time under the OSS CAD Suite Icarus build (`D:\tools\oss-cad-suite\bin\iverilog.exe`), with UART console, timer, GPIO, and the interrupt controller all exercised by the firmware image in `sim/asm/`.
+- **Full-SoC simulation boots the firmware:** 7/7 sub-tests PASS in the Verilator C++ model of `has_soc` (`scripts/eda/verilator_build_soc.bat` + `verilator_run.bat`), with UART console, timer, GPIO, PLIC and power-manager paths exercised by the firmware image built from `sim/asm/`. Measured cost: 4 ms simulated in 0.233 s wall (~17 ms simulated per wall-second); earlier drafts claimed \~20,000× faster than real time, which is not reproducible.
 - **Pipeline / CSR / memory-ordering fixes landed and re-verified:** dedicated `ADD` path for all load/store ops (was `SLT` → deadlock), `minstret` counts retirements only, `LHU`/`LH`/`LB` misalignment trapped, `unique case` without `default` fixed in `timer.sv`/`gpio.sv`, APB slot `PREADY`/`PSLVERR` semantics and partial-strobe gating corrected, PLIC `claim_id` (4-bit, 1..8) and priority index widened, and CSR immediate/illegal-CSR handling corrected.
 - **SoC-level functional closure marker committed:** the patch that closes the remaining SoC functional-correctness items is in `rtl/rtl_top/axi_lite_interconnect.sv` and `rtl/rtl_top/has_soc.sv` (same content as committed `358939c`).
 
@@ -454,7 +461,7 @@ Achievements below are verified against committed evidence in this tree (see `TA
   - `watchdog` — **1036** cells (and2_1×69, dfrtp_1×68, inv_1×50, mux2_1×429, or2_1×244, xor2_1×176)
 - **Equivalence (`tb_equiv.v`):** 1028 checks PASS with `-DUSE_MAPPED` (exit 0); a build without `USE_MAPPED` fails (exit 1); a deliberately corrupted netlist fails (exit 1). Previously the test compared RTL against RTL and used `$finish`, so it could not fail.
 - **Expansion proofs:** `$mul`/`$div`/`$mod`/`$neg`/shifts → 65536 exhaustive checks pass; signed+unsigned comparators → 256 exhaustive checks pass.
-- **Full SoC maps cleanly:** `check` reports **0 problems** and 0 conflicting drivers; the only unmapped leaf cells are the three `$mem_v2` memories. `flatten` is still avoided (behavioural SRAM expands to ~65k flops + ~131k muxes). Cell counts are **pre-ABC and not PPA** — `riscv_core` alone is ~218k cells because 64-bit mul/div expand into gates.
+- **Full SoC maps cleanly for standard cells:** `check` reports **0 problems** and 0 conflicting drivers; the only unmapped leaf cells are the four `$mem_v2` memories inventoried in RUN-0009 (boot ROM, TCM, SRAM, APB decode LUT). `flatten` is still avoided (behavioural SRAM expands to ~65k flops + ~131k muxes). Cell counts are **pre-ABC and not PPA**: a fresh `synth -top riscv_core` at `025ef24` reports 44,323 cells, not the earlier “226 cells” figure.
 - **Functional fixes:** I²C now transmits the write data byte and releases SDA for the read NACK (slave-model testbench passes; the old RTL fails with "DATA byte was not transmitted"); `uart.div` no longer has two drivers.
 
 ### ASIC synthesis report
@@ -495,7 +502,7 @@ All EDA tools for this project live under `D:\tools` (WSL: `/mnt/d/tools`); the 
 ### Recently resolved — SoC / firmware / tooling (pre-existing; retained for continuity)
 | Was blocked by                                            | Now                                                    | How                                                                                                                                                                           |
 | --------------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| No `g++` / `make` → no Verilator C++ simulation           | **Working** — full SoC boot 7/7 at \~20,000× real time | WinLibs MCF UCRT in `D:\tools\mingw64\`, plus a Windows-native Verilator kit shim in `D:\tools\verilator-shim\` (the OSS CAD Suite binary hardcodes a Linux `VERILATOR_ROOT`) |
+| No `g++` / `make` → no Verilator C++ simulation           | **Working** — full SoC boot 7/7 (4 ms in 0.23 s) | WinLibs MCF UCRT in `D:\tools\mingw64\`, plus a Windows-native Verilator kit shim in `D:\tools\verilator-shim\` (the OSS CAD Suite binary hardcodes a Linux `VERILATOR_ROOT`) |
 | No RTL style linter                                       | **Working**                                            | Verible v0.0-4298 in `D:\tools\verible\`                                                                                                                                      |
 | Old WSL Yosys 0.33 (2022)                                 | **Yosys 0.70** on Windows and WSL                      | `yowasp-yosys` (WebAssembly build) in `D:\tools\venv\` and `D:\tools\venv-wsl\` — no compiler needed                                                                          |
 | No SymbiYosys for the portable toolchain                  | **Working**                                            | `yowasp-sby` in the same two virtualenvs                                                                                                                                      |
@@ -588,7 +595,7 @@ The Verilator C++ model path needs the MinGW-w64 toolchain
 Both are installed; see `D:\tools\EDA_TOOL_REGISTRY.md`.
 
 ```bash
-# Build the full SoC (22 RTL files + tb_boot) into a C++ model
+# Build the full SoC (24 RTL files + tb_boot) into a C++ model
 scripts/eda/verilator_build_soc.bat tb_boot sim/sim_top/tb_boot.v build/obj_soc
 
 # Run it (must run from the project root: the ROM image path is relative)

@@ -221,7 +221,10 @@ function runTask(name, cmd, args, marker, check) {
 // 1 — tool availability -----------------------------------------------------
 function checkTools() {
   const required = ['iverilog', 'vvp', 'yosys', 'sby', 'verible-verilog-syntax', 'verible-verilog-lint'];
-  const optional = ['verilator'];
+  // verilator_bin is the binary that actually runs here; the Perl wrapper is
+  // broken in this environment. Reporting only 'verilator' as absent hid a
+  // working simulator from the inventory (RUN-0011).
+  const optional = [['verilator', 'verilator_bin']];
   const lines = [];
   let missing = null;
   for (const t of required) {
@@ -229,9 +232,24 @@ function checkTools() {
     lines.push(`${t.padEnd(26)} ${v || 'MISSING'}`);
     if (!v && !missing) missing = t;
   }
-  for (const t of optional) {
-    const v = which(t);
-    lines.push(`${t.padEnd(26)} ${v || 'not installed (optional)'}`);
+  for (const names of optional) {
+    const hit = names.map(n => [n, which(n)]).find(([, p]) => p);
+    const via = hit && hit[0] !== names[0] ? ` (via ${hit[0]}; the wrapper is unavailable)` : '';
+    lines.push(`${names[0].padEnd(26)} ${hit ? hit[1] + via : 'not installed (optional)'}`);
+  }
+  // RISC-V toolchain: resolved by the one shared implementation (F6), not by a
+  // path lookup here. A broken override must block the gate, not be ignored.
+  let tc = null;
+  try {
+    tc = require(path.join(ROOT, 'scripts', 'fw_build', 'toolchain')).findToolchain();
+  } catch (e) {
+    tc = { error: `toolchain resolver did not load: ${e.message}` };
+  }
+  if (tc.error) {
+    lines.push(`${'riscv toolchain'.padEnd(26)} MISSING — ${tc.error}`);
+    if (!missing) missing = 'RISC-V toolchain';
+  } else {
+    lines.push(`${'riscv toolchain'.padEnd(26)} ${tc.gccPath} [${tc.source}] ${tc.version}`);
   }
   for (const [label, file] of [['node', process.version], ['python', PYTHON]]) {
     lines.push(`${label.padEnd(26)} ${file}`);
@@ -465,6 +483,17 @@ function mermaid() {
     [path.join(ROOT, 'scripts', 'docs', 'check_mermaid.mjs')], 'check_mermaid: OK');
 }
 
+// 8b — structural checks must be able to fail (F8) --------------------------
+// The full-SoC flow used to end in a bare `check`, which prints its problems
+// and exits 0. This runs the checker's control matrix: the pre-fix silent pass,
+// undriven output, multiple drivers, an undeclared inferred memory, a stale
+// declared inventory, an unchecked internal cell, and a clean baseline.
+function structuralCheck() {
+  return runTask('structural-check', process.execPath,
+    [path.join(ROOT, 'scripts', 'eda', 'check_structure.js'), '--self-test'],
+    'STRUCTURAL_CHECK: SELF-TEST PASS');
+}
+
 // 9 — diagram generation + documentation idempotency -----------------------
 function md5(file) {
   return crypto.createHash('md5').update(fs.readFileSync(file)).digest('hex');
@@ -529,6 +558,7 @@ const TASK_ORDER = [
   ['formal', formal],
   ['cdc-inventory', cdc],
   ['protocol-tests', protocolTests],
+  ['structural-check', structuralCheck],
   ['mermaid', mermaid],
   ['docs-sync', docsSync],
 ];

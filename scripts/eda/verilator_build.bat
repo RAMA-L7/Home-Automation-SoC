@@ -28,7 +28,9 @@ setlocal EnableDelayedExpansion
 set TOOLS=D:\tools
 set OSS=%TOOLS%\oss-cad-suite
 set MINGW=%TOOLS%\mingw64
-set SHIM=%TOOLS%\verilator-shim
+rem Forward slashes: this value is substituted into a makefile, where
+rem backslashes are escape characters.
+set SHIM=D:/tools/verilator-shim
 
 set TOP=%~1
 set SRC=%~2

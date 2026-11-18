@@ -14,13 +14,25 @@ const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const OUT = path.join(ROOT, 'build', 'e2e');
-const TOOL_BIN = process.env.RISCV_TOOLCHAIN_BIN || 'D:/tools/xpack-riscv-none-elf-gcc-12.2.0-2/bin';
-const IVERILOG = process.env.IVERILOG || 'iverilog';
-const VVP = process.env.VVP || 'vvp';
+const EDA_TOOLS = process.env.EDA_TOOLS || 'D:/tools/oss-cad-suite';
+const { findToolchain } = require(path.join(ROOT, 'scripts', 'fw_build', 'toolchain'));
 
-const env = { ...process.env };
-env.RISCV_TOOLCHAIN_BIN = TOOL_BIN;
-env.PATH = ['D:\\tools\\oss-cad-suite\\bin', 'D:\\tools\\oss-cad-suite\\lib', TOOL_BIN, env.PATH || ''].join(path.delimiter);
+// One discovery path for the whole project (F6): the compiler resolved here is
+// the compiler the child build/genmem drivers resolve, because the bin
+// directory is exported to them rather than being re-derived or hardcoded.
+const tc = findToolchain();
+if (tc.error) {
+  console.error('BLOCKED: ' + tc.error);
+  process.exit(2);
+}
+const env = { ...tc.env };
+const pathKey = Object.keys(env).find(k => k.toUpperCase() === 'PATH') || 'PATH';
+env[pathKey] = [path.join(EDA_TOOLS, 'bin'), path.join(EDA_TOOLS, 'lib'), env[pathKey] || '']
+  .join(path.delimiter);
+if (tc.binDir) env.RISCV_TOOLCHAIN_BIN = tc.binDir;
+
+console.log(`toolchain: ${tc.gccPath} [${tc.source}]`);
+console.log(`  ${tc.version}`);
 
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -51,10 +63,10 @@ const results = [];
     checks.push(`${t}: ${present ? 'OK' : 'MISSING'}`);
     if (!present && !failed) failed = t + ' not found';
   }
-  const gcc = run('riscv-none-elf-gcc', ['--version']);
-  const gccPresent = !gcc.error;
-  checks.push(`riscv-none-elf-gcc: ${gccPresent ? 'OK' : 'MISSING'}`);
-  if (!gccPresent && !failed) failed = 'riscv-none-elf-gcc not found';
+  const gcc = run(tc.gccPath, ['--version']);
+  const gccPresent = !gcc.error && gcc.status === 0;
+  checks.push(`${tc.prefix}gcc: ${gccPresent ? 'OK' : 'MISSING'} (${tc.gccPath}, ${tc.source})`);
+  if (!gccPresent && !failed) failed = `${tc.gccPath} did not run`;
   log('tools.log', checks.join('\n') + '\n');
   results.push({ name: 'tools', status: failed ? 'FAIL' : 'PASS' });
   console.log(checks.join('\n'));

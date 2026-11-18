@@ -1,38 +1,54 @@
 'use strict';
 /*
- * Home-Automation-SoC — RISC-V toolchain discovery.
+ * Home-Automation-SoC — RISC-V toolchain discovery (single source of truth).
  *
- * Shared by build_fw.js and gen_fw_mem.js so both drivers resolve the same
- * compiler, in the same order.  The machine this project targets has xPack
- * GCC installed under D:\tools but *not* on PATH, so "not on PATH" must not
- * mean "no toolchain".
+ * Every driver resolves the compiler here: build_fw.js, gen_fw_mem.js,
+ * run_e2e.js, scripts/verify.js, and build_fw.py (through `--json`).
+ * build_fw.bat delegates to build_fw.js, so there is exactly one algorithm.
  *
- * Resolution order, most explicit first:
- *   1. $RISCV_GCC_PREFIX     — an exact "<prefix>gcc" contract, no guessing
- *   2. $RISCV_TOOLCHAIN_BIN  — an exact bin directory, prepended to PATH
- *   3. PATH                  — the known RISC-V prefixes
- *   4. Installed toolchains  — xpack-riscv-none-elf-gcc-* under the host tool
- *                              root (D:\tools on Windows), newest first
+ * The machine this project targets has xPack GCC under D:\tools but *not* on
+ * PATH, so "not on PATH" must not mean "no toolchain".
  *
- * An explicit override that does not work is reported as an error rather than
- * ignored: silently building with a different compiler than the caller asked
- * for would turn a configuration mistake into a green build.  Nothing here
- * installs, downloads or modifies a toolchain; it only probes what exists.
+ * Resolution order, most explicit first (opts override env, env overrides PATH):
+ *   1. $RISCV_GCC_PREFIX      exact "<prefix>gcc", no guessing
+ *   2. $RISCV_TOOLCHAIN_BIN   exact bin directory; the compiler is addressed by
+ *                             absolute path, never through PATH shadowing
+ *   3. PATH                   the known RISC-V prefixes
+ *   4. Installed toolchains   xpack-riscv-none-elf-gcc-* under the host tool
+ *                             root (D:\tools on Windows), newest first
+ *
+ * Every candidate is validated, not merely found:
+ *   * `<gcc> -dumpmachine` must report a riscv32/riscv64 target;
+ *   * `<gcc> --version` must run;
+ *   * `<gcc> -march=rv32im -mabi=ilp32 -fsyntax-only` must accept the flags the
+ *     firmware is actually built with (the core has no C extension);
+ *   * `<objcopy> --version` must run, because every build path needs it.
+ *
+ * An explicit configuration that does not work is an error. It is never
+ * silently replaced by another compiler, and two explicit settings that point
+ * at different toolchains are reported as a conflict.
  *
  * Usage:
  *   const { findToolchain } = require('./toolchain');
- *   const tc = findToolchain();            // -> { prefix, env, binDir, source }
+ *   const tc = findToolchain();            // -> { prefix, env, binDir, source,
+ *                                          //     gccPath, version, machine }
  *   if (tc.error) { ...exit 2... }         // -> { error: 'why' }
- *   // tc.binDir is null when the toolchain was already on PATH.
+ *
+ *   node scripts/fw_build/toolchain.js           human-readable resolution
+ *   node scripts/fw_build/toolchain.js --json    machine-readable (for Python)
+ *   node scripts/fw_build/toolchain.js --self-check   exit 0/2 only
+ *
+ * Nothing here installs, downloads or modifies a toolchain.
  */
 const { spawnSync } = require('child_process');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 const PREFIXES = ['riscv-none-elf-', 'riscv32-unknown-elf-', 'riscv64-unknown-elf-', 'riscv32-elf-'];
 
 // Where the project's tool registry keeps cross toolchains: D:\tools per
-// D:\tools\EDA_TOOL_REGISTRY.md (see AGENTS.md).  Other hosts use the usual
+// D:\tools\EDA_TOOL_REGISTRY.md (see AGENTS.md). Other hosts use the usual
 // install roots, so the same driver still works elsewhere.
 function toolRoots() {
   if (process.platform === 'win32') return ['D:\\tools', 'C:\\tools'];
@@ -49,9 +65,98 @@ function envWith(binDir) {
   return env;
 }
 
-function gccWorks(prefix, binDir) {
-  const r = spawnSync(prefix + 'gcc', ['--version'], { env: envWith(binDir), encoding: 'utf8' });
-  return r.status === 0;
+function exeIn(binDir, name) {
+  if (!binDir) return name;
+  const direct = path.join(binDir, name);
+  // Windows will not append PATHEXT to an absolute path handed to CreateProcess.
+  if (fs.existsSync(direct)) return direct;
+  if (process.platform === 'win32' && fs.existsSync(direct + '.exe')) return direct + '.exe';
+  return direct;
+}
+
+// Absolute path of an executable on PATH, so a PATH-sourced toolchain is
+// reported as the file it actually is instead of a bare command name.
+function whichOnPath(name) {
+  const dirs = (process.env.PATH || '').split(path.delimiter).filter(Boolean);
+  const exts = process.platform === 'win32'
+    ? (process.env.PATHEXT || '.EXE;.CMD;.BAT').split(';').filter(Boolean)
+    : [''];
+  for (const dir of dirs) {
+    for (const ext of exts) {
+      const p = path.join(dir, name + (process.platform === 'win32' ? ext.toLowerCase() : ''));
+      if (fs.existsSync(p)) return p;
+    }
+  }
+  return null;
+}
+
+let probeSource = null;
+function probeFile() {
+  if (!probeSource) {
+    probeSource = path.join(os.tmpdir(), `ha-soc-tc-probe-${process.pid}.c`);
+    fs.writeFileSync(probeSource, 'int probe;\n');
+  }
+  return probeSource;
+}
+
+function firstLine(text) {
+  return (text || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean)[0] || '';
+}
+
+// A RISC-V target string is either "riscv32-unknown-elf", "riscv64-..." or
+// xPack's "riscv-none-elf". Exported so the negative controls can assert the
+// rejection of a non-RISC-V target without a host compiler to point at.
+function isRiscvMachine(machine) {
+  return /^riscv/i.test((machine || '').trim());
+}
+
+/*
+ * Validate one candidate. Returns { ok:true, gccPath, version, machine } or
+ * { ok:false, reason }. `binDir` may be null, in which case the compiler is
+ * looked up on PATH.
+ */
+function probe(prefix, binDir) {
+  const env = envWith(binDir);
+  const gccPath = binDir
+    ? exeIn(binDir, prefix + 'gcc')
+    : (whichOnPath(prefix + 'gcc') || prefix + 'gcc');
+
+  const dm = spawnSync(gccPath, ['-dumpmachine'], { env, encoding: 'utf8' });
+  if (dm.error || dm.status !== 0) {
+    const why = dm.error ? dm.error.code : `exit ${dm.status}`;
+    return { ok: false, reason: `"${gccPath} -dumpmachine" did not run (${why})` };
+  }
+  const machine = (dm.stdout || '').trim();
+  // xPack reports "riscv-none-elf", GNU reports "riscv32-unknown-elf"; both are
+  // RISC-V. Anything else is rejected before the flag probe runs.
+  if (!isRiscvMachine(machine)) {
+    return { ok: false, reason: `"${gccPath}" targets "${machine || 'nothing'}"; not a RISC-V compiler` };
+  }
+
+  const ver = spawnSync(gccPath, ['--version'], { env, encoding: 'utf8' });
+  if (ver.error || ver.status !== 0) {
+    return { ok: false, reason: `"${gccPath} --version" did not run` };
+  }
+
+  // The firmware is built with -march=rv32im; a compiler that rejects those
+  // flags cannot build this project even if it is a RISC-V compiler.
+  const compat = spawnSync(gccPath,
+    ['-march=rv32im', '-mabi=ilp32', '-fsyntax-only', probeFile()],
+    { env, encoding: 'utf8' });
+  if (compat.error || compat.status !== 0) {
+    return { ok: false, reason: `"${gccPath}" rejects -march=rv32im -mabi=ilp32` };
+  }
+
+  const objcopyPath = binDir
+    ? exeIn(binDir, prefix + 'objcopy')
+    : (whichOnPath(prefix + 'objcopy') || prefix + 'objcopy');
+  const objcopy = spawnSync(objcopyPath, ['--version'], { env, encoding: 'utf8' });
+  if (objcopy.error || objcopy.status !== 0) {
+    const why = objcopy.error ? objcopy.error.code : `exit ${objcopy.status}`;
+    return { ok: false, reason: `"${objcopyPath}" is not usable (${why})` };
+  }
+
+  return { ok: true, gccPath, version: firstLine(ver.stdout), machine };
 }
 
 function versionOf(name) {
@@ -82,50 +187,118 @@ function installedDirs() {
   return found.sort((a, b) => newerFirst(a.name, b.name));
 }
 
-function ok(prefix, binDir, source) {
-  return { prefix, env: envWith(binDir), binDir, source };
+function ok(prefix, binDir, source, p) {
+  return {
+    prefix,
+    binDir,
+    source,
+    gccPath: p.gccPath,
+    version: p.version,
+    machine: p.machine,
+    env: envWith(binDir),
+  };
 }
 
 /*
- * opts.binDir — an explicit bin directory supplied by the caller (argv).  It is
- * treated like RISCV_TOOLCHAIN_BIN: it must work, or it is an error.
+ * opts.prefix — exact prefix, same contract as $RISCV_GCC_PREFIX
+ * opts.binDir — exact bin directory, same contract as $RISCV_TOOLCHAIN_BIN
+ * Explicit options win over the environment; if an environment variable is
+ * also set, the option value must be the one that works or the call fails.
  */
 function findToolchain(opts = {}) {
-  const explicitDir = opts.binDir;
+  const envPrefix = process.env.RISCV_GCC_PREFIX;
+  const envBin = process.env.RISCV_TOOLCHAIN_BIN;
+  const wantPrefix = opts.prefix || envPrefix;
+  const wantBin = opts.binDir || envBin;
 
-  // 1. explicit prefix, optionally against the explicit bin directory
-  const wantPrefix = process.env.RISCV_GCC_PREFIX;
-  if (wantPrefix) {
-    if (gccWorks(wantPrefix, explicitDir || process.env.RISCV_TOOLCHAIN_BIN)) {
-      return ok(wantPrefix, explicitDir || process.env.RISCV_TOOLCHAIN_BIN, 'RISCV_GCC_PREFIX');
+  // 1/2. explicit configuration — must work, or it is an error
+  if (wantPrefix && wantBin) {
+    const p = probe(wantPrefix, wantBin);
+    if (!p.ok) {
+      return {
+        error: `conflicting configuration: RISCV_GCC_PREFIX="${wantPrefix}" and ` +
+               `RISCV_TOOLCHAIN_BIN="${wantBin}" do not agree — ${p.reason}. ` +
+               'Unset one, or point both at the same toolchain.',
+      };
     }
-    return { error: `RISCV_GCC_PREFIX="${wantPrefix}" is set but "${wantPrefix}gcc --version" did not run` +
-                    (explicitDir || process.env.RISCV_TOOLCHAIN_BIN
-                      ? ` (looked in ${explicitDir || process.env.RISCV_TOOLCHAIN_BIN})` : ' (looked on PATH)') };
+    return ok(wantPrefix, wantBin, 'RISCV_GCC_PREFIX+RISCV_TOOLCHAIN_BIN', p);
   }
-
-  // 2. explicit bin directory
-  const wantBin = explicitDir || process.env.RISCV_TOOLCHAIN_BIN;
+  if (wantPrefix) {
+    const p = probe(wantPrefix, null);
+    if (!p.ok) {
+      return {
+        error: `RISCV_GCC_PREFIX="${wantPrefix}" is set but does not provide a usable ` +
+               `RISC-V compiler: ${p.reason}. It is not ignored, because building with a ` +
+               'different compiler than requested would be a silent configuration change.',
+      };
+    }
+    return ok(wantPrefix, null, 'RISCV_GCC_PREFIX', p);
+  }
   if (wantBin) {
-    for (const p of PREFIXES) if (gccWorks(p, wantBin)) return ok(p, wantBin, 'RISCV_TOOLCHAIN_BIN');
-    return { error: `"${wantBin}" contains no working RISC-V gcc ` +
-                    `(tried ${PREFIXES.map(p => p + 'gcc').join(', ')})` };
+    const reasons = [];
+    for (const prefix of PREFIXES) {
+      const p = probe(prefix, wantBin);
+      if (p.ok) return ok(prefix, wantBin, 'RISCV_TOOLCHAIN_BIN', p);
+      reasons.push(p.reason);
+    }
+    return {
+      error: `RISCV_TOOLCHAIN_BIN="${wantBin}" contains no usable RISC-V toolchain: ` +
+             reasons.join('; '),
+    };
   }
 
   // 3. already on PATH
-  for (const p of PREFIXES) if (gccWorks(p, null)) return ok(p, null, 'PATH');
+  const pathReasons = [];
+  for (const prefix of PREFIXES) {
+    const p = probe(prefix, null);
+    if (p.ok) return ok(prefix, null, 'PATH', p);
+    pathReasons.push(p.reason);
+  }
 
   // 4. installed under the tool root but not on PATH
   const searched = [];
+  const installReasons = [];
   for (const d of installedDirs()) {
     searched.push(d.binDir);
-    for (const p of PREFIXES) if (gccWorks(p, d.binDir)) return ok(p, d.binDir, 'installed');
+    for (const prefix of PREFIXES) {
+      const p = probe(prefix, d.binDir);
+      if (p.ok) return ok(prefix, d.binDir, 'installed', p);
+      installReasons.push(p.reason);
+    }
   }
 
   const roots = toolRoots().map(r => path.join(r, 'xpack-riscv-none-elf-gcc-*'));
-  return { error: 'no RISC-V toolchain found: tried PATH' +
-                  `, ${PREFIXES.map(p => p + 'gcc').join(', ')}` +
-                  (searched.length ? `, and ${searched.join(', ')}` : ` and ${roots.join(', ')}`) };
+  return {
+    error: 'no usable RISC-V toolchain found. Tried PATH (' +
+           pathReasons.join('; ') + ')' +
+           (searched.length ? `, and ${searched.join(', ')}` : `, and ${roots.join(', ')}`) +
+           (installReasons.length ? ` (${installReasons.join('; ')})` : '') +
+           '. Set RISCV_TOOLCHAIN_BIN to a bin directory (not to the toolchain root).',
+  };
 }
 
-module.exports = { findToolchain, PREFIXES, envWith };
+function format(tc) {
+  if (tc.error) return `BLOCKED: ${tc.error}`;
+  return `toolchain: ${tc.gccPath} [${tc.source}]\n` +
+         `  version:   ${tc.version}\n` +
+         `  target:    ${tc.machine}\n` +
+         `  prefix:    ${tc.prefix}\n` +
+         `  binDir:    ${tc.binDir || '(PATH)'}\n` +
+         '  flags:     -march=rv32im -mabi=ilp32 accepted';
+}
+
+module.exports = { findToolchain, format, probe, isRiscvMachine, PREFIXES, envWith };
+
+// ---------------------------------------------------------------- CLI ------
+if (require.main === module) {
+  const tc = findToolchain();
+  const json = process.argv.includes('--json');
+  const quiet = process.argv.includes('--self-check');
+  if (json) {
+    const { env, ...rest } = tc;
+    console.log(JSON.stringify({ ok: !tc.error, ...rest }, null, 2));
+  } else if (!quiet) {
+    console.log(format(tc));
+  }
+  process.exit(tc.error ? 2 : 0);
+}

@@ -148,15 +148,18 @@ module sky130_fd_sc_hd__dfxtp_4 (input CLK, input D, output reg Q);
   always @(posedge CLK) Q <= D;
 endmodule
 
-// dfrbp_*: negedge CLK, asynchronous active-low reset, complementary output.
+// dfrbp_*: posedge CLK, asynchronous active-low reset, complementary output.
+// Liberty (sky130_tt.lib): ff ("IQ","IQ_N") { clear : "!RESET_B";
+//   clocked_on : "CLK"; next_state : "D"; }, CLK->Q timing_type rising_edge.
+// F3: this model previously used negedge CLK; see research/runs/RUN-0008.
 module sky130_fd_sc_hd__dfrbp_1 (input CLK, input D, output reg Q, output Q_N, input RESET_B);
-  always @(negedge CLK or negedge RESET_B)
+  always @(posedge CLK or negedge RESET_B)
     if (!RESET_B) Q <= 1'b0; else Q <= D;
   assign Q_N = ~Q;
 endmodule
 
 module sky130_fd_sc_hd__dfrbp_2 (input CLK, input D, output reg Q, output Q_N, input RESET_B);
-  always @(negedge CLK or negedge RESET_B)
+  always @(posedge CLK or negedge RESET_B)
     if (!RESET_B) Q <= 1'b0; else Q <= D;
   assign Q_N = ~Q;
 endmodule

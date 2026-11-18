@@ -54,8 +54,8 @@ if (tc.error) {
   process.exit(2);
 }
 const { prefix, env } = tc;
-console.log(`toolchain: ${tc.binDir ? path.join(tc.binDir, prefix + 'gcc') : prefix + 'gcc'} [${tc.source}]`);
-run(`${prefix}gcc`, ['--version'], { env });
+console.log(`toolchain: ${tc.gccPath} [${tc.source}]`);
+console.log(`  ${tc.version} (target ${tc.machine})`);
 for (const s of ['startup.S', 'main.c', 'drivers.c', 'boot.c', 'host_comm.c', 'ota.c']) {
   if (!fs.existsSync(path.join(FW, s))) { console.error(`missing source ${s}`); process.exit(1); }
 }

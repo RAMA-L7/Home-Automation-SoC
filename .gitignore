@@ -144,3 +144,9 @@ ip/third_party/**
 docs/auto-generated/
 docs/_build/
 
+
+# --- Research evidence (published intentionally) ---
+# The global *.log / logs/ rules above would silently drop every run log.
+# These negations keep research/runs/<run>/logs/** in the published evidence set.
+!research/runs/*/logs/
+!research/runs/*/logs/**

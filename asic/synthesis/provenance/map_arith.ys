@@ -1,0 +1,13 @@
+# F4 provenance rerun: arith_test mapped through the project Sky130 techmap.
+# Source and testbench live under asic/synthesis/provenance/ (publishable path),
+# not the gitignored build/ tree. Inputs hashed by RUN-0011.
+read_liberty -lib build/asic_evidence/sky130_full_subset.lib
+read_verilog -sv asic/synthesis/provenance/arith_test.v
+hierarchy -check -top arith_test
+proc
+flatten
+techmap -map build/asic_evidence/sky130_map.v
+rename arith_test arith_test_mapped
+stat
+check -assert
+write_verilog -noattr build/asic_evidence/provenance_arith_mapped.v

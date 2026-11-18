@@ -110,7 +110,9 @@ module i2c_ctrl (
       I_RX_ACK:  if (q_done && q == 2'd3) state_n = I_STOP_A;
 
       I_STOP_A:  if (q_done) state_n = I_STOP_B;
-      I_STOP_B:  if (q_done) state_n = I_DONE;
+      // STOP needs a real SCL-high/SDA-low interval before SDA rises, so this
+      // state runs all four quarters instead of returning after the first.
+      I_STOP_B:  if (q_done && q == 2'd3) state_n = I_DONE;
       I_DONE:    state_n = I_IDLE;
       default:   state_n = I_IDLE;
     endcase
@@ -161,7 +163,10 @@ module i2c_ctrl (
       end
       I_STOP_B: begin
         scl_drive_low = 1'b0;          // SCL high
-        sda_drive_low = 1'b0;          // SDA rising while SCL high -> STOP
+        // Hold SDA low for the first half of the state, then release it: the
+        // rise happens while SCL is already high (a valid STOP, with setup).
+        // Releasing both lines together is not a STOP condition.
+        sda_drive_low = (q < 2'd2);
       end
       default: begin
         scl_drive_low = 1'b0;

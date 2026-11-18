@@ -53,6 +53,7 @@ module tb_i2c_xfer;
   reg  [7:0] captured_data = 0;
   integer    data_bytes = 0;
   integer    start_count = 0, stop_count = 0;
+  integer    invalid_stop = 0;   // SDA rose while SCL was still low (not a STOP)
   reg        nack_seen = 0;
 
   always @(posedge pclk) begin
@@ -74,11 +75,17 @@ module tb_i2c_xfer;
         slave_low <= 1'b0;
         start_count <= start_count + 1;
       end
-      if (scl && !sda_p && sda) begin
+      // STOP: SDA rises while SCL is high.  SCL must already have been high at
+      // the previous sample, i.e. there has to be a real SCL-high/SDA-low
+      // interval first.  Releasing both lines in the same cycle is not a STOP
+      // (I2C requires a setup time from SCL high to the SDA rising edge), so
+      // that case is counted separately and fails the test.
+      if (scl_p && scl && !sda_p && sda) begin
         in_frame  <= 1'b0;
         slave_low <= 1'b0;
         stop_count <= stop_count + 1;
       end
+      if (!scl_p && scl && !sda_p && sda) invalid_stop <= invalid_stop + 1;
 
       if (in_frame) begin
         if (scl_rise) begin
@@ -165,7 +172,7 @@ module tb_i2c_xfer;
   task clear_monitor;
     begin
       captured_addr = 0; captured_data = 0; data_bytes = 0;
-      nack_seen = 0; start_count = 0; stop_count = 0; rx_byte = 0;
+      nack_seen = 0; start_count = 0; stop_count = 0; invalid_stop = 0; rx_byte = 0;
       bitcnt = 0; ack_done = 0; in_frame = 0; addr_done = 0; is_read = 0;
       slave_low = 0;
     end
@@ -211,6 +218,10 @@ module tb_i2c_xfer;
     if (stop_count < 1) begin
       $display("  FAIL: no STOP condition"); errors = errors + 1;
     end
+    if (invalid_stop != 0) begin
+      $display("  FAIL: invalid STOP (SCL and SDA released in the same cycle)");
+      errors = errors + 1;
+    end
     if (errors == 0) $display("  PASS: write transaction");
 
     // ---------------- 2. READ: addr|R, data, NACK, STOP --------------
@@ -234,6 +245,10 @@ module tb_i2c_xfer;
     end
     if (stop_count < 1) begin
       $display("  FAIL: no STOP condition"); errors = errors + 1;
+    end
+    if (invalid_stop != 0) begin
+      $display("  FAIL: invalid STOP (SCL and SDA released in the same cycle)");
+      errors = errors + 1;
     end
 
     // ---------------- 3. NACK address: abort, no data ---------------
