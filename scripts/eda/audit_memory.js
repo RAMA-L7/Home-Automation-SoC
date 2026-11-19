@@ -227,6 +227,27 @@ function validate({ il, stat, map, ic, inv }) {
 }
 
 // -------------------------------------------------------------------- main --
+
+// The elaborated artifacts live under build/, which a fresh checkout does not
+// have. A clean tree therefore made `--self-test` report BLOCKED for a reason
+// that had nothing to do with the checker, and made the design stage fail on a
+// directory that did not exist. Elaborate on demand rather than depending on a
+// leftover run, and create the output directory the .ys writes into.
+function ensureElaboration() {
+  if (fs.existsSync(P.il) && fs.existsSync(P.stat)) return { status: 0, note: 'artifacts already present' };
+  fs.mkdirSync(path.dirname(P.il), { recursive: true });
+  const r = require('child_process').spawnSync(
+    'yosys', ['-s', 'asic/synthesis/memory_audit.ys'],
+    { cwd: ROOT, encoding: 'utf8', timeout: 900000, maxBuffer: 256 * 1024 * 1024 });
+  const ok = r.status === 0 && fs.existsSync(P.il) && fs.existsSync(P.stat);
+  return {
+    status: ok ? 0 : (r.error || r.status === null ? 127 : r.status || 1),
+    note: ok ? 'elaborated build/asic_evidence/memory_audit/ with yosys' :
+      (r.error ? `yosys could not run: ${r.error.message}` :
+        (r.stderr || r.stdout || '').trim().split('\n').slice(-3).join(' / ')),
+  };
+}
+
 function load() {
   for (const f of [P.il, P.stat, P.map, P.ic, P.inv]) {
     if (!fs.existsSync(f)) {
@@ -262,6 +283,13 @@ function report(title, r) {
 }
 
 if (process.argv.includes('--self-test')) {
+  const el = ensureElaboration();
+  if (el.status !== 0) {
+    console.log(`FAIL  could not elaborate the fixture baseline: ${el.note}`);
+    console.log('MEMORY_AUDIT: BLOCKED');
+    process.exit(2);
+  }
+  console.log(`      fixture baseline: ${el.note}`);
   const base = load();
   const cases = [];
   const clone = o => JSON.parse(JSON.stringify(o));

@@ -568,6 +568,10 @@ function memoryDesign() {
   const timeout = 900000;
   const parts = [];
 
+  // The .ys writes into build/asic_evidence/memory_audit/; a fresh checkout has
+  // no build/ tree, and yosys fails with "Can't create file" rather than
+  // creating the directory (found by running the gate in a clean worktree).
+  fs.mkdirSync(path.join(ROOT, 'build', 'asic_evidence', 'memory_audit'), { recursive: true });
   const y = spawnSync('yosys', ['-s', 'asic/synthesis/memory_audit.ys'], {
     cwd: ROOT, env, encoding: 'utf8', timeout, maxBuffer: 256 * 1024 * 1024,
   });

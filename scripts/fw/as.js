@@ -16,6 +16,7 @@
  */
 'use strict';
 const fs = require('fs');
+const path = require('path');
 
 // ---------------------------------------------------------------------------
 // Registers
@@ -486,6 +487,10 @@ function main() {
               (bytes[o + 1] << 8) | bytes[o]) >>> 0);
   }
 
+  // A fresh checkout has no build/ tree; the writer owns creating its output
+  // directory so the assembler does not depend on a leftover build (it used to
+  // fail with ENOENT the first time it ran, before anything created build/fw).
+  fs.mkdirSync(path.dirname(path.resolve(outp)), { recursive: true });
   fs.writeFileSync(outp, img.map(w => w.toString(16).padStart(8, '0')).join('\n') + '\n');
 
   if (lstp) {
@@ -494,6 +499,7 @@ function main() {
     lines.push('', 'Symbols:');
     for (const k of Object.keys(symbols))
       lines.push(`  ${k.padEnd(24)} 0x${(symbols[k] >>> 0).toString(16).padStart(8, '0')}`);
+    fs.mkdirSync(path.dirname(path.resolve(lstp)), { recursive: true });
     fs.writeFileSync(lstp, lines.join('\n') + '\n');
   }
 
