@@ -119,6 +119,18 @@ if (deleted.status === 0) {
   }
 }
 
+// 3b. a required file that differs from HEAD means the commit does not contain
+// what was verified.  This check is meant to run on the candidate commit (a
+// clean tree); run it once more after committing the evidence.
+const dirty = git(['diff', '--name-only', 'HEAD', '--'].concat(manifest.exact || []));
+if (dirty.status === 0) {
+  const changed = dirty.out.split('\n').map(s => s.trim()).filter(Boolean);
+  if (changed.length) {
+    errors.push(`${changed.length} required file(s) are modified relative to HEAD (commit them or the published tree is not what was verified):`);
+    for (const f of changed) errors.push(`  ${f}`);
+  }
+}
+
 // 4. evidence logs must be published ---------------------------------------
 const runsDir = path.join(ROOT, 'research', 'runs');
 if (fs.existsSync(runsDir)) {

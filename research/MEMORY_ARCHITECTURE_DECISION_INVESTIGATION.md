@@ -4,6 +4,9 @@
 **Session:** S-2026-11-18-5 (F5/F7)
 **Owner:** Agent: Buffy (model: DeepSeek V4.1 Flash)
 **Status:** INVESTIGATION — decision preparation only; no RTL modifications
+**Superseded (2026-11-19, RUN-0012):** the option recommended in section 5 was not
+adopted; see section 7. Sections 1–6 are preserved unedited as the record of what
+was investigated at the time.
 
 ## 1. Measured Memory Inventory (RUN-0009)
 
@@ -152,3 +155,37 @@ The following sources specify the declared addressable map. These are the "apert
 - Interconnect decode: `rtl/rtl_top/axi_lite_interconnect.sv:114-120`
 - Linker script: `firmware/bare_metal/linker.ld`
 - Memory architecture audit report: `research/MEMORY_ARCHITECTURE_AUDIT.md` (pre-existing, not overwritten)
+## 7. Supersession (2026-11-19, RUN-0012)
+
+**Adopted decision: Option A — size the arrays to the declared contract.**
+
+The recommendation in section 5 was reviewed against the authoritative inputs
+before acting on it, and three of its premises did not hold:
+
+1. **The requirement is not the ambiguous side.** `has_addr_map.sv`,
+   `axi_lite_interconnect.sv` decode literals, `firmware/bare_metal/linker.ld`,
+   FR-MEM-001/003 and the frozen `research/requirements-baseline.md` all agree on
+   16 KiB ROM / 32 KiB TCM / 128 KiB SRAM. Nothing in the approved set asks for
+   64 KiB / 256 KiB, so Option B would *change* an approved requirement rather
+   than reconcile one.
+2. **The change is not administrative.** Enlarging the map moves the SRAM
+   aperture above the NFR-AREA-003 budget and re-opens the memory sizing that
+   F7 has to buy a macro for. Choosing a new architecture on an owner's behalf is
+   exactly what the task forbids; shrinking an unreachable surplus is not.
+3. **The surplus was not free.** An array 4x the aperture it decodes into is
+   area and macro budget that can never be read.
+
+What was actually changed (RUN-0012, commit `6bc64a7`):
+
+| Item | Before | After |
+|---|---|---|
+| `rtl/rtl_top/boot_rom.sv` `ADDR_WIDTH` | 14 → 16384×32 = 64 KiB | 12 → 4096×32 = 16 KiB |
+| SoC SRAM instance `ADDR_WIDTH` | 17 → 65536×32 = 256 KiB | 15 → 32768×32 = 128 KiB |
+| TCM instance | 15 (32 KiB) | unchanged |
+
+Evidence: `scripts/eda/audit_memory.js` now reports every region as `match`
+(180,224 B addressable, 180,242 B implemented, the 18 B surplus being the APB
+decode LUT); `sim/sim_top/tb_mem_contract.v` adds 26 boundary, alias and
+byte-write checks; `research/findings.csv` F5 is FIXED. F7 stays BLOCKED — the
+absence of a macro is independent of the sizing decision, and the macro
+requirement set now names 16 KiB 2R ROM / 32 KiB 2R1W TCM / 128 KiB 2R1W SRAM.

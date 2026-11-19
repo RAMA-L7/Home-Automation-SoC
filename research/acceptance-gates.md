@@ -15,7 +15,7 @@ results.
 | G0.1 | Exact source state identified, worktree dirty-state recorded | PASS | `runs/RUN-0001-baseline-025ef24/source-manifest.json`; HEAD `025ef24` |
 | G0.2 | Tools inventoried with versions and availability | PASS | `runs/RUN-0001-baseline-025ef24/logs/tools.txt` |
 | G0.3 | Requirements and implementation boundary frozen | PASS | `research/requirements-baseline.md` |
-| G0.4 | Existing verification results reproduced at this commit, or marked unverified | PASS | RUN-0011 re-ran every named target at `025ef24` + the recorded dirty tree: regression 27/27, gate 10/10, firmware build + E2E 7/7, formal 6/6, Verilator lint 0 errors, Verilator C++ rebuild + boot 7/7, structural/memory BLOCKED as declared. PPA and wrapper-based claims are marked unverified. `runs/RUN-0011-evidence-provenance/evidence-matrix.md` |
+| G0.4 | Existing verification results reproduced at this commit, or marked unverified | PASS | RUN-0011 re-ran every named target at `025ef24` + the recorded dirty tree: regression 27/27, gate (10 stages then), firmware build + E2E 7/7, formal 6/6, Verilator lint 0 errors, Verilator C++ rebuild + boot 7/7, structural/memory BLOCKED as declared. RUN-0012 re-ran the gate at the publication candidate from a clean tree: see `runs/RUN-0012-closure-publication/`. PPA and wrapper-based claims are marked unverified. `runs/RUN-0011-evidence-provenance/evidence-matrix.md` |
 | G0.5 | No missing build inputs or unexplained stale-artifact dependency | PASS | F4 fixed: arithmetic source and testbench published at `asic/synthesis/provenance/` with hashes equal to the originals; stale artifacts identified and either regenerated (build/verify, build/obj_soc_r11) or banner-marked historical (reports/verification, build/baseline). No unexplained dependency remains |
 
 **G0 overall: PASS** (G0.1–G0.5 all pass). Independent reproduction is a G4 requirement, not G0.
@@ -30,19 +30,20 @@ results.
 | G1.4 | Sensor input → firmware decision → GPIO output → UART report through the real SoC | PARTIAL | C demo exercises UART, GPIO, watchdog reset; no sensor model exists |
 | G1.5 | Watchdog reset/recovery during defined active-transaction cases | PARTIAL | idle-path reset demonstrated; reset during an active APB/AXI transaction not yet tested |
 | G1.6 | Fresh firmware built from source with recorded provenance | PASS | `build_fw.js`/`gen_fw_mem.js` with discovery; image SHA-256 recorded in run artifacts |
-| G1.7 | I²C bus protocol valid on the wire (START/STOP/data/ACK) | PASS | STOP phasing fixed (`i2c_ctrl.sv` I_STOP_B holds SDA low while SCL is high); negative control RUN-0002 fails, fix RUN-0003 passes, integration RUN-0004 27/27 + 9/9 |
+| G1.7 | I²C bus protocol valid on the wire (START/STOP/data/ACK) | PASS | STOP phasing fixed (`i2c_ctrl.sv` I_STOP_B holds SDA low while SCL is high); negative control RUN-0002 fails, fix RUN-0003 passes, integration RUN-0004 regression pass |
+| G1.8 | I²C numerical timing meets the declared mode on the wire | PASS (standard mode only) | RUN-0012: `sim/sim_top/tb_i2c_timing.v` measures at the ports with a 300 ns delayed-rise bus model. fSCL 100.00 kHz, tHIGH 4700 ns, tLOW 5300 ns, tSU;DAT 2500 ns, tHD;DAT 20 ns, tHD;STA 5000 ns, tSU;STO 5000 ns, tBUF 14720 ns (23 checks). `scripts/eda/run_i2c_timing.js` 5/5 including a too-fast divider, a simultaneous-release mutant rejected as an invalid STOP, and a one-quarter START hold. Fast mode is not claimed; see `research/limitations.md` |
 
-**G1 overall: PARTIAL** — the protocol defect found on day 1 is fixed and regression-covered; G1.1, G1.3, G1.4 and G1.5 remain partial (no sensor path, no externally reviewed formal assumptions, watchdog reset during an active transaction not tested).
+**G1 overall: PARTIAL** — the protocol defect found on day 1 is fixed and regression-covered; G1.1, G1.3, G1.4 and G1.5 remain partial (no sensor path, no externally reviewed formal assumptions, watchdog reset during an active transaction not tested). G1.8 is satisfied for standard mode only.
 
 ## G2 — ASIC implementation baseline
 
 | # | Criterion | Status | Evidence |
 |---|---|---|---|
-| G2.1 | Real library cells and actual memory implementations identified | PARTIAL | cells mapped from `sky130_fd_sc_hd`; all four inferred memories are now identified, sized and reconciled (RUN-0009), but no memory implementation exists (F7) |
-| G2.2 | No unexpected unresolved cells, multiple drivers, undriven signals | PARTIAL | Enforced and negative-controlled: `check -assert` + library-cell allowlist + gap accounting (RUN-0007, 7/7 controls, gate 10/10). Clean design PASSes; `has_soc` is **BLOCKED** on 4 declared `$mem_v2`, now fully inventoried with geometry and drift controls (`scripts/eda/audit_memory.js`, RUN-0009, F7), so the criterion cannot pass yet |
+| G2.1 | Real library cells and actual memory implementations identified | PARTIAL | cells mapped from `sky130_fd_sc_hd`; all four inferred memories are identified, and their sizes are now reconciled with the address map (RUN-0012 closes F5), but no memory implementation exists (F7) |
+| G2.2 | No unexpected unresolved cells, multiple drivers, undriven signals | PARTIAL | Enforced and negative-controlled: `check -assert` + library-cell allowlist + gap accounting (RUN-0007, 7/7 controls, gate 10/10). Clean design PASSes; `has_soc` is **BLOCKED** on 4 declared `$mem_v2`, inventoried with geometry and drift controls (`scripts/eda/audit_memory.js`, RUN-0009/RUN-0012, F7), so the criterion cannot pass yet. The design stage and the checker self-test are separate gate stages, so a green self-test cannot mask the blocked design |
 | G2.3 | Mapping/equivalence checks cover the transformations actually used | PARTIAL | `$pmux` rule now covered by exhaustive simulation + cell-level equivalence, negative-controlled (RUN-0005/RUN-0006). All 11 sequential cell models the stub defines now match their liberty `clocked_on`, and `dfrbp` is proven by directed vectors with a pre-fix negative control (RUN-0008, F3 closed). Still only one mapping rule (`$pmux`) is equivalence-checked; the other `sky130_map.v` rules are unproven |
 | G2.4 | Clock, I/O, reset and timing exceptions explicit and justified | OPEN | no SDC audited; no pad ring |
-| G2.5 | Memory, pad, clock, power interfaces consistent | OPEN | no pads; memory strategy unresolved (the requirement set is in RUN-0009: 2R1W byte-enable SRAM, dual-read ROM, F5 capacity decision outstanding) |
+| G2.5 | Memory, pad, clock, power interfaces consistent | OPEN | no pads; memory strategy unresolved. The capacity part of the contract is settled (16 KiB ROM / 32 KiB TCM / 128 KiB SRAM, RUN-0012); the macro requirement set (2R1W byte-enable SRAM, dual-read ROM) still has no implementation |
 | G2.6 | Test access and manufacturing-test strategy documented | OPEN | DFT not started |
 
 **G2 overall: PARTIAL.**

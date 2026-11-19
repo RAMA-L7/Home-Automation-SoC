@@ -28,7 +28,7 @@ graph TB
     subgraph External["External Interfaces"]
         UART["UART0 / UART1<br/>115200 baud"]
         SPI["SPI + QSPI Master<br/>Mode 0/3, up to 50 MHz"]
-        I2C["I²C Master<br/>100k / 400k / 1M Hz"]
+        I2C["I²C Master<br/>100 kHz standard mode"]
         GPIO["GPIO 16-bit<br/>3.3V tolerant"]
         PWM["PWM 4-ch<br/>16-bit resolution"]
         I2S["I²S Transmit<br/>Master / Slave"]

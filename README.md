@@ -1,39 +1,35 @@
 # Home-Automation-SoC
 
-[![Status](https://img.shields.io/badge/status-IN%20PROGRESS-yellow)](https://github.com/RAMA-L7/Home-Automation-SoC)
-[![RTL](https://img.shields.io/badge/rtl-SystemVerilog-blue)](https://github.com/RAMA-L7/Home-Automation-SoC/tree/main/rtl)
-[![Firmware](https://img.shields.io/badge/firmware-C%20%2B%20Assembly-green)](https://github.com/RAMA-L7/Home-Automation-SoC/tree/main/firmware)
-[![Verification](https://img.shields.io/badge/verification-Icarus%20%7C%20Verilator%20%7C%20cocotb-orange)](https://github.com/RAMA-L7/Home-Automation-SoC/tree/main/sim)
-[![FPGA](https://img.shields.io/badge/fpga-Nexys%20A7-100T-lightgrey)](https://github.com/RAMA-L7/Home-Automation-SoC/tree/main/fpga)
-[![ASIC](https://img.shields.io/badge/asic-SkyWater%20130nm-lightgrey)](https://github.com/RAMA-L7/Home-Automation-SoC/tree/main/asic)
-[![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
+[![status](https://img.shields.io/badge/status-research%20prototype-yellow)](research/acceptance-gates.md)
+[![rtl](https://img.shields.io/badge/rtl-SystemVerilog- blue)](rtl)
+[![firmware](https://img.shields.io/badge/firmware-C%2B%2B%20Assembly-green)](firmware)
+[![verification](https://img.shields.io/badge/verification-Icarus%20%7C%20Verilator%20%7C%20formal-orange)](sim)
+[![functional gate](https://img.shields.io/badge/functional%20gate-PASS-brightgreen)](#-verification-and-formal-testing-capabilities)
+[![ASIC readiness](https://img.shields.io/badge/ASIC%20readiness-BLOCKED-red)](#-known-limitations-and-unresolved-engineering-blockers)
 
 ***
 
 ## 📋 Project Overview
 
-**Home-Automation-SoC** is a semiconductor engineering project delivering a low-power residential home automation System-on-Chip (SoC) in SystemVerilog RTL with bare-metal firmware, verification testbenches, FPGA constraints, ASIC physical-design flow scripts, and PCB documentation.
+**Home-Automation-SoC** is a semiconductor engineering research project delivering a low-power residential home automation System-on-Chip (SoC) in SystemVerilog RTL with bare-metal firmware, verification testbenches, and comprehensive EDA flow scripts. The project investigates RISC-V RV32IM core design, peripheral interconnect, and verification infrastructure on the SkyWater 130nm (sky130A) process node.
 
-**Target Applications:** Smart home hubs, sensor nodes, actuator controllers, IoT gateways\
-**External Host:** Home Assistant + Claude-based voice assistant (off-chip)\
-**Package Target:** QFN-64\
-**Process Target:** SkyWater 130nm (sky130A)\
-**FPGA Target:** Digilent Nexys A7-100T (Artix-7 XC7A100TCSG324-1)
+**Target Applications:** Smart home hubs, sensor nodes, actuator controllers, IoT gateways  
+**External Host:** Home Assistant + Claude-based voice assistant (off-chip)  
+**Package Target:** QFN-64  
+**Process Target:** SkyWater 130nm (sky130A) — *no PDK provisioned in this environment*  
+**FPGA Target:** Digilent Nexys A7-100T (Artix-7 XC7A100TCSG324-1) — *constraints defined, not yet synthesized*  
+**Deadline:** 2026-11-28T12:17:36Z (10-day research mandate)
 
 ### 🔍 Search Keywords
 
-`RISC-V`, `RV32IMC`, `SoC`, `SystemVerilog`, `AXI4-Lite`, `APB`, `GPIO`, `UART`, `I2C`, `SPI`, `PWM`, `I2S`, `QSPI`, `CLINT`, `PLIC`, `Watchdog`, `Timer`, `Boot ROM`, `SRAM`, `TCM`, `Secure Boot`, `Home Automation`, `Home Assistant`, `SkyWater 130nm`, `sky130`, `Nexys A7`, `Artix-7`, `Vivado`, `OpenLane 2`, `OpenROAD`, `Yosys`, `Icarus Verilog`, `Verilator`, `cocotb`, `KiCad`, `PCB`, `QFN-64`, `Mermaid`, `block diagram`, `ASIC`, `FPGA`, `EDA`, `RTL`, `firmware`, `verification`, `regression`, `SVA`, `formal verification`, `CDC`, `reset controller`, `watchdog`, `UART`, `pin-level`, `ISA trap`, `interrupt controller`, `power manager`, `clock gating`
+`RISC-V`, `RV32IMC`, `SoC`, `SystemVerilog`, `AXI4-Lite`, `APB`, `GPIO`, `UART`, `I2C`, `SPI`, `PWM`, `I2S`, `QSPI`, `CLINT`, `PLIC`, `Watchdog`, `Timer`, `Boot ROM`, `SRAM`, `TCM`, `Secure Boot`, `Home Automation`, `Home Assistant`, `SkyWater 130nm`, `sky130`, `Nexys A7`, `Artix-7`, `Yosys`, `Icarus Verilog`, `Verilator`, `cocotb`, `KiCad`, `PCB`, `QFN-64`, `Mermaid`, `block diagram`, `verification`, `regression`, `formal`, `research`
 
 ***
 
-## 🏗️ System Block Diagram (Mermaid)
-
-> **An animated figure of the same system is in** **[`docs/figures/dispatcher/dispatcher.html`](docs/figures/dispatcher/dispatcher.html)** — open it in a browser. It shows one transaction crossing the machine: in at the peripheral port, up the bus fabric, decoded by the address drum, and out to memory or a peripheral, with the core stepping through fetch → execute → memory as it goes.
+## 🏗️ Architecture Overview
 
 <!-- BEGIN MERMAID BLOCK DIAGRAM -->
-
 <!-- Source of truth: docs/architecture/BLOCK_DIAGRAM.md -->
-
 <!-- Regenerate with: python scripts/docs/sync_readme_mermaid.py -->
 
 ```mermaid
@@ -43,7 +39,7 @@ graph TB
     subgraph External["External Interfaces"]
         UART["UART0 / UART1<br/>115200 baud"]
         SPI["SPI + QSPI Master<br/>Mode 0/3, up to 50 MHz"]
-        I2C["I²C Master<br/>100k / 400k / 1M Hz"]
+        I2C["I²C Master<br/>100 kHz standard mode"]
         GPIO["GPIO 16-bit<br/>3.3V tolerant"]
         PWM["PWM 4-ch<br/>16-bit resolution"]
         I2S["I²S Transmit<br/>Master / Slave"]
@@ -143,27 +139,20 @@ graph TB
     PLIC -.->|irq| CORE
     CLINT -.->|software / timer irq| CORE
 ```
-
 <!-- END MERMAID BLOCK DIAGRAM -->
 
 ### ASCII Block Diagram
 
-<!-- BEGIN GENERATED BLOCK DIAGRAM -->
-
-<!-- Generated by scripts/docs/gen_block_diagram.py - do not edit by hand -->
-
-<!-- Source of truth: rtl/rtl_top/has_soc.sv, has_addr_map.sv, intc_axi.sv -->
-
-```text
+```
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │  HOME-AUTOMATION-SOC   ·   QFN-64   ·   SkyWater 130 nm (sky130)   ·   RV32IM                                                  │
 │  50 MHz core clock   ·   AXI4-Lite bus fabric   ·   APB peripherals   ·   < 1 mW deep sleep                                    │
 └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 EXTERNAL PINS
-       │        │       │         │            │            │        │       │         │         │
-     UART0    UART1    I2C    SPI/QSPI    GPIO[15:0]    PWM[3:0]    I2S    JTAG    WDOG rst    WAKE
-       ▼        ▼       ▼         ▼            ▼            ▼        ▼       ▼         ▼         ▼
+     │        │       │         │            │            │        │       │         │         │
+  UART0    UART1    I2C    SPI/QSPI    GPIO[15:0]    PWM[3:0]    I2S    JTAG    WDOG rst    WAKE
+     ▼        ▼       ▼         ▼            ▼            ▼        ▼       ▼         ▼         ▼
 
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │  HOME-AUTOMATION-SOC                                                                                                           │
@@ -178,606 +167,405 @@ EXTERNAL PINS
 │  │ CSRs · synchronous traps · M extension           │◄► │                           │    │ I2C master      0x5000_2000        ││
 │  │ no C-ext · no user mode · no PMP                 │   └───────────────────────────┘    │ SPI master      0x5000_3000        ││
 │  │ 4-state FSM: FETCH → EXEC → MEM / TRAP           │                                    │ PWM 4-ch        0x5000_4000        ││
-│  │                                                  │   ┌───────────────────────────┐    │ Timer           0x5000_5000        ││
-│  │ instruction fetch mux                            │   │ AXI4-Lite INTERCONNECT    │    │ Watchdog        0x5000_6000        ││
-│  │ ROM / TCM / SRAM, out-of-range → fault           │   │ 1 master × 6 slaves       │    │ I2S             0x5000_7000        ││
-│  │ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐  │   │                           │    │ Power manager   0x5000_8000        ││
-│  │ │ BOOT ROM    │ │ TCM         │ │ SRAM        │  │   └───────────────────────────┘    │                                    ││
-│  │ │ 16 KB       │ │ 32 KB       │ │ 128 KB      │  │                                    │ QSPI flash ctrl  0x4000_0000       ││
-│  │ │ 0x0000_0000 │ │ 0x0001_0000 │ │ 0x2000_0000 │  │   ┌───────────────────────────┐    │ Debug JTAG TAP   on-chip           ││
-│  │ │ exec + data │ │ exec + data │ │ exec + data │  │   │ AXI4-Lite → APB bridge    │    └────────────────────────────────────┘│
-│  │ └─────────────┘ └─────────────┘ └─────────────┘  │   │ 9 × 4 KB slots, one-hot   │                                          │
-│  │                                                  │   │                           │                                          │
-│  └──────────────────────────────────────────────────┘   └───────────────────────────┘                                          │
-│                                                                                                                                │
-│                                                         ┌───────────────────────────┐    ┌────────────────────────────────────┐│
-│                                                         │ INTc  CLINT + PLIC        │    │ POWER & RESET                      ││
-│                                                         │ 0x8000_0000 / 0x8000_1000 │    │ reset_ctrl · clock gating · sleep  ││
-│                                                         │                           │    │ watchdog → 16-cycle reset pulse    ││
-│                                                         └───────────────────────────┘    └────────────────────────────────────┘│
-│                                                                                                                                │
-│                                                                                                                                │
-│                                                                                                                                │
-│                                                                                                                                │
-│                                                                                                                                │
-│                                                                                                                                │
-│                                                                                                                                │
-│                                                                                                                                │
-│                                                                                                                                │
+│ │                                                                                     │                                    ││
+│  └──────────────────────────────────────────────────┘                                    └────────────────────────────────────┘│
 └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-
-MEMORY MAP
-   0x0000_0000  16 KB  Boot ROM     0x0001_0000  32 KB  TCM     0x2000_0000  128 KB  SRAM     0x4000_0000  64 MB  QSPI flash
-
-INTERRUPTS  CLINT: software + timer      PLIC: 8 sources, 1 context, 7-bit priority
-VERIFIED    Regression PASS 27/27 (Icarus)   ·   gate 10/10   ·   full-SoC boot 7/7 (Verilator)
-NOT YET     Secure boot · OTA signing · flash program/erase · retention · deep-sleep gating
 ```
 
-<!-- END GENERATED BLOCK DIAGRAM -->
+> **Source of truth:** `docs/architecture/BLOCK_DIAGRAM.md` — regenerate Mermaid with `python scripts/docs/sync_readme_mermaid.py`.
 
-### Animated Figure
+### Memory Architecture (Reconciled)
 
-<table>
-<tr>
-<td><a href="docs/figures/dispatcher/dispatcher.html"><img src="docs/figures/dispatcher/preview-dark.png" alt="Animated isometric figure of the Home-Automation-SoC as a pneumatic transaction dispatcher" width="640"></a></td>
-<td><a href="docs/figures/dispatcher/dispatcher-light.html"><img src="docs/figures/dispatcher/preview-light.png" alt="Animated isometric figure, light theme" width="640"></a></td>
-</tr>
-<tr>
-<td align="center"><sub>Dark theme — <a href="docs/figures/dispatcher/dispatcher.html">open the animation</a></sub></td>
-<td align="center"><sub>Light theme — <a href="docs/figures/dispatcher/dispatcher-light.html">open the animation</a></sub></td>
-</tr>
-</table>
+| Region | Array | Addressable Aperture | Ports | Status |
+|---|---|---|---|---|
+| Boot ROM | 4096 × 32 = 16 KiB | 16 KiB — match | 2R 0W | Measured (RUN-0012) |
+| TCM | 8192 × 32 = 32 KiB | 32 KiB — match | 2R1W ×4 lanes | Measured (RUN-0012) |
+| SRAM | 32768 × 32 = 128 KiB | 128 KiB — match | 2R1W ×4 lanes | Measured (RUN-0012) |
+| APB decode LUT | 16 × 9 | 18 B (part of decode logic) | 1R 0W | Measured (RUN-0012) |
 
-**Fig 1 — The transaction dispatcher.** One transaction is modelled as a glass
-capsule on a pneumatic dispatcher. The capsule is pushed in at the bell mouth
-(the peripheral port), a vacuum line lifts it up the brass trunk (the bus
-fabric), the address drum at the head turns to the slave the address selects
-(one-hot decode), and the capsule either drops into one of the four
-pigeonholes (Boot ROM, TCM, SRAM and the APB peripherals) or is dispatched
-down the outbound tube to the chute. The lever on the left steps the core
-through fetch, execute, memory and trap; the counter tallies completed
-dispatches and the gauge shows bus activity.
+**F5 resolution:** the ROM array was 64 KiB behind a 16 KiB aperture and the SRAM
+256 KiB behind 128 KiB, so the upper 48 KiB / 128 KiB was unreachable. The
+contract is stated identically in `has_addr_map.sv`, the interconnect decode
+literals, `linker.ld` and FR-MEM-001/003, so the **arrays were sized to it**
+(`ADDR_WIDTH` 14 and 17) rather than enlarging the product to match the arrays.
+Growing the map would change a declared requirement and the NFR-AREA-003 area
+budget — an owner decision, not a bug fix. No address, boot path or linker
+region changed. `audit_memory.js` now reports every array as `match`
+(180,224 B addressable, 180,242 B implemented including the LUT); 26 boundary,
+alias and byte-write checks in `sim/sim_top/tb_mem_contract.v`.
 
-Regenerate it with `node docs/figures/dispatcher/build.mjs` (add `--light` for
-the light theme, `--force-motion` when capturing with headless Chrome, which
-reports `prefers-reduced-motion: reduce`).
-
+> **No memory macro exists** (F7 BLOCKED). No `.lib`/`.lef`/`.gds` or memory compiler available. PDK not provisioned.
 
 ***
 
-## 🛠️ Tech Stack
+## 🧩 Major SoC Components and Features
 
-> **All tools live under** **`D:\tools`** (WSL: `/mnt/d/tools`). The authoritative
-> inventory — exact paths, invocation commands, versions and known limitations —
-> is **`D:\tools\EDA_TOOL_REGISTRY.md`**. 31 tools are verified functional
-> (16 Windows + 15 WSL, 0 failures) by `D:\tools\verify_tools.bat` and
-> `D:\tools\verify_tools_wsl.sh`.
+| Component | Status | Key Details |
+|---|---|---|
+| **RV32IM Core** | ✅ RTL synthesized, 44,323 generic cells pre-ABC | `riscv_core.sv`: multi-cycle, machine mode, CSRs, traps, M extension. No C-ext, no user mode, no PMP. |
+| **Boot ROM** | ✅ 16 KiB, 2R 0W, initialized with NOP fill | `0x0`; elaborated from RTL; no silicon init image; default fill is NOP. |
+| **TCM** | ✅ 32 KiB, 2R1W ×4 lanes | `0x1_0000`; 4-lane interconnect. |
+| **SRAM** | ✅ 128 KiB, 2R1W ×4 lanes | `0x2000_0000`; 4-lane interconnect. |
+| **AXI4-Lite Interconnect** | ✅ 1 master x 6 slaves | Routes to ROM, TCM, SRAM, QSPI, APB, INTC. |
+| **APB Peripheral Bridge** | ✅ 9 x 4 KB slots, one-hot decode | GPIO, UART, I2C, SPI, PWM, Timer, Watchdog, I2S, Power Manager. |
+| **Interrupt Controller** | ✅ CLINT + PLIC mux | CLINT: timer/software interrupts. PLIC: 8 sources, 1 context. |
+| **Power Manager** | ✅ Clock gating, sleep request | Gates core clock; `sleep_req` exported from register block. |
+| **I²C Master** | ✅ 100 kHz standard mode, measured at the pins | F1: STOP is a valid four-quarter sequence. F10: SCL duty corrected to 2 high / 2 low quarters, START hold and bus-free time enforced. 400 kHz fast mode is **not** supported (documented); clock stretching and repeated START are not implemented. |
+| **UART** | ✅ 115200 baud; TX/RX with STP/START | I²C STOP protocol defect fixed and regression-covered. |
+| **SPI Master** | ✅ Mode 0/3, up to 50 MHz | |
+| **PWM 4-ch** | ✅ 16-bit resolution | |
+| **I²S Transmit** | ✅ Master / Slave | |
+| **Watchdog Timer** | ✅ 16-cycle reset pulse | Fail-closed structure (F8). |
+| **Clock Generation** | ✅ 50 MHz system clock | Gated copies distributed to core and AXI. |
 
-### Design Stack
+***
 
-| Layer                | Technology             | Version        | Purpose                                             | Status                       |
-| -------------------- | ---------------------- | -------------- | --------------------------------------------------- | ---------------------------- |
-| **ISA**              | RISC-V RV32IM          | —              | Base + Multiply (no Compressed)                     | Implemented                  |
-| **Processor Core**   | Custom `riscv_core.sv` | —              | Multi-cycle, machine mode, CSRs, traps, M-extension | Implemented                  |
-| **HDL**              | SystemVerilog          | IEEE 1800-2017 | RTL design entry                                    | 23 files                     |
-| **Bus (CPU↔Mem)**    | AXI4-Lite              | —              | 32-bit data, single outstanding                     | Implemented                  |
-| **Bus (Peripheral)** | APB                    | —              | Via AXI4-Lite→APB bridge, 9 × 4 KB one-hot slots    | Implemented                  |
-| **Firmware**         | C / Assembly           | C11 / GNU AS   | Bare-metal + boot assembly                          | Compiles, runs in sim        |
-| **RTOS**             | Zephyr                 | 3.6+ LTS       | Planned                                             | Not integrated               |
-| **Crypto**           | Mbed TLS PSA           | 3.5+           | Planned for secure boot / OTA                       | Not integrated               |
-| **PDK**              | SkyWater 130 nm        | sky130A        | ASIC target process                                 | Downloaded (`D:\tools\pdk\`) |
+## 🛠️ Toolchain and EDA Environment
 
-### Toolchain — Simulation & Verification
+| Category | Tool | Version | Notes |
+|---|---|---|---|
+| **RISC-V Toolchain** | xPack GCC | 12.2.0-2 | Target `riscv-none-elf`; unified resolver `scripts/fw_build/toolchain.js`; one real toolchain available |
+| **Yosys** | Synthesis | 0.69+154 | `techmap`, `dfflibmap`, `abc` front-end; `-liberty` broken (no PDK) |
+| **Icarus Verilog** | Simulation | 14.0 | Used for regression; unavailable without OSS CAD Suite environment |
+| **Verilator** | C++ simulation / lint | 5.053 | `verilator_bin.exe` works; Perl wrapper broken (`Pod/Usage.pm`). Gate falls back to `verilator_bin`. Lint: 0 errors, 123 `-Wall` warnings over 24 files. Boot: 4 ms simulated in 0.233 s wall (≈17 ms/s — the "~20,000×" claim was wrong by ~6 orders of magnitude). |
+| **Formal (SYN)** | SMT solver | via Yosys/SBY | 6/6 properties pass at current state |
+| **Verible Lint** | Localparam/style | v0.0-4298 | 54 localparam-style deviations pinned (uart 1, axi_lite_interconnect 1, has_addr_map 34, riscv_core 18) |
+| **Symbiyosys** | Property verification | not available | not run at this state |
+| **Make** | Build runner | not on PATH | Git Bash POSIX shell used; tools invoked via `cmd //c "call D:\tools\oss-cad-suite\environment.bat && ..."` |
+| **Python** | Scripting | Windows Store stub (broken); `D:\tools\venv\Scripts\python.exe` works | `build_fw.py` delegates via `--json`; requires node for delegation |
+| **Node.js** | Build delegation | 26.7.0 | `build_fw.py` delegates toolchain discovery through node; resolves to xPack GCC |
+| **Linker** | Firmware build | `linker.ld` | Memory regions reconciled per F5 decision |
+| **OpenOCD** | FPGA programming | not available | Vivado not available; Nexys A7 constraints defined but not yet implemented |
 
-| Tool                           | Version                | Platform      | Location                               | Status                                            |
-| ------------------------------ | ---------------------- | ------------- | -------------------------------------- | ------------------------------------------------- |
-| **Icarus Verilog**             | 14.0 (devel)           | Windows       | `D:\tools\oss-cad-suite\`              | **Working** — `iverilog` + `vvp`                  |
-| **Verilator** (lint)           | 5.053 devel            | Windows       | `D:\tools\oss-cad-suite\`              | **Working** — 0 lint errors                       |
-| **Verilator** (C++ sim)        | 5.053 devel            | Windows       | + `D:\tools\verilator-shim\`           | **Working** — full SoC 7/7 (4 ms simulated in 0.23 s) |
-| **MinGW-w64** (g++/ar/make)    | g++ 16.1.0, make 4.4.1 | Windows       | `D:\tools\mingw64\`                    | **Working** — use `-O2` (see registry trap 17)    |
-| **Verible** (SV lint/format)   | v0.0-4298              | Windows       | `D:\tools\verible\`                    | **Working** — 11 tools                            |
-| **SymbiYosys**                 | SBY v0.69              | Windows       | `D:\tools\oss-cad-suite\`              | **Working**                                       |
-| **Yosys** (native)             | 0.69+154               | Windows       | `D:\tools\oss-cad-suite\`              | **Working** — `synth -top riscv_core`: 44,323 cells, 0 problems |
-| **Yosys** (portable/WASM)      | 0.70                   | Windows + WSL | `D:\tools\venv\`, `D:\tools\venv-wsl\` | **Working** — no compiler needed                  |
-| **SymbiYosys** (portable/WASM) | SBY                    | Windows + WSL | `D:\tools\venv\`, `D:\tools\venv-wsl\` | **Working**                                       |
-| **cocotb**                     | 2.1.0                  | Windows       | `D:\tools\venv\`                       | **Working**                                       |
-| **pytest**                     | 9.2.0                  | Windows       | `D:\tools\venv\`                       | **Working**                                       |
-| **GTKWave**                    | —                      | Windows       | `D:\tools\oss-cad-suite\`              | **Working** — waveform viewer                     |
-| **OpenOCD**                    | —                      | Windows       | `D:\tools\oss-cad-suite\`              | **Working** — JTAG debug                          |
+**Environment notes:**
+- Windows/Git Bash: no `make`, no POSIX shell inside cmd; tools invoked through `cmd //c "call D:\tools\oss-cad-suite\environment.bat && …"`
+- `python` on PATH is the Windows Store stub; scripts that assume it fail. The venv interpreter (`D:\tools\venv\Scripts\python.exe`) works and is what the gate uses.
+- `build/verify/` is a shared mutable log directory — a known provenance weakness; negative-control runs can overwrite real run logs (repaired by re-running at 20:51 on 2026-11-18).
+- Only one real RISC-V toolchain exists (xPack 12.2.0-2), so toolchain-conflict behaviour is proven against a missing prefix, not against a second compiler.
 
-### Toolchain — ASIC Physical Design
+***
 
-| Tool                 | Version         | Platform      | Location                                              | Status                                        |
-| -------------------- | --------------- | ------------- | ----------------------------------------------------- | --------------------------------------------- |
-| **OpenLane 2**       | v2.0.0b16       | WSL           | `D:\tools\src\openlane2\`, `D:\tools\venv-openlane2\` | **CLI working** — end-to-end flow NOT\_TESTED |
-| **OpenROAD**         | `bazel-nostamp` | WSL           | `D:\tools\openroad\`                                  | **Working** — 25/33 PD stages validated       |
-| **OpenSTA**          | 3.1.0           | WSL           | `D:\tools\opensta\`                                   | **Working** — TT/SS/FF multi-corner           |
-| **Magic**            | 8.3.105         | WSL           | `D:\tools\magic\`                                     | **Working** — layout DRC                      |
-| **Netgen**           | 6.2.2401        | WSL           | `D:\tools\netgen\`                                    | **Working** — LVS comparison                  |
-| **KLayout**          | 0.30.13         | WSL           | `D:\tools\KLayout\`                                   | **Working** — DRC/LVS/GDSII                   |
-| **volare**           | 0.20.6          | WSL           | `D:\tools\venv-openlane2\`                            | **Working** — PDK version manager             |
-| **bazelisk**         | 1.30.0          | Windows + WSL | `D:\tools\bazelisk\`                                  | **Working** — Bazel 7.4.1                     |
-| **Yosys** (WSL, apt) | 0.33            | WSL           | `/usr/bin/yosys`                                      | Superseded — use the WASM 0.70 build          |
+## ✅ Verification and Formal-Testing Capabilities
 
-### Toolchain — FPGA & PCB
+| Verification Domain | Result | Evidence |
+|---|---|---|
+| **Regression (Icarus)** | 27/27 PASS, exit 0 | `runs/RUN-0011-evidence-provenance/logs/regression.log` |
+| **Unified gate** | functional stages PASS; **ASIC readiness BLOCKED** (2 design stages) | `runs/RUN-0012-closure-publication/logs/gate.log` |
+| **Firmware build** | exit 0; `.text` 3,684 B; rom 26 words; TCM 895 words | `scripts/fw_build/build_fw.js`; discovery via `toolchain.js` |
+| **Firmware E2E** | 7/7 steps, corruption control detected | `scripts/firmware/run_e2e.js` |
+| **Formal properties** | 6/6 PASS, exit 0 | `runs/RUN-0011-evidence-provenance/logs/formal.log` |
+| **Verilator lint** | 0 errors, 123 `-Wall` warnings, 24 files, exit 1 | `runs/RUN-0011-evidence-provenance/logs/verilator_lint.log` |
+| **Verilator C++ build + boot** | exit 0; 7/7 subtests pass; 4 ms simulated in 0.233 s | `runs/RUN-0011-evidence-provenance/logs/verilator_run.log` |
+| **Structural checker self-test** | 16/16 controls (checker only — not a design result) | `runs/RUN-0012-closure-publication/logs/structural_self_test.log` |
+| **Structural (actual full SoC)** | BLOCKED, exit 2 — 4 declared `$mem_v2` gaps | `runs/RUN-0012-closure-publication/logs/structural_design.log` |
+| **Memory audit self-test** | 7/7 drift controls | `runs/RUN-0012-closure-publication/logs/memory_self_test.log` |
+| **Memory audit (actual design)** | BLOCKED, exit 2 — arrays reconciled (F5), no macro (F7) | `runs/RUN-0012-closure-publication/logs/memory_design.log` |
+| **Memory contract boundaries** | 26/26 checks (apertures, aliases, byte writes) | `sim/sim_top/tb_mem_contract.v` |
+| **I²C standard-mode timing** | 23 checks at the pins, 100.00 kHz; 3 negative controls | `scripts/eda/run_i2c_timing.js` |
+| **$pmux mapping test** | 7/7 steps, 393,608 vectors, 0 mismatches | `scripts/eda/run_pmux_map_test.js` |
+| **dfrbp model test** | 11/11 directed checks, exit 0 | `scripts/eda/run_dfrbp_model_test.js` |
 
-| Tool              | Version          | Platform | Location               | Status                          |
-| ----------------- | ---------------- | -------- | ---------------------- | ------------------------------- |
-| **KiCad**         | 10.0.8           | Windows  | `D:\tools\KiCad\10.0\` | **Working** — `kicad-cli`       |
-| **Xilinx Vivado** | WebPACK          | Windows  | —                      | **Not installed** (proprietary) |
-| **Nexys A7-100T** | Artix-7 XC7A100T | Hardware | —                      | **No hardware**                 |
+**Flow:** `node scripts/closure.js` is the single entry point: environment and
+resolved tool versions → publication completeness (Git index) →
+`scripts/verify.js`. The gate runs: tools → Verible syntax → Verible lint →
+regression → formal → CDC inventory → protocol tests → memory contract → I²C
+timing → **structural self-test** and **structural design** (separate stages) →
+**memory self-test** and **memory design** → Mermaid → docs sync.
 
-### Toolchain — Firmware & Build
+Exit codes: `0` every stage passed, `1` a stage failed, `2` a stage is BLOCKED.
+The current run exits **2**: the functional suite passes, but the two
+actual-design stages are BLOCKED on the four inferred memories. A green
+checker self-test is reported separately and never substitutes for that.
 
-| Tool                  | Version                      | Platform      | Location                                      | Status                                    |
-| --------------------- | ---------------------------- | ------------- | --------------------------------------------- | ----------------------------------------- |
-| **RISC-V GCC**        | xPack 12.2.0                 | Windows       | `D:\tools\xpack-riscv-none-elf-gcc-12.2.0-2\` | **Working** — `-march=rv32im -mabi=ilp32` |
-| **Python**            | 3.10.11 (Win) / 3.12.3 (WSL) | Both          | `D:\tools\venv\`, `/usr/bin/python3`          | **Working**                               |
-| **Node.js**           | v26.7.0 / v22.23.4           | Windows / WSL | PATH                                          | **Working** — build + regression scripts  |
-| **GNU Make**          | 4.4.1 (Win) / 4.3 (WSL)      | Both          | `D:\tools\mingw64\bin\`, `/usr/bin/make`      | **Working**                               |
-| **Git**               | —                            | Both          | PATH                                          | **Working**                               |
-| **GitHub CLI** (`gh`) | —                            | Windows       | PATH                                          | **Working** — authenticated as RAMA-L7    |
+> **Important:** `build/verify/` is a shared mutable log directory. A negative-control run overwrote a real run's logs at 20:51 on 2026-11-18 and was repaired by re-running the gate. Run-scoped log directories are not implemented.
 
-### Reproducing the Verification
+***
+
+## 📊 Research Findings F1–F9 and Current Statuses
+
+| ID | Finding | Status | Gist | Next Step |
+|---|---|---|---|---|
+| **F1** | I²C STOP releases SCL and SDA in the same cycle | **FIXED** | Real defect. Negative control failed (5 failures, exit 1) before fix; passed after (`stops=1`); integration 27/27 + 9/9 (RUN-0002/0003/0004). | Residual: do_stop still ignored (command without stop bit also terminates with STOP); analog setup time not modelled. |
+| **F2** | `$pmux` mapper single-select branch connects vectors to a scalar mux2_1 when WIDTH>1 | **FIXED** | Vectors were truncated to bit 0; 130,048 / 393,608 vectors wrong before; 0 after; 9 `$equiv` cells proven; `arith_test` netlist byte-identical pre/post (RUN-0005/0006). | Residual: equivalence uses behavioural mux2_1 model; other map rules not covered by this test. |
+| **F3** | Local dfrbp behavioral models trigger on the wrong clock edge | **FIXED** | Stub used `negedge CLK`; fixed to `posedge CLK` (only change); 11/11 directed checks pass; pre-fix control fails 3/11 (exit 1). Sky130 full liberty `ff` block present at line 1587; the earlier "omitted" note was wrong. | Residual: mapper never emits dfrbp (uses dfxtp_1/dfrtp_1/dfstp_1); functional only, no timing. |
+| **F4** | Arithmetic mapping demonstration references an unpublished source file | **FIXED** | Source and testbench lived only in gitignored `build/` (F4). Byte-identical copies now at `asic/synthesis/provenance/{arith_test.v,tb_equiv.v}` with `map_arith.ys`; 1,028 equivalence checks PASS (exit 0); corrupt-netlist control exits 1. | No action; provenance copies must be committed together with the evidence. |
+| **F5** | Allocated ROM/SRAM sizes may disagree with the address map and documentation | **FIXED** (RUN-0012) | Confirmed: ROM array 64 KiB behind a 16 KiB aperture, SRAM 256 KiB behind 128 KiB — 48 KiB and 128 KiB unreachable, an area/macro-sizing defect. Resolved by sizing the arrays to the declared contract (`ADDR_WIDTH` 14/17), not by enlarging the map. `audit_memory.js` now reports every memory as `match`; 26 boundary/alias/byte tests. | — |
+| **F6** | Some build entry points bypass shared toolchain discovery | **FIXED** | One validated resolver (`scripts/fw_build/toolchain.js`); precedence: option → `RISCV_GCC_PREFIX` → `RISCV_TOOLCHAIN_BIN` → PATH → installed xPack tree; each candidate validated on `-dumpmachine`/`-march`/`objcopy`; bad override exits 2; 10/10 discovery controls, 6/6 negative controls exit 2; `run_e2e.js` hardcoded path removed. | No action; any new driver must call `findToolchain()` or delegate to one that does. |
+| **F7** | Full-SoC synthesis may retain inferred memories without a complete implementation inventory | **BLOCKED** (inventory complete, no implementation) | 4 inferred `$mem_v2` measured (RUN-0012): boot ROM 16 KiB 2R, TCM 32 KiB 2R1W, SRAM 128 KiB 2R1W, 18 B decode LUT; plus register file (1024 bits) and PLIC priority (64 bits); no FIFOs. No `.lib`/`.lef`/`.gds` or memory compiler exists and no PDK is provisioned. `memory-design` reports BLOCKED by name for each. | Obtain a macro or blackbox whose ports, initialisation and timing meet the documented requirements, or record an owner decision to accept an alternative; the gap is versioned in `asic/synthesis/structural_policy.json` so it cannot silently become a PASS. |
+| **F8** | Full-SoC structural checks may report problems without failing the run | **FIXED** | A structural check that finds problems must fail the run (fail-closed gate). Now `check -assert` + library-cell allowlist + exact declared-gap accounting + non-empty mapping rule (exit 0/1/2). RUN-0007: 7/7 controls, gate 10/10; full SoC BLOCKED on 4 `$mem_v2`. | Residual: 192 s full-SoC mapping not in every gate run; counts are per module definition (no flatten). |
+| **F9** | Existing test totals and reports may lack fresh commit-matched raw evidence | **PARTIAL** (regression + gate re-run; Verilator/formal not re-run at pre-025ef24 numbers) | RUN-0011 re-ran every named target at 025ef24 + dirty tree: regression 27/27, gate 10/10, firmware build 3,684 B + E2E 7/7, formal 6/6, Verilator lint 0 errors/123 warnings/24 files, Verilator C++ rebuild + boot 7/7 (4 ms in 0.233 s), structural BLOCKED on 4 `$mem_v2`, memory audit BLOCKED (F5), pmux 7/7/393,608 vectors, dfrbp 11/11 + control exit 1, arith equivalence 1,028 checks. README corrected (10/10 gate, 24 files, 44,323-cell core synth, four `$mem_v2`, no 20,000× claim). Historical reports banner-marked, not rewritten. | Keep reports banner-marked; scope gate logs per run id; never cite pre-025ef24 numbers as current. |
+
+**Summary:** F1, F2, F3, F4, F5, F6, F8 **FIXED**. F7 **BLOCKED** (complete inventory, no memory implementation). F9 **PARTIAL** (all current targets traced at the tested commit; no PPA, no independent review; historical reports banner-marked). **Highest gate: G0 PASS** (G1/G2 PARTIAL, G3/G4 OPEN). ASIC readiness is BLOCKED and this repository makes no tapeout-readiness claim.
+
+***
+
+## 📈 Current Gate Status
+
+Gate status vocabulary: `PASS` (checked in this study with linked evidence), `PARTIAL`, `OPEN` (not attempted or blocked), `FAIL`. A gate is `PASS` only when **every** applicable criterion below it is `PASS`. Everything is **SELF-EVALUATED** — no independent evaluator exists.
+
+```
+G0:     PASS (G0.1–G0.5 all pass)  ────── highest verified gate
+G1:     PARTIAL (G1.1, G1.3, G1.4, G1.5 partial)
+G2:     PARTIAL (G2.1–G2.2 partial; G2.4–G2.6 OPEN)
+G3:     OPEN (all OPEN; no PDK, no macro, no P&R)
+G4:     OPEN (all OPEN; G4.4 no independent evaluator)
+```
+
+### G0 — Reproducible baseline (PASS)
+
+| # | Criterion | Status | Evidence |
+|---|---|---|---|
+| G0.1 | Exact source state identified, worktree dirty-state recorded | PASS | `runs/RUN-0001-baseline-025ef24/source-manifest.json`; HEAD `025ef24` |
+| G0.2 | Tools inventoried with versions and availability | PASS | `runs/RUN-0001-baseline-025ef24/logs/tools.txt` |
+| G0.3 | Requirements and implementation boundary frozen | PASS | `research/requirements-baseline.md` |
+| G0.4 | Existing verification results reproduced at this commit, or marked unverified | PASS | RUN-0011 re-ran every named target at `025ef24` + dirty tree: regression 27/27, gate (10 stages then), firmware 3,684 B, E2E 7/7, formal 6/6, Verilator lint 0 errors, Verilator C++ boot 7/7, structural BLOCKED on 4 `$mem_v2`, memory audit BLOCKED as declared. RUN-0012 re-ran the 13-stage gate and the publication check from a clean tree. PPA and wrapper-based claims marked unverified. |
+| G0.5 | No missing build inputs or unexplained stale-artifact dependency | PASS | F4 fixed: arithmetic source and testbench published at `asic/synthesis/provenance/` with hashes equal to the originals; stale artifacts identified and either regenerated or banner-marked historical. No unexplained dependency remains. |
+
+**G0 overall: PASS** (G0.1–G0.5 all pass). Independent reproduction is a G4 requirement, not G0.
+
+### G1 — Qualified RTL and firmware (PARTIAL)
+
+| # | Criterion | Status | Evidence |
+|---|---|---|---|
+| G1.1 | Required behaviour traced to executable checks | PARTIAL | per-peripheral testbenches + `scripts/verify.js`; traceability table not complete |
+| G1.2 | CPU, memory, bus, interrupt, reset, peripheral tests pass | PASS | regression 27/27, `runs/RUN-0001-baseline-025ef24/logs/regression.log` |
+| G1.3 | Formal properties have reviewed assumptions and reachability | PARTIAL | 6/6 properties run; assumptions not externally reviewed |
+| G1.4 | Sensor input → firmware decision → GPIO output → UART report through the real SoC | PARTIAL | C demo exercises UART, GPIO, watchdog reset; no sensor model exists |
+| G1.5 | Watchdog reset/recovery during defined active-transaction cases | PARTIAL | idle-path reset demonstrated; reset during an active APB/AXI transaction not yet tested |
+| G1.6 | Fresh firmware built from source with recorded provenance | PASS | `build_fw.js`/`gen_fw_mem.js` with discovery; image SHA-256 recorded in run artifacts |
+| G1.7 | I²C bus protocol valid on the wire (START/STOP/data/ACK) | PASS | STOP phasing fixed (RUN-0002 fails, RUN-0003 passes) |
+| G1.8 | I²C numerical timing meets the declared mode on the wire | PASS (standard mode only) | RUN-0012, `sim/sim_top/tb_i2c_timing.v`, measured at the ports with a 300 ns delayed-rise bus model: fSCL 100.00 kHz, tHIGH 4700 ns, tLOW 5300 ns, tSU;DAT 2500 ns, tHD;DAT 20 ns, tHD;STA 5000 ns, tSU;STO 5000 ns, tBUF 14720 ns; 23 checks. `scripts/eda/run_i2c_timing.js` 5/5 including a too-fast divider, a simultaneous-release mutant and a one-quarter START hold. 400 kHz, clock stretching and repeated START are out of scope and documented as such |
+
+**G1 overall: PARTIAL** — the protocol defect found on day 1 is fixed and regression-covered; G1.1, G1.3, G1.4 and G1.5 remain partial (no sensor path, no externally reviewed formal assumptions, watchdog reset during an active transaction not tested).
+
+### G2 — ASIC implementation baseline (PARTIAL)
+
+| # | Criterion | Status | Evidence |
+|---|---|---|---|
+| G2.1 | Real library cells and actual memory implementations identified | PARTIAL | cells mapped from `sky130_fd_sc_hd`; all four inferred memories are identified, sized and now agree with the address map, interconnect and linker (RUN-0012, F5 fixed), but no memory implementation exists (F7 BLOCKED) |
+| G2.2 | No unexpected unresolved cells, multiple drivers, undriven signals | PARTIAL | Enforced and negative-controlled: `check -assert` + library-cell allowlist + gap accounting. The checker now has 16 controls including missing, empty, truncated, stale and wrong-module reports and a broken tool invocation (RUN-0012). The clean baseline PASSes; `has_soc` is **BLOCKED** on 4 declared `$mem_v2`, so the criterion cannot pass yet |
+| G2.3 | Mapping/equivalence checks cover the transformations actually used | PARTIAL | `$pmux` rule now covered by exhaustive simulation + cell-level equivalence, negative-controlled (RUN-0005/RUN-0006). All 11 sequential cell models the stub defines now match their liberty `clocked_on`, and `dfrbp` is proven by directed vectors with a pre-fix negative control (RUN-0008, F3 closed). Still only one mapping rule ($pmux) is equivalence-checked; other `sky130_map.v` rules are unproven |
+| G2.4 | Clock, I/O, reset and timing exceptions explicit and justified | OPEN | no SDC audited; no pad ring |
+| G2.5 | Memory, pad, clock, power interfaces consistent | OPEN | no pads; memory strategy unresolved (the requirement set is in RUN-0009: 2R1W byte-enable SRAM, dual-read ROM, F5 capacity decision outstanding) |
+| G2.6 | Test access and manufacturing-test strategy documented | OPEN | DFT not started |
+
+**G2 overall: PARTIAL.**
+
+### G3 — Physical closure (OPEN)
+
+| # | Criterion | Status | Evidence |
+|---|---|---|---|
+| G3.1 | Selected design placed and routed | OPEN | no PDK and no memory macro; a macro-backed netlist cannot be built, let alone placed |
+| G3.2 | Connectivity/placement checks pass | OPEN | no implementation exists |
+| G3.3 | Extracted setup/hold meets frozen constraints at required corners | OPEN | — |
+| G3.4 | DRC, LVS, antenna, electrical, power integrity pass | OPEN | — |
+| G3.5 | Waivers externally authorized, not self-approved | OPEN | no waivers |
+
+**G3 overall: OPEN.**
+
+### G4 — Audited handoff package (OPEN)
+
+| # | Criterion | Status | Evidence |
+|---|---|---|---|
+| G4.1 | Source, netlist, layout, constraints, reports, manifests correspond | OPEN | no layout |
+| G4.2 | Abstracts, timing models, power, test collateral present | OPEN | — |
+| G4.3 | IP/PDK provenance recorded | PARTIAL | PDK provenance documented; no package |
+| G4.4 | Independent reviewer evaluates the frozen package | OPEN | **no independent evaluator available** |
+| G4.5 | All required gates pass without blocking findings | OPEN | — |
+
+**G4 overall: OPEN.**
+
+***
+
+## 🧠 Research Methodology, Reproducibility, and Evidence Approach
+
+### Measurement methodology
+
+- **Result reported** only when a run has: source revision, dirty-state recording, command, tool versions, exit code, and artifact hash.
+- **Runs are immutable:** a rerun gets a new `RUN-ID`; the original is preserved verbatim. RUN-0001 through RUN-0011 exist as audit trails.
+- **Evidence matrix:** `research/runs/RUN-0011-evidence-provenance/evidence-matrix.md` lists every current claim with its provenance.
+- **Historical reports** (`reports/verification/*`) are banner-marked as superseded; numbers are untouched and preserved as history.
+
+### Provenance and attribution
+
+- Every `PASS` claim in this README is traceable to a `RUN-ID` and artifact hash.
+- **No claim of independent validation** is made — every result is SELF-EVALUATED. G4 (audited handoff) is unreachable without an independent evaluator.
+- The `research/findings.csv` and `research/results.csv` records track findings and metrics across sessions; rows are never rewritten, only appended or superseded with a new status.
+
+### Evidence tree (selected)
+
+| RUN-ID | Purpose | Key Results |
+|---|---|---|
+| RUN-0001 | Baseline reproduction | regression 27/27, gate 9/9, both exit 0 |
+| RUN-0002 | I²C STOP negative control | 5 failures / exit 1 before fix |
+| RUN-0003 | I²C STOP fix verification | stops=1; pass; integration 27/27 + 9/9 |
+| RUN-0004 | I²C STOP integration | regression 27/27 + gate 9/9, exit 0 |
+| RUN-0005 | `$pmux` prefix mapper control | 130,048 mismatches, exit 1 |
+| RUN-0006 | `$pmux` postfix mapper fix | 0 mismatches; 9 equiv cells proven |
+| RUN-0007 | Structural fail-closed gate | 7/7 controls; full SoC BLOCKED on 4 `$mem_v2`; gate 10/10 |
+| RUN-0008 | `dfrbp` clock edge model | 11/11 checks; pre-fix control fails 3/11 |
+| RUN-0009 | Memory architecture audit | 4 inferred memories; F5 confirmed; F7 BLOCKED no macro |
+| RUN-0010 | Toolchain unification | one resolver; 10/10 + 6 negative controls; gate 10/10 |
+| RUN-0011 | Evidence provenance audit | 27/27 regression, 10/10 gate, 7/7 formal, 7/7 Verilator boot, 0 lint errors, structural BLOCKED, memory audit BLOCKED, pmux 7/7, dfrbp 11/11, arith 1,028 checks |
+| RUN-0012 | Publication repair, memory contract, I²C timing, gate split | closure entry point on a clean tree; publication complete; 26/26 memory checks; 23 I²C timing checks + 3 controls; 16/16 structural controls; design stages BLOCKED |
+
+> The `gate N/N` figures above are each run's own record and are preserved as
+> history. The gate grew from 9 to 10 to 13 stages (RUN-0012 split the checker
+> self-tests from the design checks and added `publication`, `memory-contract`,
+> `i2c-timing`, so a 10/10 is not comparable to a 13/13). Cite the run, not the
+> fraction.
+
+All run logs, commands, and artifact hashes are in `research/runs/`
+(`RUN-0011-evidence-provenance/`, `RUN-0012-closure-publication/`).
+
+***
+
+## ⚠️ Known Limitations and Unresolved Engineering Blockers
+
+### Environment limitations (no ASIC readiness)
+
+- **No fab PDK provisioning:** sky130A is not volare-enabled, so no OpenLane 2 flow has executed. No place, route, extraction, DRC/LVS, antenna or power analysis exists for the full SoC.
+- **No Vivado / FPGA hardware:** Stage 5 cannot be synthesized or programmed. FPGA claims are constrained but unverified.
+- **No independent evaluator:** G4 (audited handoff) is unreachable by construction; every result is SELF-EVALUATED.
+- **No held-out test set, no external reference model, no third-party signoff.**
+
+### Design limitations
+
+- **4 inferred memories with no implementation:** F7 BLOCKED — no `.lib`/`.lef`/`.gds` or memory compiler. The checker reports exactly 4+2 declared gaps and exits 2 BLOCKED, never PASS.
+- **Memory capacity mismatch (F5) — fixed, not approved:** the arrays are now sized to the declared 16 KiB / 128 KiB contract, so design and declaration agree. The choice between resizing the arrays and enlarging the map was made unilaterally from an unambiguous written requirement; no independent reviewer exists to approve it.
+- **Full-SoC flatten fails:** `std::bad_alloc` on behavioural SRAM; counts are per module definition, not a flat total.
+- **Verilator Perl wrapper broken:** `Pod/Usage.pm` missing; only `verilator_bin.exe` 5.053 works. The unified gate falls back to `verilator_bin` instead of reporting Verilator absent.
+- **Verilator lint: 123 warnings.** Calling 0 warnings "PASS" overstates it. Lint exits 1 under `-Wall`.
+- **`build/verify/` is a shared mutable log directory:** A negative-control run can overwrite a real gate run's logs (repaired by re-running at 20:51 on 2026-11-18). Run-scoped log directories are not implemented.
+- **Toolchain: only one real compiler:** xPack GCC 12.2.0-2. No second toolchain available for conflict testing.
+- **Python on PATH is the Windows Store stub:** Scripts that assume it fail. The venv interpreter (`D:\tools\venv\Scripts\python.exe`) works and is what the gate uses.
+
+### Verified but unfinished
+
+- **PPA does not exist:** No ABC `-liberty`, no PDK, no place/route. Cell counts are generic pre-ABC (riscv_core: 44,323 cells), not area or timing.
+- **No silicon exists:** Any statement implying measurement, foundry approval or manufacturing signoff would be false.
+- **No memory macro:** F7 cannot pass without a `.lib`/`.lef`/`.gds` or blackbox macro with documented timing.
+- **F5 resolution not independently approved:** The memory arrays were sized to the existing requirement (16 KiB ROM, 128 KiB SRAM) rather than the requirement being changed. The rationale is recorded; no independent reviewer exists to confirm the reading of the requirement.
+
+### Report limitations
+
+- `reports/verification/{README,TEST_RESULTS,VERIFICATION_BASELINE_2826b5b}.md` are **banner-marked as historical**; original numbers are untouched and preserved. Do not quote those numbers as "current."
+- `resume.md` is **stale** — says regression 17/17 and Verilator "blocked"; both superseded (regression is 27/27; `verilator_bin.exe` works).
+- `AGENTS.md` sections 1–7 and `reports/MASTER_PROJECT_STATUS.md` are **snapshots from earlier sessions**, not current.
+
+***
+
+## 🛣️ Roadmap and Next Research Phases
+
+| Phase | Objective | Blockers | Estimated effort |
+|---|---|---|---|
+| **Phase 4** | F5/F7 memory capacity decision and macro integration | No PDK, no memory macro, F5 decision documented but unapproved | 1–2 weeks (if PDK becomes available) |
+| **Phase 5** | Formal property review with external reviewer | No independent evaluator in this environment | Requires external model or third-party signoff |
+| **Phase 6** | Gate G1–G4 advancement | G1.1, G1.3, G1.4, G1.5 partial; G2.4–G2.6 OPEN; G3 all OPEN; G4.4 no independent evaluator | Requires F5/F7 resolution + formal assumption review + DFT initiation |
+| **Phase 7** | PDK procurement and OpenLane 2 flow | volare sky130A not enabled; no memory compiler | External dependency; timeline unknown |
+| **Phase 8** | FPGA synthesis and implementation | Vivado not available; Nexys A7 constraints defined but not synthesized | Requires Vivado license and hardware |
+
+**Long-term goal (beyond this 10-day mandate):** With a provisioned sky130A PDK, complete OpenLane 2 flow (synthesis → place & route → DRC/LVS/STA → tapeout documentation). Without a PDK, this project remains a verified RTL + firmware + research-grade verification infrastructure study, not an ASIC-ready design.
+
+***
+
+## 📁 Repository Structure (top-level)
+
+```
+├── .gitignore               git-negated research run logs
+├── README.md                this file (professional showcase)
+├── AGENTS.md                agent handoff + change-log
+├── constraints/             pin assignment & timing constraints
+├── docs/                    architecture, requirements, docs
+│   └── architecture/        block diagram, Mermaid, decision records
+├── fpga/                    Nexys A7 constraints, bringup guide
+├── ip/                      internal / third-party IP (none downloaded)
+├── rtl/                     SystemVerilog RTL sources
+│   └── rtl_top/             top-level and peripheral modules
+├── sim/                     simulation top-level and wavefiles
+├── constraints/             pin & timing constraints
+├── asic/                    ASIC physical-design flow scripts
+│   ├── synthesis/           Yosys techmap, map scripts
+│   └── synthesis/provenance/  F4 byte-identical copies (arith_test.v, tb_equiv.v, map_arith.ys)
+├── firmware/                Bare-metal + RTOS + driver sources
+├── scripts/                 EDA and firmware build scripts
+│   ├── fw_build/            toolchain discovery + build flows
+│   ├── eda/                 yosys, Verilator, formal, structural checks
+│   └── docs/                code-generation scripts
+├── reports/                 verification results, formal specs, delivery reports
+│   └── verification/        historical reports (banner-marked)
+├── tb/                      legacy testbenches (superseded by sim/sim_top/)
+├── TECH_STACK.md            complete tech stack inventory
+└── research/                study evidence, findings, gates, limits
+    ├── runs/                RUN-0001…RUN-0011 evidence trees
+    ├── findings.csv         F1–F9 triage
+    ├── results.csv          experiment metrics
+    ├── experiment-matrix.csv        run plan
+    ├── acceptance-gates.md  G0–G4 gate definitions
+    └── limitations.md       environment & design limitations
+```
+
+### How to reproduce major verification runs
+
+The single entry point is `scripts/closure.js`. It first proves that every input
+it needs is in the Git tree, then runs the full gate, and writes one log per
+stage under `build/closure/`. Run it at the repository root of a clean checkout.
 
 ```bash
-# Icarus regression (27 testbenches)
-node scripts/eda/run_regression.js
+# Prerequisite: put yosys/iverilog/sby on PATH (OSS CAD Suite here)
+export PATH="/d/tools/oss-cad-suite/bin:/d/tools/oss-cad-suite/lib:$PATH"
 
-# Verilator C++ model of the full SoC
-scripts/eda/verilator_build_soc.bat tb_boot sim/sim_top/tb_boot.v build/obj_soc
-scripts/eda/verilator_run.bat build/obj_soc/Vtb_boot.exe
+# Publication completeness + full verification gate
+node scripts/closure.js
+#   exit 0 = every stage passed
+#   exit 1 = a stage failed
+#   exit 2 = a stage is BLOCKED (the current state: ASIC readiness)
 
-# Verible style lint over the RTL
-D:\tools\verible\verible-verilog-lint.exe rtl/rtl_top/*.sv rtl/rtl_peripherals/*.sv
-
-# Formal verification (SymbiYosys)
-D:\tools\venv\Scripts\yowasp-sby.exe -f reports/verification/formal_sram.sby
-
-# Toolchain self-check
-D:\tools\verify_tools.bat
-wsl -d Ubuntu-24.04 -- bash /mnt/d/tools/verify_tools_wsl.sh
+# Individual stages, to look at one thing at a time
+node scripts/publication/check_publication.js     # Git index only, exit 0/1
+node scripts/verify.js                            # the gate (exit 2 at present)
+node scripts/verify.js --only=structural-design,memory-design
+node scripts/eda/check_structure.js --self-test   # 16/16 checker controls
+node scripts/eda/audit_memory.js --self-test      # 7/7 drift controls
+yosys -s asic/synthesis/memory_audit.ys           # elaboration for the inventory
+node scripts/eda/audit_memory.js                  # expect BLOCKED, exit 2 (F7)
+node scripts/eda/run_i2c_timing.js                # 5/5, incl. 3 failing controls
+node scripts/eda/run_pmux_map_test.js             # 7/7, 393,608 vectors
+node scripts/eda/run_dfrbp_model_test.js          # 11/11 + failing pre-fix control
 ```
 
-### RTL Files (24 SystemVerilog Files)
+Tool locations are environment overrides, never hidden defaults: `EDA_TOOLS`,
+`VERIBLE_DIR`, `PYTHON`, `RISCV_GCC_PREFIX`, `RISCV_TOOLCHAIN_BIN`. The run
+records the resolved path and version of every tool it used.
 
-**Top-Level / SoC Integration (`rtl/rtl_top/`):**
-
-| File                       | Function                         | Status |
-| -------------------------- | -------------------------------- | ------ |
-| `has_soc.sv`               | Top-level SoC integration        | Done   |
-| `has_addr_map.sv`          | Address map package              | Done   |
-| `boot_rom.sv`              | 16 KB secure boot ROM            | Done   |
-| `sram.sv`                  | 128 KB SRAM                      | Done   |
-| `riscv_core.sv`            | RV32IMC multi-cycle core         | Done   |
-| `axi_lite_interconnect.sv` | 1-master × 6-slave AXI4-Lite     | Done   |
-| `axi_lite_to_apb.sv`       | AXI4-Lite → APB bridge           | Done   |
-| `req_gnt_to_axi_lite.sv`   | Ibex req/gnt → AXI4-Lite adapter | Done   |
-| `intc_axi.sv`              | CLINT/PLIC bus mux               | Done   |
-| `reset_ctrl.sv`            | Reset controller module          | Done   |
-
-**Peripherals (`rtl/rtl_peripherals/`):**
-
-| File                 | Function                      | Interface     | Status |
-| -------------------- | ----------------------------- | ------------- | ------ |
-| `gpio.sv`            | 16-bit GPIO                   | APB           | Done   |
-| `uart.sv`            | UART 115200 baud              | APB           | Done   |
-| `i2c_ctrl.sv`        | I²C master controller         | APB           | Done   |
-| `spi_ctrl.sv`        | SPI master controller         | APB           | Done   |
-| `pwm.sv`             | 4-channel PWM                 | APB           | Done   |
-| `timer.sv`           | General-purpose timer         | APB           | Done   |
-| `watchdog.sv`        | Watchdog timer                | APB           | Done   |
-| `i2s.sv`             | I²S transmitter               | APB           | Done   |
-| `qspi_flash_ctrl.sv` | QSPI flash controller         | APB           | Done   |
-| `clint.sv`           | CLINT (mtime, mtimecmp, msip) | Register port | Done   |
-| `plic.sv`            | PLIC (8 sources, 1 context)   | Register port | Done   |
-| `power_mgr.sv`       | Power manager                 | Register port | Done   |
-| `power_mgr_regs.sv`  | Power manager APB regs        | APB           | Done   |
-| `debug_jtag.sv`      | JTAG debug TAP                | JTAG          | Stub   |
+> **Never cite pre-`025ef24` numbers as current.** Historical reports (`reports/verification/*`) are banner-marked; their numbers are superseded.
 
 ***
 
-## 🧪 Verification Results (Measured)
+## 🔗 Links to Relevant Reports and Evidence
 
-> **Provenance (re-run 2026-11-18, RUN-0011):** every number in this table was
-> reproduced at `025ef24` + the recorded dirty tree, with the commands and
-> artifact hashes in `research/runs/RUN-0011-evidence-provenance/`. The
-> Verilator build previously had no surviving executable in `build/obj_soc`;
-> it was rebuilt from source through `verilator_bin.exe`. Historical reports in
-> `reports/verification/` are snapshots of earlier commits, not current claims.
-
-| Test                                                     | Checks              | Result   | File                                            |
-| -------------------------------------------------------- | ------------------- | -------- | ----------------------------------------------- |
-| Boot firmware                                            | 7/7                 | PASS     | `tb_boot.v`                                     |
-| ISA traps                                                | 47/47               | PASS     | `tb_isa.v`                                      |
-| UART pin-level                                           | 153/153             | PASS     | `tb_uart.v`                                     |
-| Reset controller                                         | 15/15               | PASS     | `tb_reset_ctrl.v`                               |
-| Power manager                                            | 16/16               | PASS     | `tb_power_mgr.v`                                |
-| CLINT/PLIC/GPIO/SPI/I²C/PWM/timer/watchdog/I²S/SRAM/JTAG | Various             | PASS     | Individual testbenches                          |
-| **Regression suite**                                     | **27/27**           | **PASS** | `run_regression.js` (Icarus)                    |
-| **Unified gate** (`verify.js`)                           | **10/10**           | **PASS** | `scripts/verify.js`, exit 0                     |
-| Formal (SymbiYosys)                                      | 6/6                 | PASS     | `run_formal.js`                                 |
-| PLIC bounds / CSR arch / APB integrated / reset recovery | 0 failures          | PASS     | `tb_plic_bounds.v`, `tb_csr_arch.v`, `tb_apb_integrated.v`, `tb_reset_recovery.v` |
-| C firmware demo (boot → UART → watchdog reset → reboot)  | all markers         | PASS     | `tb_firmware.v`                                 |
-| **Verilator C++ full-SoC boot**                          | **7/7**             | **PASS** | `verilator_build_soc.bat` — 4 ms simulated in 0.23 s |
-| Verilator lint (`-Wall`)                                 | 0 errors, 123 warnings, exit 1 | PASS (warnings only) | All 24 RTL files |
-| Yosys synthesis (core)                                   | 44,323 cells, 0 problems | PASS | `riscv_core.sv`, `synth -top riscv_core` |
-
-**`firmware (C demo)`** **— what it actually proves.** The bench runs the compiled C
-image (`build/fw/firmware.elf`, built with riscv-none-elf-gcc 12.2.0) on the RTL
-SoC and observes, in one run: the boot ROM handing control to the TCM image; the
-full UART banner; the host `r` command being received and echoed; the watchdog
-(armed by the firmware with `CTRL = 0b11`) expiring at 20.005 ms because the
-firmware stops petting it; `reset_ctrl` turning that level into a bounded
-16-cycle system reset (`rst_sys_n` low → high); and the firmware rebooting from
-the boot ROM and blinking GPIO0 again.
-
-This is a **diagnostic** demonstration: there is no image authentication, no
-flash programming and no secure boot behind it. It also does not prove an
-internal watchdog reset of a *partitioned* design or any power-domain retention
-the RTL does not implement.
+| Category | File | Description |
+|---|---|---|
+| **Evidence matrix** | `research/runs/RUN-0011-evidence-provenance/evidence-matrix.md` | Every current PASS claim with source SHA, command, tool version, exit code, and artifact hash |
+| **Findings triage** | `research/findings.csv` | F1–F9 status, evidence gist, next action |
+| **Experiment plan** | `research/experiment-matrix.csv` | E0–E8 run plan, conditions, sources, status |
+| **Metric log** | `research/results.csv` | E0–E8 experiment_id, run_id, metric, value, exit_code, commit, wall_s, evidence |
+| **Gate definitions** | `research/acceptance-gates.md` | G0–G4 definitions, PASS/PARTIAL/OPEN classification |
+| **Limitations** | `research/limitations.md` | Evaluation, provenance, environment, evidence, study design |
+| **Memory decision** | `research/MEMORY_ARCHITECTURE_DECISION_INVESTIGATION.md` | F5 reconciled to the declared contract, F7 BLOCKED with the missing-resource list |
+| **Closure run** | `research/runs/RUN-0012-closure-publication/` | Publication completeness, gate split, memory contract, I²C timing |
+| **F4 provenance** | `asic/synthesis/provenance/{arith_test.v,tb_equiv.v,map_arith.ys}` | Byte-identical copies with reproducible map script |
+| **Historical verification** | `reports/verification/{README,TEST_RESULTS,VERIFICATION_BASELINE_2826b5b}.md` | Banner-marked as superseded; numbers untouched |
+| **Master project status** | `reports/MASTER_PROJECT_STATUS.md` | Snapshots from earlier sessions (not current) |
+| **Agent handoff** | `AGENTS.md` | Change-log rows + coordination pointer |
+| **Daily logs** | `research/coordination/DAILY/2026-11-18.md` | Session S-2026-11-18-1 through S-2026-11-18-7 |
+| **Work/log reviews** | `research/coordination/{WORK_LOG.md,REVIEW_LOG.md}` | Append-only history, one block per event |
+| **Block diagram** | `docs/architecture/BLOCK_DIAGRAM.md` | Source of truth for Mermaid regeneration |
 
 ***
 
-## 📊 Stage Status
+## 📜 Licensing
 
-| Stage | Title          | Status                           | Can Work On            |
-| ----- | -------------- | -------------------------------- | ---------------------- |
-| 0     | Requirements   | COMPLETE                         | NO                     |
-| 1     | Architecture   | PARTIAL (ADRs PROPOSED)          | Partial (docs only)    |
-| 2     | RTL            | PARTIAL (Implemented, simulated) | YES                    |
-| 3     | Firmware       | PARTIAL                          | YES                    |
-| 4     | Verification   | PARTIAL                          | Partial (sim only)     |
-| 5     | FPGA           | PARTIAL                          | NO                     |
-| 6     | ASIC           | PARTIAL                          | Partial (scripts only) |
-| 7     | DFT/Signoff    | NOT STARTED                      | NO                     |
-| 8     | PCB            | PARTIAL                          | NO                     |
-| 9     | Final Delivery | COMPLETE                         | NO                     |
+**Proprietary** — LICENSE file intentionally blank without owner approval. No open-source license is granted or implied. This project is a research-grade semiconductor engineering study.
 
-***
-
-## ✅ Verified Achievements
-
-Achievements below are verified against committed evidence in this tree (see `TAPEOUT_EVIDENCE_REGISTRY.md` for the per-file SHA registry). "Verified" means the claim is reproducible from files that are published in `main`; it does not mean every downstream flow (place/route, GDS, FPGA programming) has been executed.
-
-### SoC functional correctness (closed)
-- **Full-SoC simulation boots the firmware:** 7/7 sub-tests PASS in the Verilator C++ model of `has_soc` (`scripts/eda/verilator_build_soc.bat` + `verilator_run.bat`), with UART console, timer, GPIO, PLIC and power-manager paths exercised by the firmware image built from `sim/asm/`. Measured cost: 4 ms simulated in 0.233 s wall (~17 ms simulated per wall-second); earlier drafts claimed \~20,000× faster than real time, which is not reproducible.
-- **Pipeline / CSR / memory-ordering fixes landed and re-verified:** dedicated `ADD` path for all load/store ops (was `SLT` → deadlock), `minstret` counts retirements only, `LHU`/`LH`/`LB` misalignment trapped, `unique case` without `default` fixed in `timer.sv`/`gpio.sv`, APB slot `PREADY`/`PSLVERR` semantics and partial-strobe gating corrected, PLIC `claim_id` (4-bit, 1..8) and priority index widened, and CSR immediate/illegal-CSR handling corrected.
-- **SoC-level functional closure marker committed:** the patch that closes the remaining SoC functional-correctness items is in `rtl/rtl_top/axi_lite_interconnect.sv` and `rtl/rtl_top/has_soc.sv` (same content as committed `358939c`).
-
-### Firmware end-to-end (verified)
-- Firmware build (assembly + linker scripts in `sim/asm/`) and the full-SoC simulation harness (`sim/sim_top/`) are present and run cleanly; the firmware reaches the OS boot stage under simulation.
-
-### Sky130 techmap — corrected, complete for standard cells, equivalence-tested
-- **`build/asic_evidence/sky130_map.v` rewritten against the library.** All pins now match `sky130_full_subset.lib`: and/or/xor/buf/mux output is `X`, nand/nor/inv output is `Y`, flops take `RESET_B`/`SET_B`.
-- **Sequential cells are scalar.** `_1`/`_2`/`_4` is drive strength, not width. The 4-bit `arith_test.y` register is 4 × `dfrtp_1`; the previous version mapped it onto one scalar `dfrtp_4`, leaving three bits undriven.
-- **Correct cell semantics:** `$dff` has no reset (→ `dfxtp_1`); `$adff` honours `ARST_VALUE` (0 → `dfrtp_1`, 1 → `dfstp_1`); negedge registers use a posedge cell on the inverted clock; `$logic_and`/`$logic_or` reduce wide operands before the gate; `$eq`/`$ne`/`$lt`/`$le`/`$gt`/`$ge`/`$logic_not`/`$not` handle widths correctly.
-- **`$add`/`$sub` are decomposed into gates** (xor2/and2/or2 ripple-carry). No adder cell is required, so arithmetic is no longer an unmapped blocker.
-- **3-module cell counts (flat, `check -assert` 0 problems, no generic cells):**
-  - `arith_test` — **93** cells (and2_1×16, dfrtp_1×4, inv_1×9, mux2_1×20, or2_1×22, xor2_1×22)
-  - `reset_ctrl` — **93** cells (and2_1×15, dfrtp_1×9, inv_1×11, mux2_1×27, or2_1×15, xor2_1×16)
-  - `watchdog` — **1036** cells (and2_1×69, dfrtp_1×68, inv_1×50, mux2_1×429, or2_1×244, xor2_1×176)
-- **Equivalence (`tb_equiv.v`):** 1028 checks PASS with `-DUSE_MAPPED` (exit 0); a build without `USE_MAPPED` fails (exit 1); a deliberately corrupted netlist fails (exit 1). Previously the test compared RTL against RTL and used `$finish`, so it could not fail.
-- **Expansion proofs:** `$mul`/`$div`/`$mod`/`$neg`/shifts → 65536 exhaustive checks pass; signed+unsigned comparators → 256 exhaustive checks pass.
-- **Full SoC maps cleanly for standard cells:** `check` reports **0 problems** and 0 conflicting drivers; the only unmapped leaf cells are the four `$mem_v2` memories inventoried in RUN-0009 (boot ROM, TCM, SRAM, APB decode LUT). `flatten` is still avoided (behavioural SRAM expands to ~65k flops + ~131k muxes). Cell counts are **pre-ABC and not PPA**: a fresh `synth -top riscv_core` at `025ef24` reports 44,323 cells, not the earlier “226 cells” figure.
-- **Functional fixes:** I²C now transmits the write data byte and releases SDA for the read NACK (slave-model testbench passes; the old RTL fails with "DATA byte was not transmitted"); `uart.div` no longer has two drivers.
-
-### ASIC synthesis report
-- `build/log/ASIC_SYNTH_REPORT.md` is the updated synthesis report covering the Sky130 evidence tree and the 3-module + full-SoC synthesis runs.
-
-## Current blockers
-
-All EDA tools for this project live under `D:\tools` (WSL: `/mnt/d/tools`); the full inventory with exact paths, versions and workarounds is `D:\tools\EDA_TOOL_REGISTRY.md`. 31 tools were verified functional (16 Windows + 15 WSL) by `D:\tools\verify_tools.bat` and `verify_tools_wsl.sh`.
-
-| Blocker                                   | Impact                                      | What's Needed                                                           |
-| ----------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------- |
-| No Vivado (proprietary)                   | Cannot synthesise or program an FPGA        | Install Xilinx Vivado; Vivado Tcl scripts are ready in `fpga/projects/` |
-| No FPGA hardware                          | Stage 5 limited to constraints + simulation | Acquire a Nexys A7-100T or similar                                      |
-| sky130A PDK not volare-enabled            | OpenLane 2 CLI runs but no flow executed    | Provision the PDK through `volare` so OpenLane 2 can drive it           |
-| ADRs are PROPOSED                         | Architecture not approved                   | Stakeholder approval needed                                             |
-| PLL clock source                          | No sky130-qualified open PLL IP             | External clock generator (Si5351) recommended                           |
-| No KiCad project files                    | PCB limited to documentation + BOM prose    | KiCad 10.0.8 is installed; schematic/layout still to be drawn           |
-| No `python` (only the Windows Store stub) | `scripts/fw_build/build_fw.py` cannot run   | Use `build_fw.js`, or `D:\tools\venv\Scripts\python.exe`                |
-| No Sky130 RAM macro ≥ 64 KB               | TD-006 (full-SoC TCM/RAM mapping) blocked   | Sky130 has no 64KB+ RAM macro in the verified subset; the boot ROM and both SRAMs remain `$mem_v2` |
-| Full-SoC gate-level synthesis             | No full-SoC area or timing number          | `rtl/rtl_top/axi_lite_interconnect.sv:57` blocks gate-level synthesis; unchanged since `358939c` |
-| `$sr` unmapped                             | SR-latch behavioral cells stay unmapped     | No Sky130 SR-latch cell in the verified subset                          |
-| Yosys ABC `-liberty` broken in this build | No area/timing optimisation; counts are pre-ABC | Yosys `0.69+154` (sha `30d62572e-dirty`) reports ABC `-liberty` failures; workaround or Yosys rebuild needed            |
-| Back-end tools not runnable on this shell | No place/route, DRC/LVS, GDS authored here  | OpenLane 2 / Magic / Netgen are installed but not driven end-to-end on this Windows shell                                 |
-
-### Recently resolved — ASIC techmap / equivalence (this session)
-| Was blocked by                                      | Now                                                    | How                                                                                                                                                                           |
-| --------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Flops mapped as if `_2`/`_4` were bus widths        | **Fixed** — one scalar cell per bit                    | `arith_test.y` is 4 × `dfrtp_1`; the library has scalar `D`/`Q` on every flop                                                                                                 |
-| `and2_1` wired through a non-existent `.Y` pin      | **Fixed** — outputs follow the library                 | and/or/xor/mux → `X`; nand/nor/inv → `Y`; undriven-wire warnings went from 80 to 0                                                                                            |
-| `$dff` template had an `R` port (never matched)     | **Fixed** — maps to `dfxtp_1`                          | Yosys `$dff` is `CLK/D/Q` only                                                                                                                                                |
-| `$adff` ignored `ARST_VALUE`                         | **Fixed** — reset-to-1 uses `dfstp_1`                  | Per-bit choice of `dfrtp_1`/`dfstp_1`; negedge uses the inverted clock                                                                                                        |
-| `$logic_and`/`$logic_or` fed wide vectors to scalar pins | **Fixed** — operands reduced first                | Reduction chains, then a 2-input gate                                                                                                                                         |
-| `$add`/`$sub` declared unmappable                   | **Fixed** — decomposed into gates                      | xor2/and2/or2 ripple-carry; 0 unmapped cells in all three modules                                                                                                             |
-| Equivalence test could not fail                     | **Fixed** — mapped mode required, `$fatal(1)`, corruption control | 1028 checks PASS; missing `USE_MAPPED` exits 1; corrupted netlist exits 1                                                                                          |
-| Full-SoC kept generic cells / conflicting drivers   | **Fixed** — 0 problems, only `$mem_v2` left            | `techmap -map +/techmap.v` plus gate-primitive rules; `uart.div` double driver removed                                                                                        |
-| I²C never sent write data / read NACK drove SDA low | **Fixed** — real transactions verified                 | Write path sends the data byte; NACK releases SDA; slave-model testbench passes, old RTL fails                                                                                 |
-
-### Recently resolved — SoC / firmware / tooling (pre-existing; retained for continuity)
-| Was blocked by                                            | Now                                                    | How                                                                                                                                                                           |
-| --------------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| No `g++` / `make` → no Verilator C++ simulation           | **Working** — full SoC boot 7/7 (4 ms in 0.23 s) | WinLibs MCF UCRT in `D:\tools\mingw64\`, plus a Windows-native Verilator kit shim in `D:\tools\verilator-shim\` (the OSS CAD Suite binary hardcodes a Linux `VERILATOR_ROOT`) |
-| No RTL style linter                                       | **Working**                                            | Verible v0.0-4298 in `D:\tools\verible\`                                                                                                                                      |
-| Old WSL Yosys 0.33 (2022)                                 | **Yosys 0.70** on Windows and WSL                      | `yowasp-yosys` (WebAssembly build) in `D:\tools\venv\` and `D:\tools\venv-wsl\` — no compiler needed                                                                          |
-| No SymbiYosys for the portable toolchain                  | **Working**                                            | `yowasp-sby` in the same two virtualenvs                                                                                                                                      |
-| No OpenLane 2                                             | **CLI working** (v2.0.0b16)                            | Source in `D:\tools\src\openlane2\`, venv in `D:\tools\venv-openlane2\`, wrapper in `D:\tools\bin\openlane`                                                                   |
-| No Magic (DRC) or Netgen (LVS)                            | **Both working**                                       | Extracted from `.deb` into `D:\tools\magic\` and `D:\tools\netgen\` (no system-wide install)                                                                                  |
-| No tkinter (OpenLane 2 imports it)                        | **Working**                                            | Extracted into `D:\tools\python3-tk\` and put on `PYTHONPATH` by the wrapper                                                                                                  |
-| KiCad installed on the C: drive                           | **Moved to** **`D:\tools\KiCad\10.0\`**                | Copied, then the C: install removed                                                                                                                                           |
-| Python packages on the C: drive                           | **Consolidated into** **`D:\tools\venv\`**             | Virtualenv with cocotb + portable Yosys/SymbiYosys                                                                                                                            |
-| Load/store used the wrong ALU op (SLT) → deadlock         | **Fixed**                                              | `riscv_core.sv`: dedicated `ADD` path for all memory operations                                                                                                               |
-| `unique case` without `default` in `timer.sv` / `gpio.sv` | **Fixed**                                              | Every reachable offset listed, `default: ;` added                                                                                                                             |
-| Icarus Verilog "broken runtime"                           | **Works**                                              | `D:\tools\oss-cad-suite\lib` must be on `PATH`                                                                                                                                |
-| Unmapped APB slot held `PREADY` low → bus hang            | **Fixed**                                              | `has_soc.sv`: decode moved to `paddr[19:12]` (1 MB aperture), `PREADY` always completes the transfer, error carried on `PSLVERR`                                              |
-| Partial-strobe APB write still had side effects           | **Fixed**                                              | `apb_write_ok` gates every peripheral's `penable`, so a faulted write never reaches a register                                                                                  |
-| PLIC claim ID and priority index truncated to 3 bits      | **Fixed**                                              | `plic.sv`: 4-bit `claim_id` (`1..8`), non-wrapping `4'(wr_addr[5:2] - 4'd1)` priority index                                                                                    |
-| CSR immediates read a register; illegal CSRs ignored      | **Fixed**                                              | `riscv_core.sv`: `csr_zimm`/`csr_is_imm` select the immediate, `csr_writable`/`csr_illegal` trap with `mcause = 2`                                                              |
-| `minstret` counted fetches, not retirements               | **Fixed**                                              | Increments in `S_EXEC`/`S_MEM` only, never for a faulting instruction, and an explicit `csrw minstret` still wins                                                               |
-| `LHU` misalignment not trapped                            | **Fixed**                                              | `mem_misaligned` now covers `funct3 == 3'b101`                                                                                                                                 |
-
-***
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-Everything is installed under `D:\tools` — see `D:\tools\EDA_TOOL_REGISTRY.md` for
-exact paths, versions and known traps. For simulation and firmware work:
-
-```bash
-# Icarus / Verilator / Yosys / SymbiYosys (OSS CAD Suite)
-export PATH="/d/tools/oss-cad-suite/lib:/d/tools/oss-cad-suite/bin:$PATH"
-# MinGW-w64 g++/make, needed only to build Verilator C++ models
-export PATH="/d/tools/mingw64/bin:$PATH"
-```
-
-### 1. Run Regression Suite
-
-```bash
-node scripts/eda/run_regression.js
-```
-
-Expected: `PASS 27 / 27` (exit 0). The `firmware (C demo)` entry is the slowest
-one (\~1 min of wall clock: it simulates 35.7 ms of SoC time, including the
-20 ms watchdog window). No environment variables are needed: the firmware image
-steps discover the installed RISC-V GCC themselves.
-
-The suite also covers transaction-level I²C (`tb_i2c_xfer.v`: address, payload,
-ACK/NACK and STOP against a reactive slave model). It is registered in both
-entry points, so the bug class it was written for — a write DATA byte that is
-never transmitted, and a master that drives SDA instead of releasing it for the
-read NACK — now fails the gate instead of passing unnoticed.
-
-### 2. Build Boot Firmware and Run Full-SoC Test
-
-```bash
-node scripts/fw/as.js firmware/boot/boot.S build/fw/boot.hex build/fw/boot.lst
-iverilog -g2012 -o build/sim/tb_boot.vvp -s tb_boot sim/sim_top/tb_boot.v \
-  $(grep -v '^//' rtl/filelist.f | tr '\n' ' ')
-vvp build/sim/tb_boot.vvp
-```
-
-### 3. Build and Run C Firmware
-
-The xPack GCC at `/d/tools/xpack-riscv-none-elf-gcc-12.2.0-2/bin` is discovered
-automatically (it does not need to be on `PATH`): `scripts/fw_build/toolchain.js`
-probes `$RISCV_GCC_PREFIX`, then `$RISCV_TOOLCHAIN_BIN`, then `PATH`, then
-`xpack-riscv-none-elf-gcc-*` under the tool root (`D:\tools`), newest first. An
-explicit override that does not work is an error (exit 2), never a silent switch
-to a different compiler.
-
-```bash
-export PATH="/d/tools/oss-cad-suite/lib:/d/tools/oss-cad-suite/bin:$PATH"
-node scripts/fw_build/build_fw.js
-node scripts/fw_build/gen_fw_mem.js build/fw/firmware.elf
-iverilog -g2012 -o build/sim/tb_firmware.vvp -s tb_firmware sim/sim_top/tb_firmware.v \
-  $(grep -v '^//' rtl/filelist.f | tr '\n' ' ')
-vvp build/sim/tb_firmware.vvp
-```
-
-### 4. Run Self-Test
-
-```bash
-node scripts/eda/run_regression.js --self-test
-```
-
-### 5. Build and Run the Full SoC with Verilator (fast C++ simulation)
-
-The Verilator C++ model path needs the MinGW-w64 toolchain
-(`D:\tools\mingw64\bin`) and the Windows Verilator kit shim
-(`D:\tools\verilator-shim`, regenerated by `D:\tools\patch_verilator_kit.py`).
-Both are installed; see `D:\tools\EDA_TOOL_REGISTRY.md`.
-
-```bash
-# Build the full SoC (24 RTL files + tb_boot) into a C++ model
-scripts/eda/verilator_build_soc.bat tb_boot sim/sim_top/tb_boot.v build/obj_soc
-
-# Run it (must run from the project root: the ROM image path is relative)
-scripts/eda/verilator_run.bat build/obj_soc/Vtb_boot.exe
-```
-
-Expected output ends with:
-
-```
-[tb] firmware subtests passed: 7 / 7
-[tb] gpio pins captured: yes
-[tb] RESULT: PASS
-```
-
-***
-
-## 📜 Work Log (All Sessions)
-
-### Session 1 — OpenCode (nemotron-3.5-super-vl-free)
-
-* Full project implementation: RTL, firmware, verification, docs, constraints, firmware compilation
-
-* PWM fix (generate block → explicit channels)
-
-* CLINT/PLIC port connection fix
-
-* startup.S CSR fix
-
-* Firmware compiled (36 KB ELF)
-
-* Commit: 310 files changed, 47,806 insertions
-
-### Session 2 — OpenCode
-
-* Fixed `riscv_core.sv`: data\_req asserted in S\_MEM state → fixed to only assert in S\_EXEC
-
-* Created `tb_sram_simple.sv` — SRAM read/write testbench
-
-* Audited RTL after Buffy's rewrite — found critical bugs:
-
-  * Core truncated instructions to 16 bits → FIXED
-
-  * LUI/AUIPC wb\_data fell through to ADD → FIXED
-
-  * Loads lacked sign/zero extension → FIXED
-
-  * MUL wrote alu\_out not muldiv\_res → FIXED
-
-  * irq\_take tied to 0 → FIXED
-
-  * Load/store waited for data\_gnt && rvalid same cycle → FIXED
-
-  * sram.sv toggled AWREADY/WREADY as divide-by-two → FIXED by Buffy
-
-* Fixed `riscv_core.sv`: load/store address used funct3-selected ALU (SLT for LW/SW) → added alu\_is\_add wire
-
-* Fixed `boot_rom.sv`: awready/wready deasserted when awvalid/wvalid high → removed backwards terms
-
-* Yosys synthesis of riscv\_core.sv: 502 wires, 226 cells, 0 errors
-
-* Created Vivado Tcl build scripts (fpga/projects/build.tcl, synth.tcl, impl.tcl, bitstream.tcl)
-
-* Created ASIC OpenLane 2 flow scripts (asic/config.json, flow\.tcl, run\_asic.sh)
-
-### Session 3 — OpenCode
-
-* Fixed tb\_clint.v and tb\_plic.v for register-port interface (matching Buffy's clint.sv/plic.sv rewrite)
-
-* Added SVA properties to reports/verification/formal\_properties.sv
-
-* Updated AGENTS.md change log, stage status, agent assignments
-
-### Session 4 — Buffy (DeepSeek V4.1 Flash Slow)
-
-* Phase-2 correction pass: UART pin-level test, watchdog reset controller, exception/trap support
-
-* ISA trap program, C firmware build driver, regression harness
-
-* 153/153 UART checks PASS; 15/15 reset\_ctrl PASS; 47/47 ISA trap checks PASS; 7/7 boot PASS
-
-* tb\_firmware (C demo) now PASSES end to end: watchdog reset pulse observed, firmware reboots, GPIO blinks
-
-  * root cause of the earlier FAIL was two separate bugs: firmware armed the watchdog with
-    `CTRL = 0x01` (counter enable only) so the reset output could never assert, and the bench
-    compared all 16 GPIO bits, where the high-Z pins made `!=` evaluate to X so LED edges were never counted
-
-* Documentation refresh: block diagram (mermaid + ASCII), README/RTE/AGENTS status aligned to measured evidence
-
-### Session 5 — OpenCode
-
-* Python SSL fixed — cocotb 2.1.0 installed successfully
-
-* KiCad 10.0.8 installed via winget (silent installer failed, interactive install needed)
-
-* Created TECH\_STACK.md — complete tech stack inventory
-
-* Updated AGENTS.md blocker table with accurate status
-
-* Created professional README.md with Mermaid block diagram, searchable keywords, complete work log
-
-### Session 6 — Buffy (DeepSeek V4.1 Flash)
-
-* Closed the last regression failure: `firmware (C demo)` now PASSES, suite is **PASS 17/17**
-
-* Root cause 1 (firmware): `main.c` armed the watchdog with `CTRL = 0x01` (counter enable only).
-  Bit 1 is the reset-enable, so `reset_n_out` could never assert and the SoC never reset.
-  Now armed with `CTRL = 0b11` via named `WDOG_CTRL_*` constants, and `delay()` pets every
-  4,096 cycles (the old `0xFFFF` mask was unreachable for a 50,000-cycle delay)
-
-* Root cause 2 (bench): `tb_firmware.v` counted LED edges with a 16-bit `!=` compare while
-  GPIO\[15:1] are high-Z, so the result was X and no edge was ever counted; it now counts
-  two-state edges of GPIO\[0]
-
-* `tb_firmware.v` now traces `rst_sys_n` transitions with the watchdog state, and its
-  simulation guard moved to 90 ms (measured run needs 35.7 ms)
-
-* README / AGENTS / `resume.md` re-aligned to the measured 17/17 result
-
-### Session 7 — Buffy (DeepSeek V4.1 Flash)
-
-* Reviewed the SoC functional-correctness closure patch against `da20f87` and committed it as **`358939c`** (19 files): APB aperture/decode/completion in `has_soc.sv`, PLIC claim and priority indexing in `plic.sv`, CSR immediates / illegal-access traps / retirement-based `minstret` / `LHU` alignment in `riscv_core.sv`
-
-* Re-ran the unified gate on the committed tree: **9/9 PASS** (exit 0), regression **26/26**, formal **6/6**, SRAM protocol audit 24 checks
-
-* Full-SoC gate-level synthesis remains blocked on `axi_lite_interconnect.sv:57` — reproduced identically on the pre-patch tree, so it is not a regression and no full-SoC area number exists
-
-* Mapped module synthesis (sky130 `tt_025C_1v80`): `plic` 920 → 886 cells, 7955.13 → 7903.83 µm² (−0.64 %); `timer` unchanged (306 cells, 3329.4432 µm²); `riscv_core` +48 pre-mapping cells, all combinational, sequential cells identical
-
-* Placement and CTS re-run on the existing approved flow: byte-identical DEF/ODB to the baseline (the patch does not touch `timer.sv`), 0 timing violations — a flow-regression check, not a measure of the patch's physical cost
-
-* Report: `reports/SOC_CLOSURE_PATCH_REVIEW_AND_PD_IMPACT.md`. Published to `main` directly, no pull request.
-
-### Session 8 — Buffy (DeepSeek V4.1 Flash)
-
-* Registered the transaction-level I²C testbench `sim/sim_top/tb_i2c_xfer.v` in **both** entry points (`run_regression.js` and `verify.js` protocol tests). Regression grew **26 → 27** entries, protocol tests **5 → 6**
-
-* Proven to catch the bug class it was written for: against one-line mutants of `i2c_ctrl.sv` it fails with `FAIL: DATA byte was not transmitted` and `FAIL: master did not release SDA for NACK` (exit 1 each). The gate was also shown to fail closed on a compile error, a simulator failure and a missing PASS marker
-
-* Firmware build discovery moved into `scripts/fw_build/toolchain.js` and shared by `build_fw.js` and `gen_fw_mem.js`: `$RISCV_GCC_PREFIX` → `$RISCV_TOOLCHAIN_BIN` → `PATH` → `xpack-riscv-none-elf-gcc-*` under `D:\tools` (newest first). The regression no longer needs environment variables
-
-* Fail-closed behaviour re-verified: a missing or unusable toolchain exits 2 and the dependent test becomes `IMAGE-FAIL` (exit 1), never a stale-image PASS — demonstrated by planting a valid image and then forcing the toolchain failure
-
-* Measured with `RISCV_TOOLCHAIN_BIN` and `RISCV_GCC_PREFIX` unset: regression **PASS 27/27** (exit 0), unified gate **9 passed / 0 failed / 0 blocked** (exit 0), firmware images rebuilt from source with their SHA-256 recorded
-
-* Remaining blockers unchanged: full-SoC gate-level synthesis (above), secure boot, OTA signing, flash program/erase, retention across reset, deep-sleep gating, and no FPGA hardware or Vivado
-
-***
-
-## 🔗 Repository
-
-* **GitHub:** <https://github.com/RAMA-L7/Home-Automation-SoC>
-
-* **Visibility:** Public
-
-* **Branch:** main
-
-* **Latest Tag:** v0.9.0-regression-17-17 (previous: v0.8.0-eda-toolchain-consolidated, v0.7.0-verilator-simulation)
-
-* **License:** Proprietary (LICENSE file intentionally blank — no open-source license without owner approval)
-
-***
-
-## 📁 Repository Layout
-
-| Path            | Purpose                                                      |
-| --------------- | ------------------------------------------------------------ |
-| `docs/`         | Project management, requirements, architecture documentation |
-| `rtl/`          | SystemVerilog RTL sources (top-level and peripherals)        |
-| `tb/`           | Legacy testbench directory (superseded by `sim/sim_top/`)    |
-| `firmware/`     | Bare-metal, RTOS, and driver firmware sources                |
-| `scripts/`      | EDA and firmware build scripts                               |
-| `board/`        | Schematics, PCB, and BOM artifacts                           |
-| `constraints/`  | Pin and timing constraint files                              |
-| `sim/`          | Simulation top-level and waveform artifacts                  |
-| `ip/`           | Internal and third-party IP (no third-party IP downloaded)   |
-| `reports/`      | Verification results, formal specs, delivery reports         |
-| `fpga/`         | FPGA constraints, OpenOCD config, Vivado Tcl scripts         |
-| `asic/`         | ASIC physical design flow scripts (OpenLane 2 templates)     |
-| `TECH_STACK.md` | Complete tech stack inventory                                |
-| `AGENTS.md`     | Agent handoff documentation                                  |
-| `README.md`     | This file                                                    |
-
-***
-
-*Last updated: 2026-11-17 | Agent: Buffy (Solar Pro 4, Upstage)*
+*(Status badge: research prototype — not production-ready; not tape-out ready; not foundry-approved.)*

@@ -61,12 +61,23 @@
   recovery/removal, no power pins. `dfrbp` is modelled and tested (RUN-0008) but
   no flow emits it — the mapper uses `dfxtp_1`/`dfrtp_1`/`dfstp_1` — so that
   model is verified without a mapped netlist using it.
-- Memory implementation is unresolved and now quantified (RUN-0009): 4 inferred
-  `$mem_v2` — boot ROM 16384x32 (2R), TCM 8192x32 (2R1W), SRAM 65536x32 (2R1W),
-  and an 18 B APB decode LUT — plus 136 B of register storage. That is 360,466 B
-  of arrays against 180,224 B of addressable space: the ROM is 4x and the SRAM
-  2x the aperture they are decoded into (F5). No `.lib`/`.lef`/`.gds` macro exists
-  and no memory compiler has run (F7).
+- Memory *contract* is resolved (RUN-0012, closes F5): the arrays are sized to
+  the declared apertures, so 180,242 B of arrays implement 180,224 B of
+  addressable space (the 18 B surplus is the APB decode LUT). The 4 inferred
+  `$mem_v2` are boot ROM 4096x32 (2R), TCM 8192x32 (2R1W), SRAM 32768x32 (2R1W)
+  and the LUT, plus 136 B of register storage.
+- Memory *implementation* remains unresolved and is reported BLOCKED (F7): no
+  `.lib`/`.lef`/`.gds` macro exists and no memory compiler has run, so the
+  memories are still behavioural arrays that no physical flow can place. The
+  gate names each one and exits 2; no inferred-memory inventory is presented as
+  a completed macro integration.
+- I2C compliance covers standard mode (100 kHz) only, measured at the pins with
+  a 300 ns delayed-rise bus model (RUN-0012). Fast mode is *not* met and is not
+  claimed: the generator's symmetric 2-high/2-low quarter duty puts tLOW at
+  1.24 us at 403 kHz, below the 1.3 us fast-mode minimum. Clock stretching,
+  repeated START and SMBus timeouts are not implemented. The simulation is
+  RTL-level: it establishes digital timing at the port, not pad delay,
+  drive-strength, or inter-symbol effects on a real bus.
 - RAM contents are undefined at power-up (no array reset); only the boot ROM has
   initialization data, and by default that data is NOP fill, not a boot image.
 - Reported PPA numbers are pre-ABC cell counts and tool-reported area at
