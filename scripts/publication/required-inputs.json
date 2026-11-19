@@ -1,0 +1,113 @@
+{
+  "_comment": [
+    "Publication manifest for Home-Automation-SoC (task A).",
+    "scripts/publication/check_publication.js verifies every entry against the",
+    "Git INDEX, not the local disk: a file that exists locally but was never",
+    "committed is a publication gap, which is exactly the defect this manifest",
+    "was added to catch (the reviewed commit referenced research/**,",
+    "asic/synthesis/**, six scripts and the memory inventory while none of",
+    "them were in the Git tree).",
+    "",
+    "exact:  individual paths every supported command or current document",
+    "        needs. Each must be tracked.",
+    "trees:  directories whose entire on-disk, non-ignored contents must be",
+    "        tracked. This is the strict form: a new evidence file that is",
+    "        left untracked fails the check instead of silently disappearing",
+    "        from the published source.",
+    "excluded: pre-existing or generated material that is deliberately NOT",
+    "        published. Listed so the exclusion is a recorded decision rather",
+    "        than an omission."
+  ],
+  "exact": [
+    "AGENTS.md",
+    "README.md",
+    "rtl/filelist.f",
+
+    "scripts/verify.js",
+    "scripts/closure.js",
+    "scripts/publication/check_publication.js",
+    "scripts/publication/required-inputs.json",
+    "scripts/eda/run_regression.js",
+    "scripts/eda/check_structure.js",
+    "scripts/eda/audit_memory.js",
+    "scripts/eda/run_pmux_map_test.js",
+    "scripts/eda/run_dfrbp_model_test.js",
+    "scripts/eda/run_i2c_timing.js",
+    "scripts/formal/run_formal.js",
+    "scripts/formal/cdc_inventory.js",
+    "scripts/firmware/run_e2e.js",
+    "scripts/fw_build/toolchain.js",
+    "scripts/fw_build/toolchain_test.js",
+    "scripts/fw_build/build_fw.js",
+    "scripts/fw_build/build_fw.py",
+    "scripts/fw_build/build_fw.bat",
+    "scripts/fw_build/gen_fw_mem.js",
+    "scripts/docs/check_mermaid.mjs",
+    "scripts/docs/gen_block_diagram.py",
+    "scripts/docs/sync_readme_mermaid.py",
+
+    "asic/synthesis/fullsoc_map.ys",
+    "asic/synthesis/memory_audit.ys",
+    "asic/synthesis/memory_inventory.json",
+    "asic/synthesis/structural_policy.json",
+    "asic/synthesis/provenance/arith_test.v",
+    "asic/synthesis/provenance/tb_equiv.v",
+    "asic/synthesis/provenance/map_arith.ys",
+
+    "sim/sim_top/tb_boot.v",
+    "sim/sim_top/tb_i2c_xfer.v",
+    "sim/sim_top/tb_i2c_timing.v",
+    "sim/sim_top/tb_mem_contract.v",
+    "sim/sim_top/tb_sram_audit.v",
+
+    "firmware/bare_metal/linker.ld",
+    "lint/verible.rules",
+    "lint/localparam_style_baseline.txt",
+
+    "docs/requirements/system_requirements.md",
+    "docs/architecture/BLOCK_DIAGRAM.md",
+    "docs/architecture/BLOCK_DIAGRAM.txt",
+
+    "research/protocol.md",
+    "research/requirements-baseline.md",
+    "research/acceptance-gates.md",
+    "research/findings.csv",
+    "research/results.csv",
+    "research/experiment-matrix.csv",
+    "research/interventions.csv",
+    "research/limitations.md",
+    "research/MEMORY_ARCHITECTURE_AUDIT.md",
+    "research/MEMORY_ARCHITECTURE_DECISION_INVESTIGATION.md",
+    "research/coordination/AGENT_HANDOFF.md",
+    "research/coordination/WORK_LOG.md",
+    "research/coordination/REVIEW_LOG.md",
+    "research/coordination/DAILY/2026-11-18.md",
+    "research/runs/RUN-0011-evidence-provenance/evidence-matrix.md"
+  ],
+  "trees": [
+    "research",
+    "asic/synthesis"
+  ],
+  "excluded": [
+    {
+      "path": "experiments/",
+      "why": "Pre-existing ASIC phase-4 CTS repair databases (ODB/DEF) from another workstream. Binary design collateral, not referenced by any supported command in this repository."
+    },
+    {
+      "path": "reports/ASIC_PHASE2_* .. reports/ASIC_PHASE4_*",
+      "why": "Pre-existing reports from the physical-design workstream; not produced or consumed by this study's commands."
+    },
+    {
+      "path": "reports/evidence/",
+      "why": "Pre-existing ASIC flow evidence from an earlier phase; unrelated to the study runs recorded under research/runs/."
+    },
+    {
+      "path": "sky130_comb.lib",
+      "why": "Sky130 standard-cell liberty collateral. PDK/library material must not be redistributed from this repository."
+    },
+    {
+      "path": "build/",
+      "why": "Generated artifacts. Reproduced by the commands; never an input."
+    }
+  ]
+}

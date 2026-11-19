@@ -203,14 +203,21 @@ function record(r) {
   summary.push(`${r.status.padEnd(8)} ${r.name.padEnd(24)} ${r.detail}`);
 }
 
-function runTask(name, cmd, args, marker, check) {
+function runTask(name, cmd, args, marker, check, opts = {}) {
   const log = logPath(name);
   if (fs.existsSync(log)) fs.unlinkSync(log);           // stale evidence cannot survive
-  const p = spawnSync(cmd, args, { cwd: ROOT, env, encoding: 'utf8' });
+  const p = spawnSync(cmd, args, {
+    cwd: ROOT, env, encoding: 'utf8',
+    timeout: opts.timeout || 900000,                    // bounded, with a diagnostic
+    maxBuffer: 256 * 1024 * 1024,
+  });
   const text = (p.stdout || '') + (p.stderr || '');
   fs.writeFileSync(log, text, 'utf8');
   const ranAt = fs.existsSync(log) ? fs.statSync(log).mtimeMs : null;
   if (verbose) console.log(`\n--- ${name} ---\n${text}`);
+  if (p.error && p.error.code === 'ETIMEDOUT') {
+    return { status: 'FAIL', name, detail: `timed out after ${opts.timeout || 900000} ms` };
+  }
   return verdict({
     name, startedAt, ranAt,
     exitCode: p.error ? 1 : (p.status === null ? 1 : p.status),
@@ -488,10 +495,144 @@ function mermaid() {
 // and exits 0. This runs the checker's control matrix: the pre-fix silent pass,
 // undriven output, multiple drivers, an undeclared inferred memory, a stale
 // declared inventory, an unchecked internal cell, and a clean baseline.
-function structuralCheck() {
-  return runTask('structural-check', process.execPath,
+//
+// IMPORTANT: this only proves the *checker* works. It says nothing about the
+// current design, and a green result here must never be read as "the SoC is
+// structurally qualified". That is what structuralDesign() below decides.
+function structuralSelfTest() {
+  return runTask('structural-self-test', process.execPath,
     [path.join(ROOT, 'scripts', 'eda', 'check_structure.js'), '--self-test'],
     'STRUCTURAL_CHECK: SELF-TEST PASS');
+}
+
+// Three-valued classification for the design stages: PASS, BLOCKED and FAIL are
+// different outcomes and a declared gap is never promoted to PASS.
+function triVerdict(name, text, exit, opts) {
+  if (!text || !text.trim()) {
+    return { status: 'FAIL', name, detail: 'empty log (incomplete result)' };
+  }
+  if (exit === 2 && text.includes(opts.blockedMarker)) {
+    const m = text.match(opts.blockedDetailRe || /^\s*GAP .*$/m);
+    return { status: 'BLOCKED', name, detail: m ? m[0].trim().replace(/^GAP\s+/, 'gap: ') : 'declared implementation gap' };
+  }
+  if (exit === 0 && text.includes(opts.passMarker)) {
+    return { status: 'PASS', name, detail: opts.passDetail || 'checked design is clean' };
+  }
+  return {
+    status: 'FAIL', name,
+    detail: `exit ${exit} without the expected "${opts.passMarker}" or "${opts.blockedMarker}" verdict`,
+  };
+}
+
+// 8c — the ACTUAL current design, synthesised and structurally validated -----
+// Yosys reads the tracked RTL, maps it through the project Sky130 map, and
+// check -assert rejects undriven/multiply-driven nets. check_structure.js then
+// applies the versioned cell policy and the declared-gap accounting.
+function structuralDesign() {
+  const name = 'structural-design';
+  const log = logPath(name);
+  if (fs.existsSync(log)) fs.unlinkSync(log);
+  const timeout = 1800000;
+  const p = spawnSync(process.execPath, [
+    path.join(ROOT, 'scripts', 'eda', 'check_structure.js'),
+    '--script', 'asic/synthesis/fullsoc_map.ys',
+    '--top', 'has_soc',
+    '--json', 'build/asic_evidence/structural_check/has_soc_cells.json',
+    '--tag', 'fullsoc',
+  ], { cwd: ROOT, env, encoding: 'utf8', timeout, maxBuffer: 256 * 1024 * 1024 });
+  const text = (p.stdout || '') + (p.stderr || '');
+  fs.writeFileSync(log, text, 'utf8');
+  if (verbose) console.log(`\n--- ${name} ---\n${text}`);
+  if (p.error && p.error.code === 'ETIMEDOUT') {
+    return { status: 'FAIL', name, detail: `timed out after ${timeout} ms` };
+  }
+  const exit = p.error ? 1 : (p.status === null ? 1 : p.status);
+  return triVerdict(name, text, exit, {
+    passMarker: 'STRUCTURAL_CHECK: PASS',
+    blockedMarker: 'STRUCTURAL_CHECK: BLOCKED',
+    passDetail: 'full SoC fully mapped, no structural problems',
+  });
+}
+
+// 8d/8e — memory inventory self-test, then the real elaborated design -------
+function memorySelfTest() {
+  return runTask('memory-self-test', process.execPath,
+    [path.join(ROOT, 'scripts', 'eda', 'audit_memory.js'), '--self-test'],
+    'MEMORY_AUDIT: SELF-TEST PASS');
+}
+
+function memoryDesign() {
+  const name = 'memory-design';
+  const log = logPath(name);
+  if (fs.existsSync(log)) fs.unlinkSync(log);
+  const timeout = 900000;
+  const parts = [];
+
+  const y = spawnSync('yosys', ['-s', 'asic/synthesis/memory_audit.ys'], {
+    cwd: ROOT, env, encoding: 'utf8', timeout, maxBuffer: 256 * 1024 * 1024,
+  });
+  parts.push('$ yosys -s asic/synthesis/memory_audit.ys');
+  parts.push((y.stdout || '') + (y.stderr || ''));
+  parts.push(`exit ${y.status}`);
+
+  let exit = y.status === 0 ? 0 : 1;
+  if (exit === 0) {
+    const a = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'eda', 'audit_memory.js')], {
+      cwd: ROOT, env, encoding: 'utf8', timeout, maxBuffer: 256 * 1024 * 1024,
+    });
+    parts.push('$ node scripts/eda/audit_memory.js');
+    parts.push((a.stdout || '') + (a.stderr || ''));
+    parts.push(`exit ${a.status}`);
+    exit = a.status === null ? 1 : a.status;
+  }
+
+  const text = parts.join('\n');
+  fs.writeFileSync(log, text, 'utf8');
+  if (verbose) console.log(`\n--- ${name} ---\n${text}`);
+  return triVerdict(name, text, exit, {
+    passMarker: 'MEMORY_AUDIT: PASS',
+    blockedMarker: 'MEMORY_AUDIT: BLOCKED',
+    blockedDetailRe: /^\s*\S+ \(\w+\): \d+ B, asic_status=.*$/m,
+    passDetail: 'every memory has an implemented ASIC alternative',
+  });
+}
+
+// 8f — memory contract boundary/alias/byte tests at the reconciled sizes -----
+function memoryContract() {
+  const name = 'memory-contract';
+  const log = logPath(name);
+  if (fs.existsSync(log)) fs.unlinkSync(log);
+  const vvp = path.join(OUT, 'tb_mem_contract.vvp');
+  if (fs.existsSync(vvp)) fs.unlinkSync(vvp);
+  // has_addr_map.sv is listed first: Icarus is single-pass and the testbench
+  // imports the package at file scope.
+  const srcs = ['rtl/rtl_top/has_addr_map.sv', 'rtl/rtl_top/boot_rom.sv', 'rtl/rtl_top/sram.sv',
+                'sim/sim_top/tb_mem_contract.v'];
+  const c = spawnSync('iverilog', ['-g2012', '-o', vvp, '-s', 'tb_mem_contract', ...srcs],
+    { cwd: ROOT, env, encoding: 'utf8', timeout: 300000 });
+  const lines = [`$ iverilog -g2012 -o ${path.relative(ROOT, vvp)} -s tb_mem_contract ${srcs.join(' ')}`,
+                 (c.stdout || '') + (c.stderr || ''), `exit ${c.status}`];
+  let exit = c.status === 0 ? 0 : 1;
+  if (exit === 0) {
+    const r = spawnSync('vvp', [vvp], { cwd: ROOT, env, encoding: 'utf8', timeout: 300000 });
+    lines.push('$ vvp ' + path.relative(ROOT, vvp), (r.stdout || '') + (r.stderr || ''), `exit ${r.status}`);
+    exit = r.status === null ? 1 : r.status;
+  }
+  const text = lines.join('\n');
+  fs.writeFileSync(log, text, 'utf8');
+  if (verbose) console.log(`\n--- ${name} ---\n${text}`);
+  return triVerdict(name, text, exit, {
+    passMarker: 'TB_MEM_CONTRACT: ALL TESTS PASSED',
+    blockedMarker: 'TB_MEM_CONTRACT: (never blocked)',
+    passDetail: 'apertures, boundaries, aliases and byte writes match the contract',
+  });
+}
+
+// 8g — I2C standard-mode timing at the pins, with its negative controls -----
+function i2cTiming() {
+  return runTask('i2c-timing', process.execPath,
+    [path.join(ROOT, 'scripts', 'eda', 'run_i2c_timing.js')],
+    'I2C_TIMING_RUNNER: PASS', null, { timeout: 1200000 });
 }
 
 // 9 — diagram generation + documentation idempotency -----------------------
@@ -517,7 +658,11 @@ function docsSync() {
     { cwd: ROOT, env, encoding: 'utf8' });
   const after = { readme: md5(readme), diagram: fs.existsSync(diagram) ? md5(diagram) : 'missing' };
 
+  // Child output is part of the evidence: without it a failing sync left no
+  // diagnostic at all (the script's SystemExit message went unrecorded).
   lines.push(`sync exit ${sync1.status}/${sync2.status}`);
+  if (sync1.status !== 0) lines.push('[sync1 stdout]', sync1.stdout || '', '[sync1 stderr]', sync1.stderr || '');
+  if (sync2.status !== 0) lines.push('[sync2 stdout]', sync2.stdout || '', '[sync2 stderr]', sync2.stderr || '');
   lines.push(`README   ${before.readme} -> ${mid.readme} -> ${after.readme}`);
   lines.push(`diagram  ${before.diagram} -> ${mid.diagram} -> ${after.diagram}`);
   const idempotent = mid.readme === after.readme && before.diagram === after.diagram;
@@ -558,7 +703,12 @@ const TASK_ORDER = [
   ['formal', formal],
   ['cdc-inventory', cdc],
   ['protocol-tests', protocolTests],
-  ['structural-check', structuralCheck],
+  ['memory-contract', memoryContract],
+  ['i2c-timing', i2cTiming],
+  ['structural-self-test', structuralSelfTest],
+  ['structural-design', structuralDesign],
+  ['memory-self-test', memorySelfTest],
+  ['memory-design', memoryDesign],
   ['mermaid', mermaid],
   ['docs-sync', docsSync],
 ];
@@ -569,13 +719,42 @@ for (const [name, fn] of TASK_ORDER) {
 const failed = results.filter(r => r.status === 'FAIL');
 const blocked = results.filter(r => r.status === 'BLOCKED');
 
+// Functional verification and ASIC readiness are reported separately. A green
+// checker self-test used to stand in for "the design is structurally
+// qualified"; these two lines make it impossible to read the first as the
+// second. Readiness stays BLOCKED while any required implementation gap exists.
+const READINESS_STAGES = ['structural-design', 'memory-design'];
+const functional = results.filter(r => !READINESS_STAGES.includes(r.name));
+const readiness = results.filter(r => READINESS_STAGES.includes(r.name));
+const fnPass = functional.filter(r => r.status === 'PASS').length;
+const fnFail = functional.filter(r => r.status === 'FAIL').length;
+const fnBlocked = functional.filter(r => r.status === 'BLOCKED').length;
+const rdPass = readiness.filter(r => r.status === 'PASS').length;
+const rdBad = readiness.filter(r => r.status !== 'PASS');
+
 console.log('');
 for (const line of summary) console.log(line);
-console.log(`\n${results.filter(r => r.status === 'PASS').length} passed, ` +
-            `${failed.length} failed, ${blocked.length} blocked`);
+console.log('');
+console.log(`functional suite: ${fnPass} passed, ${fnFail} failed, ${fnBlocked} blocked ` +
+            `(${functional.length} stages)`);
+for (const r of readiness) {
+  console.log(`ASIC readiness   ${r.name.padEnd(20)} ${r.status}  ${r.detail}`);
+}
+if (readiness.length === 0) {
+  console.log('ASIC readiness: not evaluated in this run (design stages were not selected)');
+} else {
+  console.log(`ASIC readiness: ${rdBad.length ? 'BLOCKED' : 'cleared'} ` +
+              `(${rdPass}/${readiness.length} design stages pass) — ` +
+              (rdBad.length
+                ? 'required memory implementations are still inferred; this is not tapeout readiness'
+                : 'no declared gaps remain'));
+}
 console.log(`logs: build/verify/*.log`);
 
 fs.writeFileSync(path.join(OUT, 'summary.txt'),
-  summary.join('\n') + `\n\n${failed.length} failed, ${blocked.length} blocked\n`, 'utf8');
+  summary.join('\n') +
+  `\n\nfunctional: ${fnPass} passed, ${fnFail} failed, ${fnBlocked} blocked` +
+  `\nASIC readiness: ${rdBad.length ? 'BLOCKED' : 'cleared'} (${rdPass}/${readiness.length} design stages pass)` +
+  `\n${failed.length} failed, ${blocked.length} blocked\n`, 'utf8');
 
 process.exit(failed.length ? 1 : blocked.length ? 2 : 0);
