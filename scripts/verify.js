@@ -736,7 +736,8 @@ console.log('');
 for (const line of summary) console.log(line);
 console.log('');
 console.log(`functional suite: ${fnPass} passed, ${fnFail} failed, ${fnBlocked} blocked ` +
-            `(${functional.length} stages)`);
+            `(${functional.length} stages); design stages: ${rdPass} passed, ${rdBad.length} blocked ` +
+            `of ${readiness.length} (${results.length} stages in total)`);
 for (const r of readiness) {
   console.log(`ASIC readiness   ${r.name.padEnd(20)} ${r.status}  ${r.detail}`);
 }
