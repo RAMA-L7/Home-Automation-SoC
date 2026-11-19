@@ -1,7 +1,7 @@
 # Agent handoff — Home-Automation-SoC
 
-**Last updated:** 2026-11-18 21:52 IST (2026-11-18T16:22Z)
-**Handoff owner:** `Agent: Buffy (model: DeepSeek V4.1 Flash)` — session `S-2026-11-18-7`
+**Last updated:** 2026-11-19 18:55 IST (2026-11-19T13:25Z)
+**Handoff owner:** `Agent: Buffy (model: DeepSeek V4.1 Flash)` — session `S-2026-11-19-1`
 **Read this file first, then:** `research/coordination/WORK_LOG.md` (last entry),
 `research/coordination/REVIEW_LOG.md` (open items), `research/findings.csv`.
 
@@ -15,20 +15,22 @@ history; this file is the one document rewritten at session boundaries.
 
 | Field | Value |
 |---|---|
-| Phase | Day 1 of the 10-day research mandate (`research/protocol.md`) |
+| Phase | Day 2 of the 10-day research mandate (`research/protocol.md`) — the clock was **not** restarted |
 | Hard deadline | **2026-11-28T12:17:36Z** (2026-11-28 17:47 IST) |
-| Baseline commit | `025ef24f2f4444cac4c38dc62b659fac724770f4` — "test: gate I2C transactions and auto-discover the RISC-V toolchain" |
-| Branch | `main`, study commit pushed to origin/main |
-| Worktree | **dirty** — 17 modified tracked files (RTL/testbench rows unchanged from earlier runs) |
-| Verification gate | **10 passed, 0 failed, 0 blocked** (re-run 2026-11-18 21:50 IST, exit 0) |
+| Baseline commit | `5ae31650df2eb55d7e2e03d189babdf467a94167` — "fix(gate): count the design stages in the total"; tested revision for RUN-0012 |
+| Branch | `closure/publication-repair` (off `418688b`), fast-forwardable to `main` |
+| Worktree | **clean** — 0 modified tracked files at the tested revision |
+| Verification gate | **13 of 15 stages passed, 0 failed, 2 BLOCKED** (ASIC readiness), exit 2 — `node scripts/closure.js`, RUN-0012 |
+| Publication check | **COMPLETE** — 58 exact paths + 2 trees read from the Git index, 0 gaps (RUN-0012) |
 | Regression | **PASS 27 / 27**, exit 0 |
 | Toolchain | one resolver (F6); xPack GCC **12.2.0-2**, target `riscv-none-elf` (RUN-0010) |
 | Verilator | **rebuilt and re-run (F9)** — boot 7/7, 4 ms simulated in 0.233 s; no exe existed before RUN-0011 |
 | Evidence state | **RUN-0011 matrix**: every current PASS traced to source state, command, tools, exit and hash; historical reports banner-marked |
 | Highest gate | **G0 PASS** — G1/G2 PARTIAL, G3/G4 OPEN; no ASIC-readiness claim |
-| Memory audit | **F5 CONFIRMED (decision recorded: Option B — expand map to match implemented arrays; 64 KiB ROM, 256 KiB SRAM) / F7 BLOCKED (no macro/PDK)** — RUN-0009 |
+| Memory audit | **F5 FIXED (RUN-0012)** — arrays sized to the approved contract (16 KiB ROM / 32 KiB TCM / 128 KiB SRAM); the earlier Option-B recommendation is superseded in the same document. **F7 BLOCKED** — inventory complete, no macro/PDK |
+| I²C timing | **F10 FIXED (RUN-0012)** — standard mode 100 kHz only: fSCL 100.00 kHz, tHIGH 4700 ns, tLOW 5300 ns, tHD;STA 5000 ns, tSU;STO 5000 ns, tBUF 14720 ns measured at the pins; 400 kHz explicitly unsupported |
 | Evaluation status | SELF-EVALUATED — no independent evaluator exists in this environment |
-| Active task | both Day 2 objectives complete: Memory Architecture Decision Investigation and professionally redesigned root README.md |
+| Active task | closure task delivered: publication repaired, commands reproducible from a clean tree, checker self-tests split from design checks, I²C timing closed for the supported mode, memory contract reconciled. Awaiting the memory-macro dependency and an independent reviewer |
 
 ### Dirty worktree (must be preserved)
 

@@ -408,3 +408,19 @@ created after the work. Each says so; the runs are the authoritative record.
 - **Files verified:** all 28+ README sections cross-checked against: research/findings.csv, research/results.csv (on disk), research/experiment-matrix.csv, research/runs/RUN-0011-evidence-provenance/evidence-matrix.md (committed), acceptance-gates.md (committed), AGENTS.md (committed), research/runs/RUN-0009-memory-audit/ (on disk), research/MEMORY_ARCHITECTURE_DECISION_INVESTIGATION.md (new).
 - **Blockers:** none.
 - **Next:** append REVIEW_LOG block, update AGENT_HANDOFF.md STATUS + STATUS HISTORY.
+
+## W-2026-11-19T1325Z-21 — completion: publication, reproducibility and verification closure
+
+- **Local / UTC:** 2026-11-19 18:55 IST (2026-11-19T13:25Z)
+- **Session:** `S-2026-11-19-1` · branch `closure/publication-repair` · tested revision `5ae3165` (clean tree)
+- **Progress:**
+  - **Publication (A):** every path the instructions, commands, reports and evidence manifests reference is now tracked — `research/coordination/AGENT_HANDOFF.md`, `research/runs/RUN-0011-.../evidence-matrix.md`, `scripts/eda/{check_structure,audit_memory}.js`, `asic/synthesis/{fullsoc_map.ys,memory_inventory.json}` were absent from the reviewed tree. New `scripts/publication/required-inputs.json` (58 exact paths + `research` and `asic/synthesis` trees) and `check_publication.js`, which reads the **Git index** so an untracked-but-present file still fails, and fails on a required file modified relative to HEAD.
+  - **Reproducibility (B):** one entry point, `scripts/closure.js` (publication → gate, per-stage logs under `build/closure/`, exit 0/1/2). The gate is now 15 stages (13 functional + 2 design); tool paths are environment overrides and every run prints resolved paths and versions.
+  - **Gate (C):** `structural-self-test`/`memory-self-test` (16/16 and 7/7 controls) are separate from `structural-design`/`memory-design`, which exit 2 BLOCKED naming each `$mem_v2`; functional success is reported on its own line so a green self-test cannot mask a blocked design.
+  - **I²C (D), F10:** SCL was high for 1 of 4 quarters (tHIGH 2.5 µs against a 4.0 µs minimum). Fixed in `i2c_ctrl.sv`; `tb_i2c_timing.v` measures at the pins with a 300 ns delayed-rise model (23 checks); `run_i2c_timing.js` 5/5 with three failing controls.
+  - **Memory (E), F5:** the arrays were oversized, not the map. Sized to the approved contract (ROM `ADDR_WIDTH` 14→12, SRAM 17→15); the earlier Option-B recommendation is superseded, with reasoning, in `research/MEMORY_ARCHITECTURE_DECISION_INVESTIGATION.md`. `tb_mem_contract.v` 26/26.
+  - **Evidence (F):** `research/runs/RUN-0012-closure-publication/` — metadata, source/input hashes (235 inputs), commands, metrics, claim→evidence matrix, review record, raw logs.
+- **Files changed:** see `RUN-0012/commands.jsonl` and `metadata.json`.
+- **Verification status:** publication COMPLETE; functional 13/13 of 15 stages; `structural-design` BLOCKED (262,013 leaf cells, 8 types, 4 declared gaps); `memory-design` BLOCKED (4 declared gaps, all capacities matching). Controls: 16/16, 7/7, 5/5, 4/4.
+- **Blockers:** F7 memory macro (no `.lib`/`.lef`/`.gds`, no compiler, no PDK); G4.4 no independent evaluator. Both recorded, neither bypassed.
+- **Next:** obtain a memory macro (or a documented blackbox with ports, init and timing) behind the existing wrappers; commission an independent review of this run.
