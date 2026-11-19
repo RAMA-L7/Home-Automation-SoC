@@ -1,0 +1,29 @@
+{
+  "run_id": "RUN-0013-published-revision-confirmation",
+  "title": "Confirmation run at the published revision, after main was fast-forwarded",
+  "started_utc": "2026-11-19T13:40:09Z",
+  "completed_utc": "2026-11-19T13:46:00Z",
+  "agent": "Buffy (model: DeepSeek V4.1 Flash)",
+  "session": "S-2026-11-19-1",
+  "experiment_condition": "development (agent-authored and agent-evaluated; NOT independently evaluated)",
+  "autonomy": "SELF-EVALUATED — no independent evaluator was available, so G4.4 stays OPEN",
+  "why_this_run_exists": "The head of main advanced after RUN-0012 by one commit that touched only .gitattributes (a UTF-8 BOM removed from its comment line). A published revision that differs from the tested one is exactly the gap a reviewer would flag, so the gate was re-executed at the pushed revision instead of being assumed equivalent.",
+  "tested_revision": "16c8179a8f01aa030da5bbee650404c4192dd8a3",
+  "branch": "main",
+  "worktree": "clean",
+  "prior_run": "RUN-0012-closure-publication (tested revision c79cbdca0be4656cab3c3856a6c9aedf7c2d228f)",
+  "result": {
+    "publication": "COMPLETE (exit 0, 0.3 s)",
+    "functional_stages": "13 passed, 0 failed, 0 blocked",
+    "design_stages": "0 passed, 2 blocked of 2",
+    "closure_exit": 2,
+    "same_as_run_0012": true
+  },
+  "classification": "BLOCKED (ASIC readiness) — no FAIL; every executed check passed",
+  "logs": [
+    "logs/closure_stdout.log",
+    "logs/closure_publication.log",
+    "logs/closure_verify.log",
+    "logs/closure_summary.txt"
+  ]
+}

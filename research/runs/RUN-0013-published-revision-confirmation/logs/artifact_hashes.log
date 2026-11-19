@@ -1,0 +1,8 @@
+# artifact hashes (sha256) — RUN-0013
+# tested revision: 16c8179a8f01aa030da5bbee650404c4192dd8a3
+# generated 2026-11-19T13:46:38Z
+bb896b838b94f4073c1a89739865b9962334695ba511c42c417ce0ffa1dc84dc  research/runs/RUN-0013-published-revision-confirmation/logs/artifact_hashes.log
+bab65d32a72a65987c385a49a320e4ff5cf83d488fd4f57bb5ec67f02fb1358b  research/runs/RUN-0013-published-revision-confirmation/logs/closure_publication.log
+0250f65373b5acbf0b3e2328d91534e9e698c427fdfde13fe968d0a2b0cf317b  research/runs/RUN-0013-published-revision-confirmation/logs/closure_stdout.log
+0250f65373b5acbf0b3e2328d91534e9e698c427fdfde13fe968d0a2b0cf317b  research/runs/RUN-0013-published-revision-confirmation/logs/closure_summary.txt
+6bced00f73a57c5d0820d52021d32850ee8a97350544f2ada65d8f8e95fc3ba6  research/runs/RUN-0013-published-revision-confirmation/logs/closure_verify.log
