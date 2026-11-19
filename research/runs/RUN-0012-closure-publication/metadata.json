@@ -1,0 +1,56 @@
+{
+  "run_id": "RUN-0012-closure-publication",
+  "title": "Publication repair, reproducible commands, gate split, I2C standard-mode timing, memory contract",
+  "started_utc": "2026-11-19T13:31:46Z",
+  "completed_utc": "2026-11-19T13:37:07Z",
+  "agent": "Buffy (model: DeepSeek V4.1 Flash)",
+  "session": "S-2026-11-19-1",
+  "experiment_condition": "development (agent-authored and agent-evaluated; NOT independently evaluated)",
+  "autonomy": "SELF-EVALUATED \u2014 no independent evaluator was available, so G4.4 stays OPEN",
+  "baseline": {
+    "reviewed_revision": "418688b260a4a6036b60dffe2b21efdc11ffc177",
+    "tested_revision": "c79cbdca0be4656cab3c3856a6c9aedf7c2d228f",
+    "branch": "closure/publication-repair",
+    "worktree": "clean",
+    "dirty_tracked_files": 0,
+    "note": "The closure run executed on a clean worktree at this revision, with the run directory deliberately staged outside the repository so that the executed tree and the committed tree contain the same inputs; the evidence was moved back and committed afterwards. The evidence commit is therefore not a second execution."
+  },
+  "changed": [
+    "research/** (161 files published: coordination records, runs, requirements baseline, findings, limitations, gates)",
+    "README.md",
+    "AGENTS.md",
+    "docs/architecture/BLOCK_DIAGRAM.md",
+    "rtl/rtl_top/boot_rom.sv (ADDR_WIDTH 14 -> 12, 16 KiB)",
+    "rtl/rtl_top/has_soc.sv (SRAM instance ADDR_WIDTH 17 -> 15, 128 KiB)",
+    "rtl/rtl_peripherals/i2c_ctrl.sv (SCL duty, START hold, DONE span)",
+    "sim/sim_top/tb_mem_contract.v (new, 26 checks)",
+    "sim/sim_top/tb_i2c_timing.v (new, 23 checks)",
+    "scripts/closure.js (new, single entry point)",
+    "scripts/verify.js (13 stages, self-test/design split, three-valued exit)",
+    "scripts/publication/{required-inputs.json,check_publication.js,make_run_manifest.py} (new)",
+    "scripts/eda/{check_structure.js,audit_memory.js,run_i2c_timing.js}",
+    "asic/synthesis/{fullsoc_map.ys,memory_audit.ys,memory_inventory.json,structural_policy.json}",
+    ".gitattributes (research/** -text)"
+  ],
+  "not_changed": [
+    "riscv_core.sv (no CPU rewrite)",
+    "axi_lite_interconnect.sv logic (decode literals untouched)",
+    "firmware/bare_metal/linker.ld",
+    "acceptance criteria (none relaxed)",
+    "requirements/FR-MEM-* (no requirement changed to fit the RTL)"
+  ],
+  "verdicts": {
+    "F1": "FIXED (RUN-0003, unchanged here)",
+    "F2": "FIXED (RUN-0006, unchanged here)",
+    "F3": "FIXED (RUN-0008, unchanged here)",
+    "F4": "FIXED (RUN-0011, publication completed here)",
+    "F5": "FIXED (this run: arrays sized to the declared contract, not the map enlarged)",
+    "F6": "FIXED (RUN-0010, unchanged here)",
+    "F7": "BLOCKED (inventory complete; no memory macro or PDK in this environment)",
+    "F8": "FIXED (RUN-0007, gate split completed here)",
+    "F9": "PARTIAL (current targets traced; no PPA, no independent evaluation)",
+    "F10": "FIXED (this run: standard-mode timing measured at the pins)"
+  },
+  "highest_gate": "G0 PASS, G1 PARTIAL (G1.1/G1.3/G1.4/G1.5), G2 PARTIAL, G3/G4 OPEN",
+  "development_stage": "RTL and firmware functionally verified on a published tree; ASIC readiness BLOCKED on memory implementation and physical design; not tapeout ready"
+}

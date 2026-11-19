@@ -1,0 +1,83 @@
+{
+  "run_id": "RUN-0012-closure-publication",
+  "tested_revision": "c79cbdca0be4656cab3c3856a6c9aedf7c2d228f",
+  "tools": {
+    "node": "v26.7.0",
+    "python": "Python 3.10.11",
+    "iverilog": "Icarus Verilog version 14.0 (devel) (s20260301-500-g2e81fcccb-dirty)",
+    "yosys": "Yosys 0.69+154 (git sha1 30d62572e-dirty)",
+    "sby": "SBY v0.69",
+    "verilator": "Verilator 5.053 devel rev v5.052-119-g014c9820d (mod)",
+    "riscv_gcc": "xPack GNU RISC-V Embedded GCC 12.2.0 (riscv-none-elf)"
+  },
+  "publication": {
+    "exact_paths": 58,
+    "trees": [
+      "research",
+      "asic/synthesis"
+    ],
+    "inputs_hashed": 235,
+    "gap_entries": 0,
+    "verdict": "COMPLETE"
+  },
+  "gate": {
+    "stages": 15,
+    "passed": 13,
+    "failed": 0,
+    "blocked": 2,
+    "functional_suite": "13 passed, 0 failed, 0 blocked",
+    "asic_readiness": "BLOCKED (0/2 design stages pass)",
+    "wall_clock_s": 320.6,
+    "publication_wall_clock_s": 0.4,
+    "verify_wall_clock_s": 319.3
+  },
+  "structural_design": {
+    "leaf_cells": 262013,
+    "cell_types": 8,
+    "declared_mem_v2_gaps": 4,
+    "verdict": "BLOCKED"
+  },
+  "memory": {
+    "addressable_bytes": 180224,
+    "implemented_bytes": 180242,
+    "decode_lut_bytes": 18,
+    "regions_matching_contract": 4,
+    "declared_asic_gaps": 4,
+    "rom_bytes": 16384,
+    "tcm_bytes": 32768,
+    "sram_bytes": 131072,
+    "verdict": "BLOCKED (correct on capacity; no macro implementation)"
+  },
+  "memory_contract_checks": {
+    "checks": 26,
+    "errors": 0,
+    "verdict": "PASS"
+  },
+  "i2c": {
+    "pclk_hz": 50000000,
+    "clkdiv": 124,
+    "fSCL_khz": 100.0,
+    "tHIGH_ns": 4700,
+    "tLOW_ns": 5300,
+    "tSU_DAT_ns": 2500,
+    "tHD_DAT_ns": 20,
+    "tHD_STA_ns": 5000,
+    "tSU_STO_ns": 5000,
+    "tBUF_ns": 14720,
+    "tb_checks": 23,
+    "runner_checks": 5,
+    "runner_controls": 3,
+    "verdict": "PASS (standard mode 100 kHz only; fast mode not supported)"
+  },
+  "controls": {
+    "structural_self_test": "16/16 as specified",
+    "memory_self_test": "7/7 as specified",
+    "i2c_runner": "5/5 as specified (3 of them failing controls)",
+    "publication": "4/4 as specified (untracked 1, tracked 0, deleted 1, dirty 1)"
+  },
+  "not_measured": [
+    "PPA: no ABC -liberty, no PDK, no place and route",
+    "any physical implementation of the four memories",
+    "independent evaluation of any result in this run"
+  ]
+}

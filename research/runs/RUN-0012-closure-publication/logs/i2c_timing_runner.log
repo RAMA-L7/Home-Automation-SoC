@@ -1,0 +1,13 @@
+ok   timing @ 100 kHz: exit 0, fSCL=100.00 kHz, tBUF=14720.0 ns
+ok   control: too-short divider rejected: exit 1 (expected non-zero), 8 timing check(s) failed
+ok   functional transactions: exit 0
+ok   control: simultaneous STOP release rejected: exit 1 (expected non-zero), invalid STOP reported
+ok   control: short START hold rejected: exit 1 (expected non-zero), tHD;STA failed as required
+
+  PASS  timing @ 100 kHz
+  PASS  control: too-short divider rejected
+  PASS  functional transactions
+  PASS  control: simultaneous STOP release rejected
+  PASS  control: short START hold rejected
+
+I2C_TIMING_RUNNER: PASS (5/5)

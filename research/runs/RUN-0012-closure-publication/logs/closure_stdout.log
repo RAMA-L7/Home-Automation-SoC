@@ -1,0 +1,58 @@
+Home-Automation-SoC — closure run
+started      2026-11-19T13:31:46.566Z
+cwd          D:\Home-Automation-SoC
+repo root    D:\Home-Automation-SoC
+
+tool inventory (first version line, or MISSING)
+  node           v26.7.0
+  python         Python 3.10.11
+  iverilog       Icarus Verilog version 14.0 (devel) (s20260301-500-g2e81fcccb-dirty)
+  vvp            Icarus Verilog runtime version 14.0 (devel) (s20260301-500-g2e81fcccb-dirty)
+  yosys          Yosys 0.69+154 (git sha1 30d62572e-dirty, Release, GNU /usr/bin/x86_64-w64-mingw32-g++ 15.2.1)
+  sby            SBY v0.69
+  verilator_bin  Verilator 5.053 devel rev v5.052-119-g014c9820d (mod)
+  riscv-toolchain D:\tools\xpack-riscv-none-elf-gcc-12.2.0-2\bin\riscv-none-elf-gcc.exe [installed] riscv-none-elf-gcc.exe (xPack GNU RISC-V Embedded GCC x86_64) 12.2.0
+
+--- publication ---------------------------------------------------
+PUBLICATION COMPLETENESS
+  HEAD       c79cbdca0be4656cab3c3856a6c9aedf7c2d228f
+  manifest   scripts/publication/required-inputs.json
+  exact      58 required path(s)
+  trees      research, asic/synthesis
+
+PUBLICATION: COMPLETE
+--- publication: exit 0 in 0.4 s (log build/closure/publication.log)
+
+--- verify ---------------------------------------------------
+Home-Automation-SoC — unified verification gate
+
+
+PASS     tools                    exit 0
+PASS     verible-syntax           marker "SYNTAX_OK"
+PASS     verible-lint             marker "LINT_OK"
+PASS     regression               exit 0
+PASS     formal                   exit 0
+PASS     cdc-inventory            marker "structural checks: all rows match the RTL"
+PASS     protocol-tests           exit 0
+PASS     memory-contract          apertures, boundaries, aliases and byte writes match the contract
+PASS     i2c-timing               marker "I2C_TIMING_RUNNER: PASS"
+PASS     structural-self-test     marker "STRUCTURAL_CHECK: SELF-TEST PASS"
+BLOCKED  structural-design        gap: $mem_v2 x4 — F7/TD-006: inferred memories with no macro implementation. Inventoried in RUN-0009 and re-sized in RUN-0012 (asic/synthesis/memory_inventory.json): APB decode LUT 16x9 in has_soc, boot ROM 4096x32 (16 KiB), TCM 8192x32 (32 KiB), SRAM 32768x32 (128 KiB). The older '3 memories' note undercounted.
+PASS     memory-self-test         marker "MEMORY_AUDIT: SELF-TEST PASS"
+BLOCKED  memory-design            MEM-ROM (rom): 16384 B, asic_status="unresolved"
+PASS     mermaid                  marker "check_mermaid: OK"
+PASS     docs-sync                marker "docs sync is idempotent"
+
+functional suite: 13 passed, 0 failed, 0 blocked (13 stages); design stages: 0 passed, 2 blocked of 2 (15 stages in total)
+ASIC readiness   structural-design    BLOCKED  gap: $mem_v2 x4 — F7/TD-006: inferred memories with no macro implementation. Inventoried in RUN-0009 and re-sized in RUN-0012 (asic/synthesis/memory_inventory.json): APB decode LUT 16x9 in has_soc, boot ROM 4096x32 (16 KiB), TCM 8192x32 (32 KiB), SRAM 32768x32 (128 KiB). The older '3 memories' note undercounted.
+ASIC readiness   memory-design        BLOCKED  MEM-ROM (rom): 16384 B, asic_status="unresolved"
+ASIC readiness: BLOCKED (0/2 design stages pass) — required memory implementations are still inferred; this is not tapeout readiness
+logs: build/verify/*.log
+--- verify: exit 2 in 319.3 s (log build/closure/verify.log)
+
+CLOSURE SUMMARY
+  publication    PASS     exit 0  0.4 s
+  verify         BLOCKED  exit 2  319.3 s
+
+finished     2026-11-19T13:37:07.018Z (320.5 s)
+CLOSURE: BLOCKED — functional verification ran; ASIC readiness has declared implementation gaps

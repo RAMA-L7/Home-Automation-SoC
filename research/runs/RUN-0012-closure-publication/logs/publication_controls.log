@@ -1,0 +1,48 @@
+publication controls — scratch repo /tmp/tmp.hkPmHqP5SA, real scripts/publication/check_publication.js
+== CONTROL 1: required file present on disk but untracked (expect exit 1)
+PUBLICATION COMPLETENESS
+  HEAD       58931bd39b71e253825c054d6f14e0839e403f53
+  manifest   scripts/publication/required-inputs.json
+  exact      1 required path(s)
+  trees      
+
+  1 required path(s) are not in the Git tree:
+    needed.txt  (exists on disk, untracked)
+
+PUBLICATION: 2 gap entries
+exit=1
+== CONTROL 2: same file tracked (expect exit 0)
+PUBLICATION COMPLETENESS
+  HEAD       9e7aa09ef946afa08fba397c50bd37dc7cb432aa
+  manifest   scripts/publication/required-inputs.json
+  exact      1 required path(s)
+  trees      
+
+PUBLICATION: COMPLETE
+exit=0
+== CONTROL 3: tracked file deleted from the worktree (expect exit 1)
+PUBLICATION COMPLETENESS
+  HEAD       9e7aa09ef946afa08fba397c50bd37dc7cb432aa
+  manifest   scripts/publication/required-inputs.json
+  exact      1 required path(s)
+  trees      
+
+  1 tracked file(s) are missing from the working tree:
+    needed.txt
+  1 required file(s) are modified relative to HEAD (commit them or the published tree is not what was verified):
+    needed.txt
+
+PUBLICATION: 4 gap entries
+exit=1
+== CONTROL 4: required file modified relative to HEAD (expect exit 1)
+PUBLICATION COMPLETENESS
+  HEAD       9e7aa09ef946afa08fba397c50bd37dc7cb432aa
+  manifest   scripts/publication/required-inputs.json
+  exact      1 required path(s)
+  trees      
+
+  1 required file(s) are modified relative to HEAD (commit them or the published tree is not what was verified):
+    needed.txt
+
+PUBLICATION: 2 gap entries
+exit=1

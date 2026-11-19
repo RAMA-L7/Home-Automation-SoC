@@ -1,0 +1,18 @@
+# artifact hashes (sha256) — RUN-0012-closure-publication
+# tested revision (HEAD at execution): c79cbdca0be4656cab3c3856a6c9aedf7c2d228f
+# generated 2026-11-19T13:38:13Z
+b524105faf60f69c2c29ffbc9e6c5e05d10aa18b58a18e648b5a92a1b824b96c  research/runs/RUN-0012-closure-publication/logs/closure_publication.log
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  research/runs/RUN-0012-closure-publication/logs/closure_stderr.log
+ebcdd5fb714e21289e4e8db74f667bac89bf05b5c263dac3590cfe89d3471ef2  research/runs/RUN-0012-closure-publication/logs/closure_stdout.log
+ebcdd5fb714e21289e4e8db74f667bac89bf05b5c263dac3590cfe89d3471ef2  research/runs/RUN-0012-closure-publication/logs/closure_summary.txt
+6bced00f73a57c5d0820d52021d32850ee8a97350544f2ada65d8f8e95fc3ba6  research/runs/RUN-0012-closure-publication/logs/closure_verify.log
+285fa15258a9d0f2a85a6c69126ac4121a84b28a4a2779bd04456a2607b0fb4d  research/runs/RUN-0012-closure-publication/logs/i2c_timing_runner.log
+178385fe4cf73a537a98afa5df7bad149277b4f0fb0fa9aa4af830fc47c7f14c  research/runs/RUN-0012-closure-publication/logs/memory_self_test.log
+ac1db9f8a3dac6da0269f13f1a3eed448c718d64f24b76d09cf0f633b6b2cb28  research/runs/RUN-0012-closure-publication/logs/publication_controls.log
+285fa15258a9d0f2a85a6c69126ac4121a84b28a4a2779bd04456a2607b0fb4d  research/runs/RUN-0012-closure-publication/logs/stage_i2c-timing.log
+75dcc862a45744621872dd41296197dc8b1e1ff82dbbc12d20dd791e7ebe2d9f  research/runs/RUN-0012-closure-publication/logs/stage_memory-contract.log
+aa228410e8f4bfd531570c041b61fd3593a357132563d34d58d937c7e3ea2889  research/runs/RUN-0012-closure-publication/logs/stage_memory-design.log
+178385fe4cf73a537a98afa5df7bad149277b4f0fb0fa9aa4af830fc47c7f14c  research/runs/RUN-0012-closure-publication/logs/stage_memory-self-test.log
+0f35ff0afcc8b9b86d829b3af1969471fd82764c7c6c757386225280e5a065f5  research/runs/RUN-0012-closure-publication/logs/stage_structural-design.log
+7a38f5c3924ccc9ab29fff5990522acedc00935d496fe9a3716513162e378a15  research/runs/RUN-0012-closure-publication/logs/stage_structural-self-test.log
+7a38f5c3924ccc9ab29fff5990522acedc00935d496fe9a3716513162e378a15  research/runs/RUN-0012-closure-publication/logs/structural_self_test.log

@@ -1,0 +1,37 @@
+$ iverilog -g2012 -o build\verify\tb_mem_contract.vvp -s tb_mem_contract rtl/rtl_top/has_addr_map.sv rtl/rtl_top/boot_rom.sv rtl/rtl_top/sram.sv sim/sim_top/tb_mem_contract.v
+rtl/rtl_top/sram.sv:84: vvp.tgt sorry: Case unique/unique0 qualities are ignored.
+rtl/rtl_top/sram.sv:84: vvp.tgt sorry: Case unique/unique0 qualities are ignored.
+
+exit 0
+$ vvp build\verify\tb_mem_contract.vvp
+[mem] pass A0  ROM base is region 0
+[mem] pass A1  ROM last byte (16 KB) is region 0
+[mem] pass A2  first byte after the ROM aperture is unmapped
+[mem] pass A3  TCM base is region 1
+[mem] pass A4  TCM last byte (32 KB) is region 1
+[mem] pass A5  first byte after the TCM aperture is unmapped
+[mem] pass A6  SRAM base is region 2
+[mem] pass A7  SRAM last byte (128 KB) is region 2
+[mem] pass A8  first byte after the SRAM aperture is unmapped
+[mem] pass A9  QSPI flash base is region 3
+[mem] pass A10 APB base is region 4
+[mem] pass A11 INTC base is region 5
+[mem] pass A12 address beyond every region is unmapped
+[mem] pass B0 ROM word 0 is the NOP filler
+[mem] pass B1 ROM last word (0x3FFC) is inside the 16 KB array
+[mem] pass B2 ROM is stable across fetches
+[mem] pass B3 ROM address bit 14 is not an array bit (documented alias)
+[mem] pass C0 SRAM first word
+[mem] pass C1 SRAM last word (0x1FFFC) is inside the 128 KB array
+[mem] pass C2 byte 0 write at the last word
+[mem] pass C3 byte 3 write at the last word
+[mem] pass C4 word below the SRAM half-way boundary
+[mem] pass C5 SRAM address bit 17 is not an array bit (documented alias)
+[mem] pass D0 TCM first word
+[mem] pass D1 TCM last word (0x7FFC) is inside the 32 KB array
+[mem] pass D2 TCM address bit 15 is not an array bit (documented alias)
+[mem] checks=26 errors=0
+TB_MEM_CONTRACT: ALL TESTS PASSED
+sim/sim_top/tb_mem_contract.v:317: $finish called at 1435000 (1ps)
+
+exit 0

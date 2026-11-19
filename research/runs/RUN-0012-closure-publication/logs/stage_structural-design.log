@@ -1,0 +1,4 @@
+STRUCTURAL_CHECK: BLOCKED (top=has_soc)
+  262013 leaf cells, 8 types
+  GAP $mem_v2 x4 — F7/TD-006: inferred memories with no macro implementation. Inventoried in RUN-0009 and re-sized in RUN-0012 (asic/synthesis/memory_inventory.json): APB decode LUT 16x9 in has_soc, boot ROM 4096x32 (16 KiB), TCM 8192x32 (32 KiB), SRAM 32768x32 (128 KiB). The older '3 memories' note undercounted.
+STRUCTURAL_CHECK: BLOCKED
