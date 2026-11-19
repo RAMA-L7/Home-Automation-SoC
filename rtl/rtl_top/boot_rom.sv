@@ -11,7 +11,10 @@
 // Map: 0x0000_0000 .. 0x0000_3FFF
 //------------------------------------------------------------------------------
 module boot_rom #(
-  parameter int ADDR_WIDTH = 16,           // 16 KB
+  // 14 address bits -> 2^14 bytes = 16 KB, the FR-MEM-003 aperture.  The
+  // default used to be 16 (64 KB), which silently allocated 4x the aperture
+  // the address map and the interconnect decode (F5).
+  parameter int ADDR_WIDTH = 14,           // 16 KB
   parameter int DATA_WIDTH = 32,
   // verilog_lint: waive explicit-parameter-storage-type
   parameter MEM_FILE   = "",

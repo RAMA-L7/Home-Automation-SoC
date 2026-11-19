@@ -1,0 +1,60 @@
+# Fail-closed full-SoC Sky130 mapping + structural report.
+#
+#   yosys -s asic/synthesis/fullsoc_map.ys
+#
+# This supersedes the untracked build/asic_evidence/arith_work/synth_soc.ys,
+# which ends in a bare `check`: that prints "Found and reported N problems" and
+# still exits 0, so a malformed or half-mapped design passed silently (F8).
+#
+# Order note: the JSON inventory and the RTLIL netlist are written BEFORE the
+# assertion, so the evidence of what was checked exists even when the check
+# fails. `check -assert` then makes any reported problem a non-zero exit.
+#
+# `flatten` is intentionally absent: the behavioural SRAM expands to a very
+# large gate count and the run dies with std::bad_alloc. That is a memory model
+# size problem (F7), not a mapping gap, and it does not stop the per-module
+# structural checks below.
+
+read_verilog -sv rtl/rtl_top/reset_ctrl.sv
+read_verilog -sv rtl/rtl_top/axi_lite_interconnect.sv
+read_verilog -sv rtl/rtl_top/axi_lite_to_apb.sv
+read_verilog -sv rtl/rtl_top/boot_rom.sv
+read_verilog -sv rtl/rtl_top/has_addr_map.sv
+read_verilog -sv rtl/rtl_top/intc_axi.sv
+read_verilog -sv rtl/rtl_top/req_gnt_to_axi_lite.sv
+read_verilog -sv rtl/rtl_peripherals/watchdog.sv
+read_verilog -sv rtl/rtl_peripherals/plic.sv
+read_verilog -sv rtl/rtl_peripherals/clint.sv
+read_verilog -sv rtl/rtl_peripherals/debug_jtag.sv
+read_verilog -sv rtl/rtl_peripherals/power_mgr.sv
+read_verilog -sv rtl/rtl_peripherals/i2c_ctrl.sv
+read_verilog -sv rtl/rtl_peripherals/spi_ctrl.sv
+read_verilog -sv rtl/rtl_peripherals/power_mgr_regs.sv
+read_verilog -sv rtl/rtl_peripherals/i2s.sv
+read_verilog -sv rtl/rtl_peripherals/gpio.sv
+read_verilog -sv rtl/rtl_peripherals/timer.sv
+read_verilog -sv rtl/rtl_peripherals/pwm.sv
+read_verilog -sv rtl/rtl_peripherals/uart.sv
+read_verilog -sv rtl/rtl_peripherals/qspi_flash_ctrl.sv
+read_verilog -sv rtl/rtl_top/riscv_core.sv
+read_verilog -sv rtl/rtl_top/sram.sv
+read_verilog -sv rtl/rtl_top/has_soc.sv
+
+hierarchy -check -top has_soc
+
+proc
+memory_collect
+opt_clean
+
+read_liberty -lib build/asic_evidence/sky130_full_subset.lib
+# Standard expansion first (mul/div/mod/shift/neg -> add/sub/gates), then the
+# project Sky130 map for the resulting simple cells.
+techmap -map +/techmap.v
+techmap -map build/asic_evidence/sky130_map.v
+techmap -map build/asic_evidence/sky130_map.v
+hierarchy -check
+opt_clean
+
+# `stat -json` prints to the console, so tee it into the inventory file.
+tee -o build/asic_evidence/structural_check/has_soc_cells.json stat -top has_soc -json
+check -assert

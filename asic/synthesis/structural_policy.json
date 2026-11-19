@@ -1,0 +1,22 @@
+{
+  "_comment": [
+    "Policy for scripts/eda/check_structure.js. A mapped design PASSES only when",
+    "every leaf cell is a library cell and nothing is left unmapped. Anything",
+    "declared here is reported as BLOCKED (exit 2), never as PASS, so a known",
+    "gap cannot hide inside a green result.",
+    "Counts are per module definition: the full-SoC flow does not flatten (F7),",
+    "so a module instantiated more than once contributes its cells once. Every",
+    "module in has_soc is currently instantiated once (checked in RUN-0007)."
+  ],
+  "allowed_cell_prefixes": ["sky130_fd_sc_hd__"],
+  "min_leaf_cells": 1,
+  "declared_gaps": {
+    "has_soc": [
+      {
+        "cell": "$mem_v2",
+        "expected": 4,
+        "reason": "F7/TD-006: inferred memories with no macro implementation. Inventoried in RUN-0009 (asic/synthesis/memory_inventory.json): APB decode LUT 16x9 in has_soc, boot ROM 16384x32, TCM 8192x32, SRAM 65536x32. The older '3 memories' note undercounted."
+      }
+    ]
+  }
+}

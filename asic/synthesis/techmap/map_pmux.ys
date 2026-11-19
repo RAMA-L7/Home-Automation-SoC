@@ -1,0 +1,14 @@
+# Map the $pmux probes with the project Sky130 techmap and write a netlist for
+# simulation. Run from the repository root: yosys -s asic/synthesis/techmap/map_pmux.ys
+# Pin directions and functions, so `check` can tell a real undriven output from a
+# cell it does not know about.
+read_liberty -lib build/asic_evidence/sky130_full_subset.lib
+
+read_rtlil asic/synthesis/techmap/pmux_probe.il
+techmap -map build/asic_evidence/sky130_map.v
+opt -fast
+flatten
+opt -fast
+check
+stat
+write_verilog -noattr build/asic_evidence/pmux_map_test/pmux_mapped.v

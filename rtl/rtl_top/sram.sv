@@ -10,7 +10,10 @@
 // which is not a legal handshake and lost every other transaction.
 //------------------------------------------------------------------------------
 module sram #(
-  parameter int ADDR_WIDTH = 18,           // bytes; 2^18 = 256 KB
+  // 17 address bits -> 2^17 bytes = 128 KB, the FR-MEM-001 SoC SRAM aperture.
+  // The default used to be 18 (256 KB), allocating 2x the decoded aperture
+  // (F5).  The TCM instance overrides this with 15 (32 KB, FR-MEM-002).
+  parameter int ADDR_WIDTH = 17,           // bytes; 2^17 = 128 KB
   parameter int DATA_WIDTH = 32,
   // verilog_lint: waive explicit-parameter-storage-type
   parameter MEM_FILE   = ""

@@ -1,0 +1,55 @@
+# Memory architecture audit — elaborated inventory (F5/F7, RUN-0009).
+#
+#   yosys -s asic/synthesis/memory_audit.ys
+#
+# Reads the same file list as fullsoc_map.ys, elaborates `has_soc`, lowers
+# processes and collects memory cells, then writes the inventory BEFORE any
+# mapping. No techmap, no flatten: this script answers "which memories exist and
+# how big are they", not "what do they map to".
+#
+# Outputs (evidence, not inputs):
+#   build/asic_evidence/memory_audit/memory_cells.json   stat -json per module
+#   build/asic_evidence/memory_audit/memories.il         RTLIL with $mem_v2
+#                                                        parameters (SIZE, WIDTH,
+#                                                        ABITS, RD/WR ports)
+#
+# The RTLIL file is the authoritative geometry source parsed by
+# scripts/eda/audit_memory.js. `stat` alone only counts memories, it does not
+# expose SIZE/WIDTH, and the older "3 memories" note came from counting.
+
+read_verilog -sv rtl/rtl_top/reset_ctrl.sv
+read_verilog -sv rtl/rtl_top/axi_lite_interconnect.sv
+read_verilog -sv rtl/rtl_top/axi_lite_to_apb.sv
+read_verilog -sv rtl/rtl_top/boot_rom.sv
+read_verilog -sv rtl/rtl_top/has_addr_map.sv
+read_verilog -sv rtl/rtl_top/intc_axi.sv
+read_verilog -sv rtl/rtl_top/req_gnt_to_axi_lite.sv
+read_verilog -sv rtl/rtl_peripherals/watchdog.sv
+read_verilog -sv rtl/rtl_peripherals/plic.sv
+read_verilog -sv rtl/rtl_peripherals/clint.sv
+read_verilog -sv rtl/rtl_peripherals/debug_jtag.sv
+read_verilog -sv rtl/rtl_peripherals/power_mgr.sv
+read_verilog -sv rtl/rtl_peripherals/i2c_ctrl.sv
+read_verilog -sv rtl/rtl_peripherals/spi_ctrl.sv
+read_verilog -sv rtl/rtl_peripherals/power_mgr_regs.sv
+read_verilog -sv rtl/rtl_peripherals/i2s.sv
+read_verilog -sv rtl/rtl_peripherals/gpio.sv
+read_verilog -sv rtl/rtl_peripherals/timer.sv
+read_verilog -sv rtl/rtl_peripherals/pwm.sv
+read_verilog -sv rtl/rtl_peripherals/uart.sv
+read_verilog -sv rtl/rtl_peripherals/qspi_flash_ctrl.sv
+read_verilog -sv rtl/rtl_top/riscv_core.sv
+read_verilog -sv rtl/rtl_top/sram.sv
+read_verilog -sv rtl/rtl_top/has_soc.sv
+
+hierarchy -check -top has_soc
+
+# Processes must be lowered before memories can be collected.
+proc
+memory_collect
+opt_clean
+
+# Inventory first, assertions after: the evidence must exist even if a later
+# step fails.
+tee -o build/asic_evidence/memory_audit/memory_cells.json stat -json
+write_rtlil build/asic_evidence/memory_audit/memories.il

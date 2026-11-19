@@ -1,0 +1,202 @@
+{
+  "_comment": [
+    "F5/F7 memory inventory for the Home-Automation-SoC (RUN-0009).",
+    "Fields marked verified_by=elaboration are computed from",
+    "build/asic_evidence/memory_audit/{memory_cells.json,memories.il}, produced by",
+    "asic/synthesis/memory_audit.ys. Fields marked verified_by=rtl are read from",
+    "the RTL source by scripts/eda/audit_memory.js. Fields marked",
+    "verified_by=manual are human decisions and are NOT proven by a tool.",
+    "The checker fails when the measured design and this file disagree, so drift",
+    "in either direction is caught. Do not edit a number here to make a check",
+    "pass: edit the design or record the decision explicitly."
+  ],
+  "generated_utc": "2026-11-19T00:00:00Z",
+  "design_top": "has_soc",
+  "elaboration_script": "asic/synthesis/memory_audit.ys",
+  "decoded_totals": {
+    "addressable_bytes": 180224,
+    "decode_lut_bytes": 18,
+    "note": "16 KiB ROM + 32 KiB TCM + 128 KiB SRAM = 180224 B of addressable storage; the 18 B decode LUT is combinational, not addressable"
+  },
+  "implemented_totals": {
+    "array_bytes": 180242,
+    "register_storage_bytes": 136,
+    "note": "16 KiB ROM + 32 KiB TCM + 128 KiB SRAM + 18 B LUT = 180242 B; plus 128 B register file and 8 B PLIC priority"
+  },
+  "memories": [
+    {
+      "id": "MEM-ROM",
+      "instance": "rom_inst",
+      "module": "boot_rom (paramod of rtl/rtl_top/boot_rom.sv)",
+      "kind": "rom",
+      "rtl_source": "rtl/rtl_top/boot_rom.sv",
+      "rtl_params": { "ADDR_WIDTH": 14, "DATA_WIDTH": 32 },
+      "depth_words": 4096,
+      "width_bits": 32,
+      "capacity_bits": 131072,
+      "capacity_bytes": 16384,
+      "address_bits": 12,
+      "read_ports": 2,
+      "write_ports": 0,
+      "read_latency_cycles": 1,
+      "access_type": "2 read ports (instruction fetch, AXI4-Lite read), read-only",
+      "addr_base": "0x0000_0000",
+      "decoded_bytes": 16384,
+      "alignment": "4-byte words; address bits [1:0] ignored",
+      "reset_init": "initial block fills all words with 32'h0000_0013 (NOP), then optional $readmemh from MEM_FILE (default empty)",
+      "synthesis_representation": "$mem_v2, RD_PORTS=2, WR_PORTS=0, INIT constant 131072 bits",
+      "implementation_type": "inferred_rom",
+      "asic_status": "unresolved",
+      "verified_by": "elaboration",
+      "reconciliation": {
+        "array_vs_decoded": "match",
+        "detail": "16384 B array, 16384 B decoded (FR-MEM-003)",
+        "declared_status": "match"
+      }
+    },
+    {
+      "id": "MEM-TCM",
+      "instance": "tcm_inst",
+      "module": "sram (paramod, ADDR_WIDTH=15)",
+      "kind": "sram_tcm",
+      "rtl_source": "rtl/rtl_top/sram.sv",
+      "rtl_params": { "ADDR_WIDTH": 15, "DATA_WIDTH": 32 },
+      "depth_words": 8192,
+      "width_bits": 32,
+      "capacity_bits": 262144,
+      "capacity_bytes": 32768,
+      "address_bits": 13,
+      "read_ports": 2,
+      "write_ports": 1,
+      "write_lanes": 4,
+      "read_latency_cycles": 1,
+      "access_type": "2 read ports (AXI4-Lite read, instruction port), 1 write port with 4 byte-enable lanes",
+      "addr_base": "0x0001_0000",
+      "decoded_bytes": 32768,
+      "alignment": "4-byte words; address bits [1:0] ignored",
+      "reset_init": "no array reset; contents undefined at power-up unless MEM_FILE is given (default empty)",
+      "synthesis_representation": "$mem_v2, RD_PORTS=2, WR_PORTS=4 (byte lanes), INIT=x",
+      "implementation_type": "inferred_sram",
+      "asic_status": "unresolved",
+      "verified_by": "elaboration",
+      "reconciliation": {
+        "array_vs_decoded": "match",
+        "detail": "32768 B array, 32768 B decoded",
+        "declared_status": "match"
+      }
+    },
+    {
+      "id": "MEM-SRAM",
+      "instance": "sram_inst",
+      "module": "sram (paramod, ADDR_WIDTH=17)",
+      "kind": "sram",
+      "rtl_source": "rtl/rtl_top/sram.sv",
+      "rtl_params": { "ADDR_WIDTH": 17, "DATA_WIDTH": 32 },
+      "depth_words": 32768,
+      "width_bits": 32,
+      "capacity_bits": 1048576,
+      "capacity_bytes": 131072,
+      "address_bits": 15,
+      "read_ports": 2,
+      "write_ports": 1,
+      "write_lanes": 4,
+      "read_latency_cycles": 1,
+      "access_type": "2 read ports (AXI4-Lite read, instruction port), 1 write port with 4 byte-enable lanes",
+      "addr_base": "0x2000_0000",
+      "decoded_bytes": 131072,
+      "alignment": "4-byte words; address bits [1:0] ignored",
+      "reset_init": "no array reset; contents undefined at power-up unless MEM_FILE is given (default empty)",
+      "synthesis_representation": "$mem_v2, RD_PORTS=2, WR_PORTS=4 (byte lanes), INIT=x",
+      "implementation_type": "inferred_sram",
+      "asic_status": "unresolved",
+      "verified_by": "elaboration",
+      "reconciliation": {
+        "array_vs_decoded": "match",
+        "detail": "131072 B array, 131072 B decoded (FR-MEM-001)",
+        "declared_status": "match"
+      }
+    },
+    {
+      "id": "MEM-DECODE-LUT",
+      "instance": "$auto$proc_rom.cc:155:do_switch$100383",
+      "module": "has_soc",
+      "kind": "decode_lut",
+      "rtl_source": "rtl/rtl_top/has_soc.sv:530 (APB slot case on paddr[19:12])",
+      "rtl_params": { "case_width": 9, "entries": 9 },
+      "depth_words": 16,
+      "width_bits": 9,
+      "capacity_bits": 144,
+      "capacity_bytes": 18,
+      "address_bits": 4,
+      "read_ports": 1,
+      "write_ports": 0,
+      "read_latency_cycles": 0,
+      "access_type": "combinational lookup of the APB one-hot select (not addressable storage)",
+      "addr_base": null,
+      "decoded_bytes": null,
+      "alignment": "n/a",
+      "reset_init": "constant INIT (one-hot values for slots 0..8)",
+      "synthesis_representation": "$mem_v2 inferred from a case statement (proc_rom), RD_PORTS=1, WR_PORTS=0",
+      "implementation_type": "decode_lut",
+      "asic_status": "unresolved",
+      "verified_by": "elaboration",
+      "reconciliation": {
+        "array_vs_decoded": "n/a",
+        "detail": "not addressable memory; listed so the 4th inferred memory is not unexplained",
+        "declared_status": "n/a"
+      }
+    }
+  ],
+  "register_storage": [
+    {
+      "id": "REG-RF",
+      "instance": "core/rf",
+      "module": "riscv_core",
+      "kind": "register_file",
+      "rtl_source": "rtl/rtl_top/riscv_core.sv:66,129,130,596,613,658",
+      "depth_words": 32,
+      "width_bits": 32,
+      "capacity_bits": 1024,
+      "capacity_bytes": 128,
+      "access_type": "2 asynchronous read ports (rs1, rs2), 1 synchronous write port",
+      "reset_init": "every register cleared by the synchronous reset loop",
+      "synthesis_representation": "list of registers ($adff, one per 32-bit register)",
+      "implementation_type": "register_based",
+      "asic_status": "synthesizable",
+      "verified_by": "elaboration",
+      "evidence": "yosys log: 'Replacing memory \\rf with list of registers. See rtl/rtl_top/riscv_core.sv:596'"
+    },
+    {
+      "id": "REG-PLIC-PRIO",
+      "instance": "intc_axi/plic/prio",
+      "module": "plic",
+      "kind": "register_array",
+      "rtl_source": "rtl/rtl_peripherals/plic.sv:35",
+      "depth_words": 8,
+      "width_bits": 8,
+      "capacity_bits": 64,
+      "capacity_bytes": 8,
+      "access_type": "register read/write through the interrupt-controller aperture",
+      "reset_init": "cleared by reset",
+      "synthesis_representation": "list of registers",
+      "implementation_type": "register_based",
+      "asic_status": "synthesizable",
+      "verified_by": "elaboration",
+      "evidence": "yosys log: 'Replacing memory \\prio with list of registers. See rtl/rtl_peripherals/plic.sv:101'; NUM_SOURCES defaults to 8"
+    }
+  ],
+  "absent_peripheral_memory": [
+    {
+      "id": "ABSENT-UART-FIFO",
+      "claim": "the UART has no FIFO; FCR reads 0x01 and one byte is held",
+      "rtl_source": "rtl/rtl_peripherals/uart.sv:10,20,247",
+      "verified_by": "rtl"
+    },
+    {
+      "id": "ABSENT-SPI-IPC-FIFO",
+      "claim": "SPI, I2C, I2S and QSPI hold shift registers only; no arrays or FIFOs",
+      "rtl_source": "grep of rtl/rtl_peripherals for array declarations (only plic prio)",
+      "verified_by": "rtl"
+    }
+  ]
+}

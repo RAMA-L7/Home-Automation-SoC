@@ -297,11 +297,13 @@ module has_soc #(
   //--------------------------------------------------------------------------
   // Boot ROM (slave 0 data port + instruction port)
   //--------------------------------------------------------------------------
-  boot_rom #(.ADDR_WIDTH(16), .MEM_FILE(BOOT_ROM_FILE)) rom_inst (
+  // ADDR_WIDTH 14 == 16 KB, exactly the BOOT_ROM aperture decoded above
+  // (FR-MEM-003).  It was 16 (64 KB): 48 KB of the array was unreachable (F5).
+  boot_rom #(.ADDR_WIDTH(14), .MEM_FILE(BOOT_ROM_FILE)) rom_inst (
     .clk      (core_clk),
     .reset_n  (rst_sys_n),
     .req      (rom_i_req),
-    .addr     (instr_addr[15:0]),
+    .addr     (instr_addr[13:0]),
     .gnt      (rom_i_gnt),
     .rdata    (rom_i_rdata),
     .rvalid   (rom_i_rvalid),
@@ -344,17 +346,19 @@ module has_soc #(
   //--------------------------------------------------------------------------
   // SRAM (slave 2)
   //--------------------------------------------------------------------------
-  sram #(.ADDR_WIDTH(18), .MEM_FILE(SRAM_INIT_FILE)) sram_inst (
+  // ADDR_WIDTH 17 == 128 KB, exactly the SRAM aperture decoded above
+  // (FR-MEM-001).  It was 18 (256 KB): 128 KB of the array was unreachable (F5).
+  sram #(.ADDR_WIDTH(17), .MEM_FILE(SRAM_INIT_FILE)) sram_inst (
     .clk      (core_clk),
     .reset_n  (rst_sys_n),
-    .awvalid  (s_awvalid[2]), .awaddr(s_awaddr[2][17:0]), .awready(s_awready[2]),
+    .awvalid  (s_awvalid[2]), .awaddr(s_awaddr[2][16:0]), .awready(s_awready[2]),
     .wvalid   (s_wvalid[2]),  .wdata (s_wdata[2]),  .wready(s_wready[2]),
     .wstrb    (s_wstrb[2]),
     .bvalid   (s_bvalid[2]),  .bready(s_bready[2]), .bresp(s_bresp[2]),
-    .arvalid  (s_arvalid[2]), .araddr(s_araddr[2][17:0]), .arready(s_arready[2]),
+    .arvalid  (s_arvalid[2]), .araddr(s_araddr[2][16:0]), .arready(s_arready[2]),
     .rvalid   (s_rvalid[2]),  .rdata (s_rdata[2]),  .rresp(s_rresp[2]),
     .rready   (s_rready[2]),
-    .i_req    (sram_i_req),   .i_addr(instr_addr[17:0]),
+    .i_req    (sram_i_req),   .i_addr(instr_addr[16:0]),
     .i_gnt    (sram_i_gnt),   .i_rdata(sram_i_rdata), .i_rvalid(sram_i_rvalid)
   );
 

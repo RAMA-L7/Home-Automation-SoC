@@ -1,0 +1,56 @@
+# Focused equivalence for the $pmux techmap rule.
+#
+#   gold = the probe's $pmux cell rewritten to $mux cells by Yosys `pmuxtree`
+#          (the tool's own definition of the cell, not ours)
+#   gate = the probe after `techmap -map sky130_map.v`, with the mux2_1 cells
+#          flattened to their behavioural model
+#
+# Equivalence is per module, so a mismatch in one probe cannot be averaged away.
+# Run from the repository root: yosys -s asic/synthesis/techmap/equiv_pmux.ys
+#
+# Order matters: the cell model is read AFTER techmap, otherwise the map file
+# also expands the model's own $not/$and/$or cells and the gate side is left
+# with undefined sky130 cells.
+
+read_rtlil asic/synthesis/techmap/pmux_probe.il
+techmap -map build/asic_evidence/sky130_map.v
+opt -fast
+read_verilog asic/synthesis/techmap/pmux_cell_model.v
+flatten pmux_s1_w8 pmux_s3_w8 pmux_s1_w1
+opt -fast
+rename pmux_s1_w8 gate_s1_w8
+rename pmux_s3_w8 gate_s3_w8
+rename pmux_s1_w1 gate_s1_w1
+design -stash gate
+
+read_rtlil asic/synthesis/techmap/pmux_probe.il
+pmuxtree
+opt -fast
+rename pmux_s1_w8 gold_s1_w8
+rename pmux_s3_w8 gold_s3_w8
+rename pmux_s1_w1 gold_s1_w1
+design -stash gold
+
+# ---- WIDTH 8, S_WIDTH 1 (the case that was broken) ------------------------
+design -copy-from gate -as gate_s1_w8 gate_s1_w8
+design -copy-from gold -as gold_s1_w8 gold_s1_w8
+equiv_make gate_s1_w8 gold_s1_w8 equiv_s1_w8
+hierarchy -top equiv_s1_w8
+equiv_simple
+equiv_status -assert
+
+# ---- WIDTH 8, S_WIDTH 3: measured, deliberately not asserted -------------
+# Measured on 2026-11-18: the mapper chain and Yosys `pmuxtree` disagree when
+# more than one select bit is set, because they pick different priorities. The
+# $pmux contract is one-hot, so both are legal and neither is the reference off
+# contract. Asserting it here would fail for a reason that is not a defect.
+# One-hot behaviour of this probe is covered exhaustively by tb_pmux_map.v
+# (every select value with all 256 values of A and B).
+
+# ---- WIDTH 1, S_WIDTH 1 ---------------------------------------------------
+design -copy-from gate -as gate_s1_w1 gate_s1_w1
+design -copy-from gold -as gold_s1_w1 gold_s1_w1
+equiv_make gate_s1_w1 gold_s1_w1 equiv_s1_w1
+hierarchy -top equiv_s1_w1
+equiv_simple
+equiv_status -assert
