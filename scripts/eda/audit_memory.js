@@ -233,8 +233,8 @@ function validate({ il, stat, map, ic, inv }) {
 // that had nothing to do with the checker, and made the design stage fail on a
 // directory that did not exist. Elaborate on demand rather than depending on a
 // leftover run, and create the output directory the .ys writes into.
-function ensureElaboration() {
-  if (fs.existsSync(P.il) && fs.existsSync(P.stat)) return { status: 0, note: 'artifacts already present' };
+function ensureElaboration(force) {
+  if (!force && fs.existsSync(P.il) && fs.existsSync(P.stat)) return { status: 0, note: 'artifacts already present' };
   fs.mkdirSync(path.dirname(P.il), { recursive: true });
   const r = require('child_process').spawnSync(
     'yosys', ['-s', 'asic/synthesis/memory_audit.ys'],
@@ -282,8 +282,21 @@ function report(title, r) {
   return 0;
 }
 
+// `--elaborate` is the documented way to run the audit from a clean checkout:
+// this Yosys build has no `file mkdir`, so the .ys cannot create its own output
+// directory and fails with "Can't create file" when build/ does not exist.
+if (process.argv.includes('--elaborate')) {
+  const el = ensureElaboration(true);
+  console.log(`$ yosys -s asic/synthesis/memory_audit.ys -> ${el.note}`);
+  if (el.status !== 0) {
+    console.log(`FAIL  elaboration did not produce the audit inputs: ${el.note}`);
+    console.log('MEMORY_AUDIT: BLOCKED');
+    process.exit(2);
+  }
+}
+
 if (process.argv.includes('--self-test')) {
-  const el = ensureElaboration();
+  const el = ensureElaboration(false);
   if (el.status !== 0) {
     console.log(`FAIL  could not elaborate the fixture baseline: ${el.note}`);
     console.log('MEMORY_AUDIT: BLOCKED');

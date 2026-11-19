@@ -527,8 +527,7 @@ node scripts/verify.js                            # the gate (exit 2 at present)
 node scripts/verify.js --only=structural-design,memory-design
 node scripts/eda/check_structure.js --self-test   # 16/16 checker controls
 node scripts/eda/audit_memory.js --self-test      # 7/7 drift controls
-yosys -s asic/synthesis/memory_audit.ys           # elaboration for the inventory
-node scripts/eda/audit_memory.js                  # expect BLOCKED, exit 2 (F7)
+node scripts/eda/audit_memory.js --elaborate      # elaborate + audit; expect BLOCKED, exit 2 (F7)
 node scripts/eda/run_i2c_timing.js                # 5/5, incl. 3 failing controls
 node scripts/eda/run_pmux_map_test.js             # 7/7, 393,608 vectors
 node scripts/eda/run_dfrbp_model_test.js          # 11/11 + failing pre-fix control

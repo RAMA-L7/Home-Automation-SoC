@@ -1,6 +1,12 @@
 # Memory architecture audit — elaborated inventory (F5/F7, RUN-0009).
 #
-#   yosys -s asic/synthesis/memory_audit.ys
+#   node scripts/eda/audit_memory.js --elaborate
+#
+# Run it through that wrapper, not directly: this script writes into
+# build/asic_evidence/memory_audit/, and the Yosys build in use has no
+# `file mkdir`, so a direct run on a clean checkout fails with
+# "ERROR: Can't create file ...". The wrapper creates the directory, runs this
+# script and then the checker.
 #
 # Reads the same file list as fullsoc_map.ys, elaborates `has_soc`, lowers
 # processes and collects memory cells, then writes the inventory BEFORE any
