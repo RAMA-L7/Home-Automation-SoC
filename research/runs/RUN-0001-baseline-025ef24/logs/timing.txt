@@ -1,0 +1,3 @@
+start 2026-11-18T12:18:52Z sha=025ef24f2f4444cac4c38dc62b659fac724770f4
+regression exit=0 at 2026-11-18T12:23:08Z
+verify exit=0 at 2026-11-18T12:28:02Z

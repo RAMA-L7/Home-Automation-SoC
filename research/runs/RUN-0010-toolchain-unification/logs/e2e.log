@@ -1,0 +1,28 @@
+toolchain: D:\tools\xpack-riscv-none-elf-gcc-12.2.0-2\bin\riscv-none-elf-gcc.exe [installed]
+  riscv-none-elf-gcc.exe (xPack GNU RISC-V Embedded GCC x86_64) 12.2.0
+iverilog: OK
+vvp: OK
+riscv-none-elf-gcc: OK (D:\tools\xpack-riscv-none-elf-gcc-12.2.0-2\bin\riscv-none-elf-gcc.exe, installed)
+build: PASS
+genmem: PASS
+image sha256:
+  811544a84bf929fdffc40fce1489a62eb7846b8b82550647da195d3682be0d9c  build/fw/firmware.elf
+  d948ee8ff94d0c87e5339afd04368f0d44eb4e9aaf52fb02005dc1b82926223a  build/fw/firmware.bin
+  c1fbc10cf3f035d123d9f5f7e86e4e47eba8f307dff54d36392585c015f1eb6f  build/fw/rom.hex
+  625cda23b1d18b90a790a18d308869c628a2bc006690340f216ed866d42c18da  build/fw/tcm.hex
+positive: PASS
+negative (corruption sensitivity): PASS - observed RESULT: FAIL
+
+--- e2e summary ---
+PASS   tools
+PASS   build
+PASS   artifacts
+PASS   genmem
+PASS   provenance
+PASS   positive
+PASS   negative (corruption sensitivity)
+
+7 / 7 steps passed
+
+END-TO-END DEMONSTRATION: PASS
+exit=0

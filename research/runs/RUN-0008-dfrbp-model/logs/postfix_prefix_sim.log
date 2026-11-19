@@ -1,0 +1,8 @@
+$ vvp D:\Home-Automation-SoC\build\asic_evidence\dfrbp_model\sim_postfix_prefix.vvp
+
+FAIL rising edge captures D=1 at t=2000: q1=0 q2=0 qn1=1 qn2=1, expected q=1 qn=0
+FAIL ling edge must not capture (D=0 ignored) at t=4000: q1=0 q2=0 qn1=1 qn2=1, expected q=1 qn=0
+FAIL second falling edge must not capture at t=7000: q1=0 q2=0 qn1=1 qn2=1, expected q=1 qn=0
+DFRBP_MODEL: FAIL checks=11 fails=3
+FATAL: D:\Home-Automation-SoC\asic\synthesis\techmap\dfrbp_model\tb_dfrbp_model.v:119: dfrbp behavioural model disagrees with the liberty definition
+       Time: 8100  Scope: tb_dfrbp_model

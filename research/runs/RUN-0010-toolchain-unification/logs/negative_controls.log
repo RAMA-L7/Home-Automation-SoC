@@ -1,0 +1,43 @@
+
+### control 0: default resolution (positive)
+$ node scripts/fw_build/toolchain.js --self-check
+exit=0
+
+### control 1: missing toolchain directory
+$ RISCV_TOOLCHAIN_BIN=D:/no-such-toolchain node scripts/fw_build/toolchain.js
+BLOCKED: RISCV_TOOLCHAIN_BIN="D:/no-such-toolchain" contains no usable RISC-V toolchain: "D:\no-such-toolchain\riscv-none-elf-gcc -dumpmachine" did not run (ENOENT); "D:\no-such-toolchain\riscv32-unknown-elf-gcc -dumpmachine" did not run (ENOENT); "D:\no-such-toolchain\riscv64-unknown-elf-gcc -dumpmachine" did not run (ENOENT); "D:\no-such-toolchain\riscv32-elf-gcc -dumpmachine" did not run (ENOENT)
+exit=2
+
+### control 2: bogus RISCV_GCC_PREFIX
+$ RISCV_GCC_PREFIX=bogus-riscv- node scripts/fw_build/toolchain.js
+BLOCKED: RISCV_GCC_PREFIX="bogus-riscv-" is set but does not provide a usable RISC-V compiler: "bogus-riscv-gcc -dumpmachine" did not run (ENOENT). It is not ignored, because building with a different compiler than requested would be a silent configuration change.
+exit=2
+
+### control 3: conflicting prefix and bin directory
+$ RISCV_GCC_PREFIX=riscv32-unknown-elf- RISCV_TOOLCHAIN_BIN=D:/tools/xpack-riscv-none-elf-gcc-12.2.0-2/bin node scripts/fw_build/toolchain.js
+BLOCKED: conflicting configuration: RISCV_GCC_PREFIX="riscv32-unknown-elf-" and RISCV_TOOLCHAIN_BIN="D:/tools/xpack-riscv-none-elf-gcc-12.2.0-2/bin" do not agree — "D:\tools\xpack-riscv-none-elf-gcc-12.2.0-2\bin\riscv32-unknown-elf-gcc -dumpmachine" did not run (ENOENT). Unset one, or point both at the same toolchain.
+exit=2
+
+### control 4: build_fw.js with bogus prefix
+$ RISCV_GCC_PREFIX=bogus-riscv- node scripts/fw_build/build_fw.js
+BLOCKED: RISCV_GCC_PREFIX="bogus-riscv-" is set but does not provide a usable RISC-V compiler: "bogus-riscv-gcc -dumpmachine" did not run (ENOENT). It is not ignored, because building with a different compiler than requested would be a silent configuration change.
+  Set RISCV_GCC_PREFIX (e.g. riscv-none-elf-) or RISCV_TOOLCHAIN_BIN.
+exit=2
+
+### control 5: run_e2e.js with missing toolchain
+$ RISCV_TOOLCHAIN_BIN=D:/no-such-toolchain node scripts/firmware/run_e2e.js
+BLOCKED: RISCV_TOOLCHAIN_BIN="D:/no-such-toolchain" contains no usable RISC-V toolchain: "D:\no-such-toolchain\riscv-none-elf-gcc -dumpmachine" did not run (ENOENT); "D:\no-such-toolchain\riscv32-unknown-elf-gcc -dumpmachine" did not run (ENOENT); "D:\no-such-toolchain\riscv64-unknown-elf-gcc -dumpmachine" did not run (ENOENT); "D:\no-such-toolchain\riscv32-elf-gcc -dumpmachine" did not run (ENOENT)
+exit=2
+
+### control 6: verify.js tools stage with bogus prefix
+$ RISCV_GCC_PREFIX=bogus-riscv- node scripts/verify.js --only=tools
+Home-Automation-SoC — unified verification gate (only: tools)
+
+BLOCKED  tools: required tool missing: RISC-V toolchain
+
+No further task can be trusted without the required tools.
+exit=2
+
+### control 7: explicit bin override (positive)
+$ RISCV_TOOLCHAIN_BIN=D:/tools/xpack-riscv-none-elf-gcc-12.2.0-2/bin node scripts/fw_build/toolchain.js --self-check
+exit=0

@@ -1,0 +1,12 @@
+PASS     tools                    exit 0
+PASS     verible-syntax           marker "SYNTAX_OK"
+PASS     verible-lint             marker "LINT_OK"
+PASS     regression               exit 0
+PASS     formal                   exit 0
+PASS     cdc-inventory            marker "structural checks: all rows match the RTL"
+PASS     protocol-tests           exit 0
+PASS     structural-check         marker "STRUCTURAL_CHECK: SELF-TEST PASS"
+PASS     mermaid                  marker "check_mermaid: OK"
+PASS     docs-sync                marker "docs sync is idempotent"
+
+0 failed, 0 blocked

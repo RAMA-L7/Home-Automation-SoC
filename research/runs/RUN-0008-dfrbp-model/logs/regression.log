@@ -1,0 +1,50 @@
+
+Home-Automation-SoC regression — Icarus Verilog
+revision: 025ef24
+date    : 2026-11-18T14:11:41.486Z
+iverilog: Icarus Verilog version 14.0 (devel) (s20260301-500-g2e81fcccb-dirty)
+node    : v26.7.0
+
+firmware image provenance (rebuilt from source this run):
+  OK   boot.S -> build/fw/boot.hex
+  OK   C firmware -> build/fw/firmware.elf
+  OK   firmware.elf -> build/fw/rom.hex + tcm.hex
+  OK   boot_jump.S -> build/sim/apb_jump.hex (TLCM redirect)
+  OK   apb_integrated.S -> build/sim/apb_integrated.hex
+  sha256 d9a6be2a3e06484575501042786f90af4978658fad076b802f36053796aeb096  build/fw/boot.hex
+  sha256 cb0bf5ef399a4acef17231d9eb092844e962b33bf9f45b482b4805f28fad022b  build/fw/firmware.elf
+  sha256 d948ee8ff94d0c87e5339afd04368f0d44eb4e9aaf52fb02005dc1b82926223a  build/fw/firmware.bin
+  sha256 c1fbc10cf3f035d123d9f5f7e86e4e47eba8f307dff54d36392585c015f1eb6f  build/fw/rom.hex
+  sha256 625cda23b1d18b90a790a18d308869c628a2bc006690340f216ed866d42c18da  build/fw/tcm.hex
+  sha256 8bcb3384c76c4175c113a9bfaa2adb8a131603df0169f6281986397add160b9b  build/sim/apb_jump.hex
+  sha256 66a4cf1564a339c7adb9d019836ed6176bcb899a05140ad14ae5ef933467b1f0  build/sim/apb_integrated.hex
+
+PASS       isa (directed RV32IM + traps)
+PASS       boot (full SoC)
+PASS       uart (pin level)
+PASS       reset_ctrl (watchdog reset)
+PASS       power_mgr sleep/wake
+PASS       clint
+PASS       plic
+PASS       gpio
+PASS       spi
+PASS       i2c
+PASS       i2c transaction (write/read/nack)
+PASS       pwm
+PASS       timer
+PASS       watchdog
+PASS       i2s
+PASS       sram
+PASS       debug_jtag
+PASS       firmware (C demo)
+PASS       plic protocol (sync + claim)
+PASS       spi device model (mode 0)
+PASS       jtag protocol (TAP subset)
+PASS       watchdog audit (reload)
+PASS       sram audit (strobes/RAW)
+PASS       plic bounds (IDs 1-8)
+PASS       cpu csr arch (imm/illegal/minstret)
+PASS       apb addressing (integrated bus)
+PASS       watchdog reset recovery
+
+PASS 27 / 27

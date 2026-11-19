@@ -1,0 +1,8 @@
+{
+  "run_id": "RUN-0005-pmux-prefix-control",
+  "mux2_1_instances": { "pmux_s1_w8": 1, "pmux_s3_w8": 24, "pmux_s1_w1": 1 },
+  "expected_mux2_1_instances": { "pmux_s1_w8": 8, "pmux_s3_w8": 24, "pmux_s1_w1": 1 },
+  "simulation": { "vectors": 393608, "mismatches": 130048, "exit": 1 },
+  "yosys_check_problems": 0,
+  "note": "check reports 0 problems here: port-width truncation is legal in Yosys, which is why this defect needed a value-level test"
+}

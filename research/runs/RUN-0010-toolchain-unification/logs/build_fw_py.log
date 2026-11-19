@@ -1,0 +1,20 @@
+=== Home-Automation-SoC Firmware Build ===
+toolchain: D:\tools\xpack-riscv-none-elf-gcc-12.2.0-2\bin\riscv-none-elf-gcc.exe [installed]
+  riscv-none-elf-gcc.exe (xPack GNU RISC-V Embedded GCC x86_64) 12.2.0 (target riscv-none-elf)
+Compiling firmware...
+  D:\tools\xpack-riscv-none-elf-gcc-12.2.0-2\bin\riscv-none-elf-gcc.exe -march=rv32im -mabi=ilp32 -nostdlib -nostartfiles -ffreestanding -Wall -Wextra -O2 -g -TD:\Home-Automation-SoC\firmware\bare_metal\linker.ld -oD:\Home-Automation-SoC\build\fw\firmware.elf D:\Home-Automation-SoC\firmware\bare_metal\startup.S D:\Home-Automation-SoC\firmware\bare_metal\main.c D:\Home-Automation-SoC\firmware\bare_metal\drivers.c D:\Home-Automation-SoC\firmware\bare_metal\boot.c D:\Home-Automation-SoC\firmware\bare_metal\host_comm.c D:\Home-Automation-SoC\firmware\bare_metal\ota.c
+D:\Home-Automation-SoC\firmware\bare_metal\main.c:76:13: warning: 'uart_getc' defined but not used [-Wunused-function]
+   76 | static char uart_getc(void)
+      |             ^~~~~~~~~
+
+Generating binary...
+
+Generating S-record...
+
+Firmware size:
+   text	   data	    bss	    dec	    hex	filename
+   3684	      0	      0	   3684	    e64	D:\Home-Automation-SoC\build\fw\firmware.elf
+
+
+Build complete: D:\Home-Automation-SoC\build\fw\firmware.bin
+exit=0

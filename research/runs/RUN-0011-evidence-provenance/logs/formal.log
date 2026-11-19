@@ -1,0 +1,15 @@
+
+Home-Automation-SoC formal verification — SymbiYosys
+revision: 025ef24
+date    : 2026-11-18T15:53:24.622Z
+sby     : SBY v0.69
+yosys   : Yosys 0.69+154 (git sha1 30d62572e-dirty, Release, GNU /usr/bin/x86_64-w64-mingw32-g++ 15.2.1)
+
+PASS       watchdog        bounded depth 96 (smtbmc boolector) pet suppresses timeout; armed timeout raises reset
+PASS       reset_ctrl      unbounded (abc pdr)                 reset pulse bounded, prompt, identical on both pins
+PASS       reset_ctrl_coverbounded depth 40 (smtbmc boolector) reset invariants are non-vacuous (covers reachable)
+PASS       reset_ctrl_seq  bounded depth 60 (smtbmc boolector) reset pulse width and phase are exact (directed)
+PASS       cdc_power_mgr   bounded depth 30 (smtbmc boolector) async wake is synchronized and never lost
+PASS       plic_regs       bounded depth 52 (smtbmc boolector) PLIC register semantics, claim and arbitration (directed)
+
+PASS 6 / 6

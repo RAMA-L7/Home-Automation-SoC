@@ -1,0 +1,24 @@
+{
+  "run_id": "RUN-0001-baseline-025ef24",
+  "head": "025ef24f2f4444cac4c38dc62b659fac724770f4",
+  "branch": "main",
+  "remote": "https://github.com/RAMA-L7/Home-Automation-SoC.git",
+  "sync": "0 0 versus origin/main (git rev-list --left-right --count)",
+  "worktree_dirty_at_start": false,
+  "modified_tracked_at_start": [],
+  "untracked_count_at_start": 38,
+  "observed_at_utc": "2026-11-18T12:17:36Z",
+  "manifest_written_at_utc": "2026-11-18T12:29:40Z",
+  "provenance_note": "This manifest is written after the run. Between the run and the manifest, E1 (test-first I2C STOP work) modified sim/sim_top/tb_i2c_xfer.v and rtl/rtl_peripherals/i2c_ctrl.sv, and the new research/ tree added one untracked entry. Those changes are NOT part of this run: at 12:17:36Z `git status --porcelain --untracked-files=no` was empty and HEAD was 025ef24, which is the state this run's results belong to. The post-run snapshot in the session log (dirty=true, 39 untracked) is recorded here as a correction, not hidden.",
+  "tools": {
+    "icarus": "14.0 (devel) s20260301-500-g2e81fcccb-dirty",
+    "yosys": "0.69+154 (git sha1 30d62572e-dirty)",
+    "sby": "0.69",
+    "verilator_bin": "5.053 devel v5.052-119-g014c9820d (mod)",
+    "verible": "v0.0-4298-g085eef05",
+    "riscv_gcc": "xPack GNU RISC-V Embedded GCC 12.2.0",
+    "node": "v26.7.0",
+    "python": "3.10.11 (D:/tools/venv/Scripts/python.exe)",
+    "git": "2.54.0.windows.1"
+  }
+}

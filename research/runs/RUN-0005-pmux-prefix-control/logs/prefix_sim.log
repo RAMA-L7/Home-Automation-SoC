@@ -1,0 +1,16 @@
+$ vvp D:\Home-Automation-SoC\build\asic_evidence\pmux_map_test\sim_prefix.vvp
+
+FAIL s1_w8: a=00 b=02 s=1 mapped=00 golden=02
+FAIL s1_w8: a=00 b=03 s=1 mapped=01 golden=03
+FAIL s1_w8: a=00 b=04 s=1 mapped=00 golden=04
+FAIL s1_w8: a=00 b=05 s=1 mapped=01 golden=05
+FAIL s1_w8: a=00 b=06 s=1 mapped=00 golden=06
+FAIL s1_w8: a=00 b=07 s=1 mapped=01 golden=07
+FAIL s1_w8: a=00 b=08 s=1 mapped=00 golden=08
+FAIL s1_w8: a=00 b=09 s=1 mapped=01 golden=09
+FAIL s1_w8: a=00 b=0a s=1 mapped=00 golden=0a
+FAIL s1_w8: a=00 b=0b s=1 mapped=01 golden=0b
+PMUX_MAP_TEST: 393608 vectors checked, 130048 mismatches
+PMUX_MAP_TEST: FAIL
+FATAL: D:\Home-Automation-SoC\asic\synthesis\techmap\tb_pmux_map.v:158: mapped $pmux does not match the reference
+       Time: 393608000  Scope: tb_pmux_map

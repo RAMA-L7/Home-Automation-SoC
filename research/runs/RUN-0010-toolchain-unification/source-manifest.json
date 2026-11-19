@@ -1,0 +1,16 @@
+{
+  "run_id": "RUN-0010-toolchain-unification",
+  "source_sha": "025ef24f2f4444cac4c38dc62b659fac724770f4",
+  "algorithm": "sha256",
+  "files": {
+    "scripts/fw_build/toolchain.js": "15dd644f0ec9aeb5ae80a93de42d9130100a1b2be370f00019f2d52057685732",
+    "scripts/fw_build/toolchain_test.js": "c9a60e5db69fa50f5fc06c18d57afaec1c868d7f6867ac52defabdb2449f34a4",
+    "scripts/fw_build/build_fw.js": "e464ced249b141336a9031133b406e963a25b9178e3931f7b1397216567fa9b3",
+    "scripts/fw_build/build_fw.py": "b7bd4bb9918a2cbfd4a99273a7bea34a80e79e045baee7483d45bb85b84bd5e4",
+    "scripts/fw_build/build_fw.bat": "b9690326e80bd7331006bc2e09c4aefef0bd86db2b4dffa9b37073b294e55cf0",
+    "scripts/firmware/run_e2e.js": "e783357b0a3120f0c5d870f8973d4fa696391183fecc29b0351d94a8721abd20",
+    "scripts/verify.js": "c0162b677676ded3b2f82a11760b46600001e5992098777c16532e1595b0428f",
+    "scripts/eda/run_regression.js": "6ffabf394c8d8a27fe02b02d3316e366f1a11ac47d80e24a95a7041a1fe4c0be"
+  },
+  "note": "build_fw.js already used findToolchain(); its resolution path and printed provenance were unified with the others. build_fw.py, build_fw.bat and run_e2e.js had their own or hardcoded discovery and now delegate."
+}

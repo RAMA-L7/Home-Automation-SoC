@@ -1,0 +1,40 @@
+{
+  "regression": { "tests_passed": 27, "tests_total": 27, "exit": 0 },
+  "regression_without_oss_env": { "tests_passed": 0, "tests_total": 27, "exit": 1, "log": "logs/regression_no_oss_env.log" },
+  "unified_gate": { "passed": 10, "failed": 0, "blocked": 0, "exit": 0 },
+  "firmware_build": { "exit": 0, "text_bytes": 3684 },
+  "genmem": { "exit": 0, "rom_words": 26, "tcm_words": 895 },
+  "e2e": { "steps_passed": 7, "steps_total": 7, "negative_control": "corruption sensitivity detected", "exit": 0 },
+  "formal": { "tasks_passed": 6, "tasks_total": 6, "exit": 0 },
+  "verilator_lint": { "exit": 1, "errors": 0, "warnings": 123, "files": 24, "warning_classes": { "UNUSEDSIGNAL": 62, "UNUSEDPARAM": 22, "PINCONNECTEMPTY": 22, "WIDTHEXPAND": 7, "WIDTHTRUNC": 5, "UNSIGNED": 3, "IMPORTSTAR": 1, "DECLFILENAME": 1 } },
+  "verilator_cpp_build": { "exit": 0, "prefix_control_exit": 1 },
+  "verilator_boot": { "subtests_passed": 7, "subtests_total": 7, "exit": 0, "simulated_ms": 4, "wall_seconds": 0.233, "verilator_reported_speed_ms_per_s": 17.201 },
+  "synthesis_riscv_core": { "cells": 44323, "generic_cells_pre_abc": true, "exit": 0 },
+  "structural_fullsoc": { "exit": 2, "verdict": "BLOCKED", "unimplemented_memories": 4 },
+  "memory_audit": { "exit": 2, "verdict": "BLOCKED", "array_bytes": 360466, "addressable_bytes": 180224 },
+  "pmux_map_test": { "checks_passed": 7, "checks_total": 7, "vectors_checked": 393608, "mismatches": 0, "exit": 0 },
+  "dfrbp_model_test": { "checks_passed": 11, "checks_total": 11, "negative_control_exit": 1, "exit": 0 },
+  "arith_provenance": { "checks": 1028, "exit": 0, "corrupt_control_exit": 1 },
+  "source_versions": {
+    "iverilog": "14.0 (devel) s20260301-500-g2e81fcccb-dirty",
+    "yosys": "0.69+154 (sha1 30d62572e-dirty)",
+    "sby": "v0.69",
+    "verilator": "5.053 devel v5.052-119-g014c9820d (mod)",
+    "gcc": "xPack GNU RISC-V Embedded GCC 12.2.0",
+    "gxx": "MinGW-W64 16.1.0",
+    "make": "GNU Make 4.4.1",
+    "node": "v26.7.0",
+    "python": "3.10.11",
+    "git": "2.54.0.windows.1"
+  },
+  "artifact_hashes": {
+    "firmware.elf": "e0d791b3328824da",
+    "firmware.bin": "d948ee8ff94d0c87e5339afd04368f0d44eb4e9aaf52fb02005dc1b82926223a",
+    "rom.hex": "c1fbc10cf3f035d123d9f5f7e86e4e47eba8f307dff54d36392585c015f1eb6f",
+    "tcm.hex": "625cda23b1d18b90a790a18d308869c628a2bc006690340f216ed866d42c18da",
+    "Vtb_boot.exe": "e25ee3f61ce468b237dab213e41125c5c37bd16626bbca00e88b96035bc92dc2",
+    "arith_test.v": "4085e764051d3b7ec7fff3377a3da828282ab42328f7eff1ac0f09bca75a07ef",
+    "tb_equiv.v": "55e7bd5b2393f09329ce052b98d3cb6fdb85260808f558280a15e4c41e32ebe7",
+    "provenance_arith_mapped.v": "1cf2f89bbcc4e976 (prefix)"
+  }
+}

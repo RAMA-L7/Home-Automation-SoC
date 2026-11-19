@@ -1,0 +1,2 @@
+$ iverilog -g2012 -DUSE_MAPPED -DCORRUPT_MAP -o build/asic_evidence/provenance_equiv_bad.vvp <same sources>
+exit 0 (no diagnostics)

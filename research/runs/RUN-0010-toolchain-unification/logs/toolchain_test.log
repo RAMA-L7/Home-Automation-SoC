@@ -1,0 +1,13 @@
+PASS  default resolution — D:\tools\xpack-riscv-none-elf-gcc-12.2.0-2\bin\riscv-none-elf-gcc.exe [installed] riscv-none-elf-gcc.exe (xPack GNU RISC-V Embedded GCC x86_64) 12.2.0
+PASS  missing bin directory fails with exit 2 — exit 2
+PASS  bogus RISCV_GCC_PREFIX is an error, not a fallback — exit 2
+PASS  conflicting prefix/bin configuration fails with exit 2 — exit 2
+PASS  broken compiler executable fails with exit 2 — exit 2
+PASS  non-RISC-V targets are rejected — x86_64/arm rejected, riscv-none-elf and riscv32 accepted
+PASS  repeated resolution is identical — same gcc path
+PASS  PATH resolution selects the same compiler — source=PATH, D:\tools\xpack-riscv-none-elf-gcc-12.2.0-2\bin\riscv-none-elf-gcc.exe
+PASS  build_fw.js resolves the same gcc path — D:\tools\xpack-riscv-none-elf-gcc-12.2.0-2\bin\riscv-none-elf-gcc.exe
+PASS  build_fw.py resolves the same gcc path — D:\tools\xpack-riscv-none-elf-gcc-12.2.0-2\bin\riscv-none-elf-gcc.exe
+
+TOOLCHAIN_TEST: 10/10 controls passed
+exit=0

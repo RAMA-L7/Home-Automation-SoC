@@ -1,0 +1,19 @@
+{
+  "run_id": "RUN-0006-pmux-postfix",
+  "experiment_id": "E2",
+  "purpose": "Verify the fixed $pmux rule: structure, exhaustive simulation, cell-level equivalence, and a real design through the same map",
+  "recorded_utc": "2026-11-18T13:10:01Z",
+  "source_sha": "025ef24f2f4444cac4c38dc62b659fac724770f4",
+  "worktree_dirty": true,
+  "dirty_files": ["rtl/rtl_peripherals/i2c_ctrl.sv", "sim/sim_top/tb_i2c_xfer.v", "build/asic_evidence/sky130_map.v"],
+  "mapper_sha256": "6687870974e5a516f7922fc3d6c9ab7c6d01aa07b7e2bff459e44a51ba2651b8",
+  "command": "node scripts/eda/run_pmux_map_test.js --tag postfix",
+  "exit_code": 0,
+  "outcome": "pass",
+  "interpretation": "8/24/1 mux2_1 instances, 393608 simulated vectors with 0 mismatches, and Yosys proves the mapped netlist equal to pmuxtree's reference for both single-select probes.",
+  "limitations": [
+    "Equivalence is against a behavioural mux2_1 model whose function matches sky130_full_subset.lib (A0&!S)|(A1&S); it is not a library-timing aware proof.",
+    "S_WIDTH=3 is checked by exhaustive one-hot simulation, not by equivalence: pmuxtree and the mapper chain pick different priorities when several select bits are high, which the one-hot $pmux contract leaves open.",
+    "Formal equivalence covers combinational behaviour only; no delay, load or glitch analysis."
+  ]
+}

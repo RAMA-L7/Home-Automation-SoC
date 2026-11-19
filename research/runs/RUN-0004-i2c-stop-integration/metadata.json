@@ -1,0 +1,16 @@
+{
+  "run_id": "RUN-0004-i2c-stop-integration",
+  "experiment_id": "E1c",
+  "purpose": "Full regression and unified gate after the I2C STOP fix, with the strengthened assertion in place",
+  "started_utc": "2026-11-18T12:29:13Z",
+  "ended_utc": "2026-11-18T12:37:39Z",
+  "source_sha": "025ef24f2f4444cac4c38dc62b659fac724770f4",
+  "worktree_dirty": true,
+  "dirty_files": ["sim/sim_top/tb_i2c_xfer.v", "rtl/rtl_peripherals/i2c_ctrl.sv"],
+  "env_overrides_unset": ["RISCV_TOOLCHAIN_BIN", "RISCV_GCC_PREFIX"],
+  "exit_codes": { "regression": 0, "unified_gate": 0 },
+  "duration_s": { "regression": 241, "unified_gate": 266 },
+  "outcome": "pass",
+  "interpretation": "The longer STOP (four quarters instead of one) does not disturb any other test, including the firmware C demo and the protocol tests.",
+  "not_verified_here": ["Verilator full-SoC boot 7/7 (wrapper broken, see limitations.md)", "P&R, DRC, LVS (no PDK provisioning)"]
+}

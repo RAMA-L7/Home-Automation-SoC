@@ -1,0 +1,13 @@
+PASS  liberty sky130_fd_sc_hd__dfrbp_1 — clocked_on="CLK", clear="!RESET_B", next_state="D", rising_edge arcs=2, falling_edge arcs=0
+PASS  liberty sky130_fd_sc_hd__dfrbp_2 — clocked_on="CLK", clear="!RESET_B", next_state="D", rising_edge arcs=2, falling_edge arcs=0
+PASS  subset ff block matches full liberty — sky130_fd_sc_hd__dfrbp_1: identical; sky130_fd_sc_hd__dfrbp_2: identical
+PASS  stub sky130_fd_sc_hd__dfrbp_1 — posedge CLK + negedge RESET_B=true, wrong-edge text=false, Q_N=~Q=true, clear to 0=true
+PASS  stub sky130_fd_sc_hd__dfrbp_2 — posedge CLK + negedge RESET_B=true, wrong-edge text=false, Q_N=~Q=true, clear to 0=true
+PASS  stub sequential cells match liberty clocked_on — 11/11 cells: edge polarity agrees
+PASS  mapper does not emit dfrbp — mapper instantiates: sky130_fd_sc_hd__and2_1, sky130_fd_sc_hd__dfrtp_1, sky130_fd_sc_hd__dfstp_1, sky130_fd_sc_hd__dfxtp_1, sky130_fd_sc_hd__inv_1, sky130_fd_sc_hd__mux2_1, sky130_fd_sc_hd__or2_1, sky130_fd_sc_hd__xor2_1
+PASS  dfrbp instantiation inventory — 0 instantiation(s) in 72 netlist files (model is currently unreferenced)
+PASS  negative control is the pre-fix model — negedge CLK in both dfrbp modules; sha256=78f7268eef9b8254…
+PASS  simulation: tested stub — iverilog exit 0, vvp exit 0, DFRBP_MODEL: PASS checks=11 fails=0
+PASS  simulation: negative control fails — vvp exit 1 (expected non-zero), FAIL rising edge captures D=1 at t=2000: q1=0 q2=0 qn1=1 qn2=1, expected q=1 qn=0
+
+DFRBP_MODEL_TEST: 11/11 steps passed (stub=build/asic_evidence/arith_work/sky130_stub.v, tag=postfix)

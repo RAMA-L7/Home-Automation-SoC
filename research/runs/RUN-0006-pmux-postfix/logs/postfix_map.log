@@ -1,0 +1,193 @@
+$ yosys -s build\asic_evidence\pmux_map_test\map_postfix.ys
+
+
+ /----------------------------------------------------------------------------\
+ |  yosys -- Yosys Open SYnthesis Suite                                       |
+ |  Copyright (C) 2012 - 2026  Claire Xenia Wolf <claire@yosyshq.com>         |
+ |  Distributed under an ISC-like license, type "license" to see terms        |
+ \----------------------------------------------------------------------------/
+ Yosys 0.69+154 (git sha1 30d62572e-dirty, Release, GNU /usr/bin/x86_64-w64-mingw32-g++ 15.2.1)
+
+-- Executing script file `build\asic_evidence\pmux_map_test\map_postfix.ys' --
+
+1. Executing Liberty frontend: build/asic_evidence/sky130_full_subset.lib
+Imported 32 cell types from liberty file.
+
+2. Executing RTLIL frontend.
+Input filename: asic/synthesis/techmap/pmux_probe.il
+
+3. Executing TECHMAP pass (map to technology primitives).
+
+3.1. Executing Verilog-2005 frontend: build/asic_evidence/sky130_map.v
+Parsing Verilog input from `build/asic_evidence/sky130_map.v' to AST representation.
+Generating RTLIL representation for module `$not'.
+Generating RTLIL representation for module `$and'.
+Generating RTLIL representation for module `$or'.
+Generating RTLIL representation for module `$xor'.
+Generating RTLIL representation for module `$reduce_or'.
+Generating RTLIL representation for module `$reduce_bool'.
+Generating RTLIL representation for module `$reduce_and'.
+Generating RTLIL representation for module `$reduce_xor'.
+Generating RTLIL representation for module `$logic_and'.
+Generating RTLIL representation for module `$logic_or'.
+Generating RTLIL representation for module `$logic_not'.
+Generating RTLIL representation for module `$eq'.
+Generating RTLIL representation for module `$ne'.
+Generating RTLIL representation for module `$mux'.
+Generating RTLIL representation for module `$pmux'.
+Generating RTLIL representation for module `$dff'.
+Generating RTLIL representation for module `$adff'.
+Generating RTLIL representation for module `$add'.
+Generating RTLIL representation for module `$sub'.
+Generating RTLIL representation for module `$lt'.
+Generating RTLIL representation for module `$gt'.
+Generating RTLIL representation for module `$ge'.
+Generating RTLIL representation for module `$le'.
+Generating RTLIL representation for module `$_NOT_'.
+Generating RTLIL representation for module `$_AND_'.
+Generating RTLIL representation for module `$_NAND_'.
+Generating RTLIL representation for module `$_OR_'.
+Generating RTLIL representation for module `$_NOR_'.
+Generating RTLIL representation for module `$_XOR_'.
+Generating RTLIL representation for module `$_XNOR_'.
+Generating RTLIL representation for module `$_ANDNOT_'.
+Generating RTLIL representation for module `$_ORNOT_'.
+Generating RTLIL representation for module `$_MUX_'.
+Generating RTLIL representation for module `$_DFF_P_'.
+Generating RTLIL representation for module `$_DFF_N_'.
+Generating RTLIL representation for module `$_DFF_PN0_'.
+Generating RTLIL representation for module `$_DFF_PP0_'.
+Generating RTLIL representation for module `$_DFF_PN1_'.
+Generating RTLIL representation for module `$_DFF_PP1_'.
+Generating RTLIL representation for module `$_DFF_NN0_'.
+Generating RTLIL representation for module `$_DFF_NP0_'.
+Generating RTLIL representation for module `$_DFF_NN1_'.
+Generating RTLIL representation for module `$_DFF_NP1_'.
+Successfully finished Verilog frontend.
+
+3.2. Continuing TECHMAP pass.
+Using template $paramod$efaf52e19251f1f65fe6484ba524632cc703d8be$pmux for cells of type $pmux.
+Using template $paramod$645fe0cc96ae5edb83bff90cc2c78f4a20ca3e3c$pmux for cells of type $pmux.
+Using template $paramod$824a2ca00d29d886599434cf8ea60471635f2955$pmux for cells of type $pmux.
+No more expansions possible.
+<suppressed ~81 debug messages>
+
+4. Executing OPT pass (performing simple optimizations).
+
+4.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module pmux_s1_w1.
+Optimizing module pmux_s3_w8.
+Optimizing module pmux_s1_w8.
+
+4.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\pmux_s1_w1'.
+Computing hashes of 1 cells of `\pmux_s1_w1'.
+Finding duplicate cells in `\pmux_s1_w1'.
+Finding identical cells in module `\pmux_s3_w8'.
+Computing hashes of 24 cells of `\pmux_s3_w8'.
+Finding duplicate cells in `\pmux_s3_w8'.
+Finding identical cells in module `\pmux_s1_w8'.
+Computing hashes of 8 cells of `\pmux_s1_w8'.
+Finding duplicate cells in `\pmux_s1_w8'.
+Removed a total of 0 cells.
+
+4.3. Executing OPT_DFF pass (perform DFF optimizations).
+
+4.4. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \pmux_s1_w1..
+Finding unused cells or wires in module \pmux_s3_w8..
+Finding unused cells or wires in module \pmux_s1_w8..
+Removed 0 unused cells and 7 unused wires.
+<suppressed ~7 debug messages>
+
+4.5. Finished fast OPT passes.
+
+5. Executing FLATTEN pass (flatten design).
+
+6. Executing OPT pass (performing simple optimizations).
+
+6.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module pmux_s1_w1.
+Optimizing module pmux_s3_w8.
+Optimizing module pmux_s1_w8.
+
+6.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\pmux_s1_w1'.
+Computing hashes of 1 cells of `\pmux_s1_w1'.
+Finding duplicate cells in `\pmux_s1_w1'.
+Finding identical cells in module `\pmux_s3_w8'.
+Computing hashes of 24 cells of `\pmux_s3_w8'.
+Finding duplicate cells in `\pmux_s3_w8'.
+Finding identical cells in module `\pmux_s1_w8'.
+Computing hashes of 8 cells of `\pmux_s1_w8'.
+Finding duplicate cells in `\pmux_s1_w8'.
+Removed a total of 0 cells.
+
+6.3. Executing OPT_DFF pass (perform DFF optimizations).
+
+6.4. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \pmux_s1_w1..
+Finding unused cells or wires in module \pmux_s3_w8..
+Finding unused cells or wires in module \pmux_s1_w8..
+
+6.5. Finished fast OPT passes.
+
+7. Executing CHECK pass (checking for obvious problems).
+Checking module pmux_s1_w1...
+Checking module pmux_s3_w8...
+Checking module pmux_s1_w8...
+Found and reported 0 problems.
+
+8. Printing statistics.
+
+=== pmux_s1_w1 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+        9 wires
+        9 wire bits
+        9 public wires
+        9 public wire bits
+        4 ports
+        4 port bits
+        1 cells
+        1   sky130_fd_sc_hd__mux2_1
+
+=== pmux_s3_w8 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+       12 wires
+       67 wire bits
+       12 public wires
+       67 public wire bits
+        4 ports
+       43 port bits
+       24 cells
+       24   sky130_fd_sc_hd__mux2_1
+
+=== pmux_s1_w8 ===
+
+        +----------Local Count, excluding submodules.
+        | 
+       13 wires
+       34 wire bits
+       13 public wires
+       34 public wire bits
+        4 ports
+       25 port bits
+        8 cells
+        8   sky130_fd_sc_hd__mux2_1
+
+9. Executing Verilog backend.
+
+9.1. Executing BMUXMAP pass.
+
+9.2. Executing DEMUXMAP pass.
+Dumping module `\pmux_s1_w1'.
+Dumping module `\pmux_s1_w8'.
+Dumping module `\pmux_s3_w8'.
+
+End of script. Logfile hash: f7c802a13b
+Yosys 0.69+154 (git sha1 30d62572e-dirty, Release, GNU /usr/bin/x86_64-w64-mingw32-g++ 15.2.1)
+Time spent: 5% 2x write_verilog (0 sec), 5% 2x read_rtlil (0 sec), ...

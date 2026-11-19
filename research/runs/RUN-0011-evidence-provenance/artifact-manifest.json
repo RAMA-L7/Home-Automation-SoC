@@ -1,0 +1,279 @@
+{
+  "generated": "2026-11-18T16:26:05.569Z",
+  "artifacts": [
+    {
+      "path": "build/fw/boot.hex",
+      "exists": true,
+      "sha256": "d9a6be2a3e06484575501042786f90af4978658fad076b802f36053796aeb096",
+      "bytes": 3051,
+      "mtime": "2026-11-18T16:20:46.989Z"
+    },
+    {
+      "path": "build/fw/firmware.elf",
+      "exists": true,
+      "sha256": "f46a79804b934980df69620a5dbf9a309f5a51dd6f1ef33597a112070842a41f",
+      "bytes": 34544,
+      "mtime": "2026-11-18T16:20:47.949Z"
+    },
+    {
+      "path": "build/fw/firmware.bin",
+      "exists": true,
+      "sha256": "d948ee8ff94d0c87e5339afd04368f0d44eb4e9aaf52fb02005dc1b82926223a",
+      "bytes": 69116,
+      "mtime": "2026-11-18T16:20:48.063Z"
+    },
+    {
+      "path": "build/fw/firmware.srec",
+      "exists": true,
+      "sha256": "4124baedb492b20adbcfe672bb5ea93a4f568a22cefafadcda40e6a366fec5e8",
+      "bytes": 10708,
+      "mtime": "2026-11-18T16:20:48.085Z"
+    },
+    {
+      "path": "build/fw/rom.hex",
+      "exists": true,
+      "sha256": "c1fbc10cf3f035d123d9f5f7e86e4e47eba8f307dff54d36392585c015f1eb6f",
+      "bytes": 234,
+      "mtime": "2026-11-18T16:20:48.499Z"
+    },
+    {
+      "path": "build/fw/tcm.hex",
+      "exists": true,
+      "sha256": "625cda23b1d18b90a790a18d308869c628a2bc006690340f216ed866d42c18da",
+      "bytes": 8055,
+      "mtime": "2026-11-18T16:20:48.521Z"
+    },
+    {
+      "path": "build/obj_soc_r11/Vtb_boot.exe",
+      "exists": true,
+      "sha256": "e25ee3f61ce468b237dab213e41125c5c37bd16626bbca00e88b96035bc92dc2",
+      "bytes": 565835,
+      "mtime": "2026-11-18T15:54:37.157Z"
+    },
+    {
+      "path": "build/obj_soc_r11/Vtb_boot.mk",
+      "exists": true,
+      "sha256": "5913f236422c803a829c6fa74be24578ed7cdafc5e32beeec2c87863dd3607f3",
+      "bytes": 2078,
+      "mtime": "2026-11-18T15:54:09.254Z"
+    },
+    {
+      "path": "build/asic_evidence/provenance_arith_mapped.v",
+      "exists": true,
+      "sha256": "1cf2f89bbcc4e97671fb0a9100fe7b1aa8beb94b3f33ebd742c922cef6de4ea9",
+      "bytes": 14668,
+      "mtime": "2026-11-18T15:41:53.939Z"
+    },
+    {
+      "path": "build/asic_evidence/provenance_equiv.vvp",
+      "exists": true,
+      "sha256": "84b40002b527efc77fe6a24806f0d491d3869465e90ea900d3da0b80affc4140",
+      "bytes": 131609,
+      "mtime": "2026-11-18T15:42:13.062Z"
+    },
+    {
+      "path": "build/asic_evidence/provenance_equiv_bad.vvp",
+      "exists": true,
+      "sha256": "af631eaae2f5b7438c322b5c6286b736a3c9e112930a377f4553d6b97216f0fa",
+      "bytes": 131875,
+      "mtime": "2026-11-18T15:42:13.362Z"
+    },
+    {
+      "path": "asic/synthesis/provenance/arith_test.v",
+      "exists": true,
+      "sha256": "4085e764051d3b7ec7fff3377a3da828282ab42328f7eff1ac0f09bca75a07ef",
+      "bytes": 548,
+      "mtime": "2026-11-18T15:41:37.104Z"
+    },
+    {
+      "path": "asic/synthesis/provenance/tb_equiv.v",
+      "exists": true,
+      "sha256": "55e7bd5b2393f09329ce052b98d3cb6fdb85260808f558280a15e4c41e32ebe7",
+      "bytes": 3473,
+      "mtime": "2026-11-18T15:41:37.132Z"
+    },
+    {
+      "path": "asic/synthesis/provenance/map_arith.ys",
+      "exists": true,
+      "sha256": "afd643ff232a7e6a37756bfa142c3dccff3a786d27d23461611735070634305c",
+      "bytes": 551,
+      "mtime": "2026-11-18T15:41:53.699Z"
+    },
+    {
+      "path": "build/asic_evidence/sky130_map.v",
+      "exists": true,
+      "sha256": "6687870974e5a516f7922fc3d6c9ab7c6d01aa07b7e2bff459e44a51ba2651b8",
+      "bytes": 28165,
+      "mtime": "2026-11-18T12:57:25.059Z"
+    },
+    {
+      "path": "build/asic_evidence/arith_work/sky130_stub.v",
+      "exists": true,
+      "sha256": "6ce0f8a1d2c3c4b67c2e332dc1aafdd59f5081a1ea7e0dcb9c67d12ceece237e",
+      "bytes": 5779,
+      "mtime": "2026-11-18T14:04:46.853Z"
+    },
+    {
+      "path": "build/asic_evidence/sky130_full_subset.lib",
+      "exists": true,
+      "sha256": "5256f24d564c5b3474de689d94237cd0f6c94eaa672a3c02a134e452af668d5b",
+      "bytes": 790413,
+      "mtime": "2026-11-16T17:53:35.376Z"
+    },
+    {
+      "path": "build/verify/summary.txt",
+      "exists": true,
+      "sha256": "aca2675ba013d15d0115006000178943be2f2fb135d12f1c517ff3a829f7a4ff",
+      "bytes": 578,
+      "mtime": "2026-11-18T16:25:25.397Z"
+    },
+    {
+      "path": "build/verify/tools.log",
+      "exists": true,
+      "sha256": "80769ced7f28b20ca3c4ebd70ad5cd5348e496da935d0ccc2d68d39af16f395d",
+      "bytes": 780,
+      "mtime": "2026-11-18T16:20:46.542Z"
+    },
+    {
+      "path": "build/verify/regression.log",
+      "exists": true,
+      "sha256": "5a158cadb96c3bf833443b2aa35eed06399049a4b34da17e82d0d53a0fd2b097",
+      "bytes": 2123,
+      "mtime": "2026-11-18T16:25:08.878Z"
+    },
+    {
+      "path": "build/verify/formal.log",
+      "exists": true,
+      "sha256": "92c4d85d5dd449fc027425a927dcb5bacfee994036eeb3b38a2bce4580152b47",
+      "bytes": 929,
+      "mtime": "2026-11-18T16:25:20.157Z"
+    },
+    {
+      "path": "build/verify/structural-check.log",
+      "exists": true,
+      "sha256": "d9cb8a93231a095d4d485bf76a75ed3907ad582f3e94481c4d9efdf1ea79ea53",
+      "bytes": 758,
+      "mtime": "2026-11-18T16:25:21.322Z"
+    },
+    {
+      "path": "build/formal/formal.log",
+      "exists": true,
+      "sha256": "92c4d85d5dd449fc027425a927dcb5bacfee994036eeb3b38a2bce4580152b47",
+      "bytes": 929,
+      "mtime": "2026-11-18T16:25:20.143Z"
+    },
+    {
+      "path": "build/asic_evidence/structural_check/has_soc_cells.json",
+      "exists": true,
+      "sha256": "17a8a63bcbf3831365e003be152b9a7d135de74514c1d67a85d1fecd2d738bd0",
+      "bytes": 21307,
+      "mtime": "2026-11-18T15:58:38.261Z"
+    }
+  ],
+  "logs": [
+    {
+      "path": "logs/arith_equiv.log",
+      "sha256": "d9a271e91669ac2816c4ac3f8dcf5b568bd287f5e5e421b423d533d28b63c17e"
+    },
+    {
+      "path": "logs/arith_equiv_bad.log",
+      "sha256": "41d1fc9c7510c7ed80837c29f9c8f63f8e6af3a03c32ec2c0e6bebb63a6cafaa"
+    },
+    {
+      "path": "logs/arith_equiv_bad_compile.log",
+      "sha256": "b83d4e64a5468c53d9861ebf183ae2cf6e6267a3f0e0d33f31321f600c299dea"
+    },
+    {
+      "path": "logs/arith_equiv_compile.log",
+      "sha256": "b4a55fadb727e3e76c8ed6bbd79c8692666a6b1300cc04c3b3f395f9cadc4c8a"
+    },
+    {
+      "path": "logs/arith_yosys.log",
+      "sha256": "3ca02423e78300c23eed64bfae7b01aff94d6f4c0c6a2800011056e40d07e094"
+    },
+    {
+      "path": "logs/artifact_hashes.log",
+      "sha256": "03225fb91e65e0ff80397bc71bb3eb1ba4fb461a9638546d70b7343dbea0a586"
+    },
+    {
+      "path": "logs/dfrbp_model_test.log",
+      "sha256": "66363f4e7fd31225333ecdb44134f4da9e99da6c1a5466ac15d98d14a0e0da28"
+    },
+    {
+      "path": "logs/e2e.log",
+      "sha256": "9e3db735b9bdd10ddc6b55dee1ea6738012e5b932716b3e1f72d91f1da51c62d"
+    },
+    {
+      "path": "logs/formal.log",
+      "sha256": "a3f98cac3a920b81c2f81e95c527d05d26892e75fa9f0b34434bec6e953b58e6"
+    },
+    {
+      "path": "logs/fw_build.log",
+      "sha256": "59057d45920f187fa7ac533a56087179e4c79cc30bd90c5316eb9dfb1dbd4700"
+    },
+    {
+      "path": "logs/gate.log",
+      "sha256": "e1668fa3f078159f6f1cf4543d5fc0426f838d5dbf6d45cb824cd3bbbdaa2add"
+    },
+    {
+      "path": "logs/gen_fw_mem.log",
+      "sha256": "d9a0516c3dbd56e6e9c281be07f7b348dddf1ea2234743d39603499a9bbfab64"
+    },
+    {
+      "path": "logs/hashes.txt",
+      "sha256": "f55a81ee5a4eb18058d1f5a3bc7b91e6222084af26503967ac972bfadd5a25b4"
+    },
+    {
+      "path": "logs/inventory.log",
+      "sha256": "21411568106ded61c17afc140dd64157eb065f266526d68a6bef1df2e2b1f590"
+    },
+    {
+      "path": "logs/memory_audit.log",
+      "sha256": "869586c0a790176e00a66fb7c0d8010cc58b03cc73d224f15183d8b3618c269b"
+    },
+    {
+      "path": "logs/memory_audit_yosys.log",
+      "sha256": "c2fb691e19b088ade8148a9a691c45b0886f9a6d12d304be00fe1cdb1586e141"
+    },
+    {
+      "path": "logs/pmux_map_test.log",
+      "sha256": "12cd9777345df65b577ae68a0cf9f16a46997ad4d2b5968601e76e31ef116270"
+    },
+    {
+      "path": "logs/regression.log",
+      "sha256": "e52c1f9f100652294df111133e6bc5298ab7736ef0d0295ca824f5b998f777e4"
+    },
+    {
+      "path": "logs/regression_no_oss_env.log",
+      "sha256": "792cd4d5924451bfb4528830c070f67f9214d1e70ec2c33259715ee76cd09e54"
+    },
+    {
+      "path": "logs/structural_fullsoc.log",
+      "sha256": "edfdd9475ddc6026aa730c185e244d9a960e1ea0fc15fbc046f8ff92aa484931"
+    },
+    {
+      "path": "logs/synth_riscv_core.log",
+      "sha256": "11245b3c927551b001a8d38facfb2da7cc763551efb9a9431d14cea8e06b9be4"
+    },
+    {
+      "path": "logs/verilator_build.log",
+      "sha256": "7da059ef43de419493b001b401e40072a94470260935396c8db588d3071311d6"
+    },
+    {
+      "path": "logs/verilator_build_control.log",
+      "sha256": "f52790f33de3880e6737c7010f4c66ff4f2318fb25036b28c801ecf3fadcac59"
+    },
+    {
+      "path": "logs/verilator_lint.log",
+      "sha256": "65db38d706882009153d0a10f593ed51a6bf73ecd1f0bc1cdf460ac687871792"
+    },
+    {
+      "path": "logs/verilator_run.log",
+      "sha256": "6d355fb4da7775b748c5886e21936f2cd513e58ec53b5e4f2d5e2e013d8764e0"
+    },
+    {
+      "path": "logs/versions.txt",
+      "sha256": "bce5897622d77ddaa8734cbff13a09412fb030e17013f06e807ec5617435fd4b"
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "generated_utc": "2026-11-18T12:29:40.187Z",
+  "artifacts": [
+    {
+      "path": "research/runs/RUN-0001-baseline-025ef24/logs/regression.log",
+      "exists": true,
+      "bytes": 1962,
+      "sha256": "d50308d5f8d8a39272db3e60e17d6bb232956072e6eed025923fa3f5fdd8e3b5"
+    },
+    {
+      "path": "research/runs/RUN-0001-baseline-025ef24/logs/verify.log",
+      "exists": true,
+      "bytes": 589,
+      "sha256": "dd3ab293d39ec1ce8b519a81487763e7dce6a57ec4fdd6302398f0fcb25ae01c"
+    },
+    {
+      "path": "research/runs/RUN-0001-baseline-025ef24/logs/tools.txt",
+      "exists": true,
+      "bytes": 4681,
+      "sha256": "842fade32160a0c6b038120ccd91e69ebae6503795eac0ccf73867a768b8319a"
+    },
+    {
+      "path": "research/runs/RUN-0001-baseline-025ef24/logs/timing.txt",
+      "exists": true,
+      "bytes": 152,
+      "sha256": "1478200688add196874332887eb14887858d47578802702e44957f08ac8e8ed8"
+    },
+    {
+      "path": "scripts/eda/run_regression.js",
+      "exists": true,
+      "bytes": 15311,
+      "sha256": "9a22f233b58fb2a8232f15be439ecdfbafbb12641523c91ce9647cff36fd0f8b"
+    },
+    {
+      "path": "scripts/verify.js",
+      "exists": true,
+      "bytes": 24736,
+      "sha256": "2b5fe935ad82ccfcc2cacf75f5b785f21e11bc09f57e288e42e64f86bf69bae7"
+    },
+    {
+      "path": "scripts/fw_build/toolchain.js",
+      "exists": true,
+      "bytes": 5387,
+      "sha256": "222440ec8282c1baae0abf528ca32ff844fd1ffe46cd932143fcf94f0f742a83"
+    },
+    {
+      "path": "rtl/rtl_peripherals/i2c_ctrl.sv",
+      "exists": true,
+      "bytes": 10463,
+      "sha256": "23e90bfb0ab10d018aad1936a094c8d1df00f5c5707428a45280c3232c134d26"
+    }
+  ]
+}

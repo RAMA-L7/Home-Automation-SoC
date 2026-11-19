@@ -1,0 +1,112 @@
+$ yosys -s build/asic_evidence/structural_check/legacy-undriven.ys
+
+
+ /----------------------------------------------------------------------------\
+ |  yosys -- Yosys Open SYnthesis Suite                                       |
+ |  Copyright (C) 2012 - 2026  Claire Xenia Wolf <claire@yosyshq.com>         |
+ |  Distributed under an ISC-like license, type "license" to see terms        |
+ \----------------------------------------------------------------------------/
+ Yosys 0.69+154 (git sha1 30d62572e-dirty, Release, GNU /usr/bin/x86_64-w64-mingw32-g++ 15.2.1)
+
+-- Executing script file `build/asic_evidence/structural_check/legacy-undriven.ys' --
+
+1. Executing Verilog-2005 frontend: asic/synthesis/structural_cases/undriven_top.v
+Parsing SystemVerilog input from `asic/synthesis/structural_cases/undriven_top.v' to AST representation.
+Generating RTLIL representation for module `\undriven_top'.
+Successfully finished Verilog frontend.
+
+2. Executing HIERARCHY pass (managing design hierarchy).
+
+2.1. Analyzing design hierarchy..
+Top module:  \undriven_top
+
+2.2. Analyzing design hierarchy..
+Top module:  \undriven_top
+Removed 0 unused modules.
+
+3. Executing PROC pass (convert processes to netlists).
+
+3.1. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Cleaned up 0 empty switches.
+
+3.2. Executing PROC_RMDEAD pass (remove dead branches from decision trees).
+Removed a total of 0 dead cases.
+
+3.3. Executing PROC_PRUNE pass (remove redundant assignments in processes).
+Removed 0 redundant assignments.
+Promoted 0 assignments to connections.
+
+3.4. Executing PROC_INIT pass (extract init attributes).
+
+3.5. Executing PROC_ARST pass (detect async resets in processes).
+
+3.6. Executing PROC_ROM pass (convert switches to ROMs).
+Converted 0 switches.
+
+3.7. Executing PROC_MUX pass (convert decision trees to multiplexers).
+
+3.8. Executing PROC_DLATCH pass (convert process syncs to latches).
+
+3.9. Executing PROC_DFF pass (convert process syncs to FFs).
+
+3.10. Executing PROC_MEMWR pass (convert process memory writes to cells).
+
+3.11. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Cleaned up 0 empty switches.
+
+3.12. Executing OPT_EXPR pass (perform const folding).
+Optimizing module undriven_top.
+
+4. Executing MEMORY_COLLECT pass (generating $mem cells).
+
+5. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \undriven_top..
+{
+   "creator": "Yosys 0.69+154 (git sha1 30d62572e-dirty, Release, GNU /usr/bin/x86_64-w64-mingw32-g++ 15.2.1)",
+   "invocation": "stat -top undriven_top -json ",
+   "modules": {
+      "\\undriven_top": {
+         "num_wires":         3,
+         "num_wire_bits":     5,
+         "num_pub_wires":     3,
+         "num_pub_wire_bits": 5,
+         "num_ports":         3,
+         "num_port_bits":     5,
+         "num_memories":      0,
+         "num_memory_bits":   0,
+         "num_processes":     0,
+         "num_cells":         0,
+         "num_submodules":       0,
+         "num_cells_by_type": {
+
+         }
+      }
+   },
+      "design": {
+         "num_wires":         3,
+         "num_wire_bits":     5,
+         "num_pub_wires":     3,
+         "num_pub_wire_bits": 5,
+         "num_ports":         3,
+         "num_port_bits":     5,
+         "num_memories":      0,
+         "num_memory_bits":   0,
+         "num_processes":     0,
+         "num_cells":         0,
+         "num_submodules":       0,
+         "num_cells_by_type": {
+
+         }
+      }
+}
+
+6. Executing CHECK pass (checking for obvious problems).
+Checking module undriven_top...
+Warning: Wire undriven_top.\z [2] is used but has no driver.
+Warning: Wire undriven_top.\z [1] is used but has no driver.
+Found and reported 2 problems.
+
+Warnings: 2 unique messages, 2 total
+End of script. Logfile hash: 894791581b
+Yosys 0.69+154 (git sha1 30d62572e-dirty, Release, GNU /usr/bin/x86_64-w64-mingw32-g++ 15.2.1)
+Time spent: 5% 2x read_verilog (0 sec), 5% 2x proc_clean (0 sec), ...

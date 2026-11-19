@@ -1,0 +1,5 @@
+$ vvp D:\Home-Automation-SoC\build\asic_evidence\pmux_map_test\sim_postfix.vvp
+
+PMUX_MAP_TEST: 393608 vectors checked, 0 mismatches
+PMUX_MAP_TEST: PASS
+D:\Home-Automation-SoC\asic\synthesis\techmap\tb_pmux_map.v:161: $finish called at 393608000 (1ps)

@@ -1,0 +1,2 @@
+{"seq":1,"what":"full Icarus regression after fix","cwd":"D:/Home-Automation-SoC","cmd":"env -u RISCV_TOOLCHAIN_BIN -u RISCV_GCC_PREFIX cmd //c \"call D:\tools\oss-cad-suite\environment.bat && node scripts/eda/run_regression.js\"","exit":0,"duration_s":241,"log":"logs/regression.log"}
+{"seq":2,"what":"unified verification gate after fix","cwd":"D:/Home-Automation-SoC","cmd":"env -u RISCV_TOOLCHAIN_BIN -u RISCV_GCC_PREFIX cmd //c \"call D:\tools\oss-cad-suite\environment.bat && node scripts/verify.js\"","exit":0,"duration_s":266,"log":"logs/verify.log"}

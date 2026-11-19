@@ -1,0 +1,86 @@
+{
+  "finding": "F3",
+  "generated_local": "2026-11-18 19:42:41 IST",
+  "generated_utc": "2026-11-18T14:12:41.183Z",
+  "tested_stub": "build/asic_evidence/arith_work/sky130_stub.v",
+  "hashes": {
+    "build/asic_evidence/sky130_tt.lib": "ec0e1067a35c8bf20b11e58d1e8ac53326067e4dac84a125cc1b917a3518d0d9",
+    "build/asic_evidence/sky130_full_subset.lib": "5256f24d564c5b3474de689d94237cd0f6c94eaa672a3c02a134e452af668d5b",
+    "build/asic_evidence/arith_work/sky130_stub.v": "6ce0f8a1d2c3c4b67c2e332dc1aafdd59f5081a1ea7e0dcb9c67d12ceece237e",
+    "build/asic_evidence/sky130_map.v": "6687870974e5a516f7922fc3d6c9ab7c6d01aa07b7e2bff459e44a51ba2651b8",
+    "asic/synthesis/techmap/dfrbp_model/tb_dfrbp_model.v": "62d163f24c7d7ef0da9b695d4d90d4f4f44ee5dd11b0d8bae2596b3b613a63cd",
+    "asic/synthesis/techmap/dfrbp_model/sky130_stub_prefix.v": "78f7268eef9b8254adf6e840a2f34313078f8f21705d7d68ab7a4a1cb9e53108"
+  },
+  "liberty_ff": {
+    "sky130_fd_sc_hd__dfrbp_1": "\n            clear : \"!RESET_B\";\n            clocked_on : \"CLK\";\n            next_state : \"D\";\n        ",
+    "sky130_fd_sc_hd__dfrbp_2": "\n            clear : \"!RESET_B\";\n            clocked_on : \"CLK\";\n            next_state : \"D\";\n        "
+  },
+  "mapper_cells": [
+    "sky130_fd_sc_hd__and2_1",
+    "sky130_fd_sc_hd__dfrtp_1",
+    "sky130_fd_sc_hd__dfstp_1",
+    "sky130_fd_sc_hd__dfxtp_1",
+    "sky130_fd_sc_hd__inv_1",
+    "sky130_fd_sc_hd__mux2_1",
+    "sky130_fd_sc_hd__or2_1",
+    "sky130_fd_sc_hd__xor2_1"
+  ],
+  "dfrbp_instantiations": 0,
+  "steps": [
+    {
+      "step": "liberty sky130_fd_sc_hd__dfrbp_1",
+      "ok": true,
+      "detail": "clocked_on=\"CLK\", clear=\"!RESET_B\", next_state=\"D\", rising_edge arcs=2, falling_edge arcs=0"
+    },
+    {
+      "step": "liberty sky130_fd_sc_hd__dfrbp_2",
+      "ok": true,
+      "detail": "clocked_on=\"CLK\", clear=\"!RESET_B\", next_state=\"D\", rising_edge arcs=2, falling_edge arcs=0"
+    },
+    {
+      "step": "subset ff block matches full liberty",
+      "ok": true,
+      "detail": "sky130_fd_sc_hd__dfrbp_1: identical; sky130_fd_sc_hd__dfrbp_2: identical"
+    },
+    {
+      "step": "stub sky130_fd_sc_hd__dfrbp_1",
+      "ok": true,
+      "detail": "posedge CLK + negedge RESET_B=true, wrong-edge text=false, Q_N=~Q=true, clear to 0=true"
+    },
+    {
+      "step": "stub sky130_fd_sc_hd__dfrbp_2",
+      "ok": true,
+      "detail": "posedge CLK + negedge RESET_B=true, wrong-edge text=false, Q_N=~Q=true, clear to 0=true"
+    },
+    {
+      "step": "stub sequential cells match liberty clocked_on",
+      "ok": true,
+      "detail": "11/11 cells: edge polarity agrees"
+    },
+    {
+      "step": "mapper does not emit dfrbp",
+      "ok": true,
+      "detail": "mapper instantiates: sky130_fd_sc_hd__and2_1, sky130_fd_sc_hd__dfrtp_1, sky130_fd_sc_hd__dfstp_1, sky130_fd_sc_hd__dfxtp_1, sky130_fd_sc_hd__inv_1, sky130_fd_sc_hd__mux2_1, sky130_fd_sc_hd__or2_1, sky130_fd_sc_hd__xor2_1"
+    },
+    {
+      "step": "dfrbp instantiation inventory",
+      "ok": true,
+      "detail": "0 instantiation(s) in 72 netlist files (model is currently unreferenced)"
+    },
+    {
+      "step": "negative control is the pre-fix model",
+      "ok": true,
+      "detail": "negedge CLK in both dfrbp modules; sha256=78f7268eef9b8254…"
+    },
+    {
+      "step": "simulation: tested stub",
+      "ok": true,
+      "detail": "iverilog exit 0, vvp exit 0, DFRBP_MODEL: PASS checks=11 fails=0\r"
+    },
+    {
+      "step": "simulation: negative control fails",
+      "ok": true,
+      "detail": "vvp exit 1 (expected non-zero), FAIL rising edge captures D=1 at t=2000: q1=0 q2=0 qn1=1 qn2=1, expected q=1 qn=0\r"
+    }
+  ]
+}

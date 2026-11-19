@@ -1,0 +1,51 @@
+
+Home-Automation-SoC regression — Icarus Verilog
+revision: 025ef24
+date    : 2026-11-18T16:08:55.656Z
+iverilog: unavailable
+node    : v26.7.0
+riscv   : D:\tools\xpack-riscv-none-elf-gcc-12.2.0-2\bin\riscv-none-elf-gcc.exe [installed] riscv-none-elf-gcc.exe (xPack GNU RISC-V Embedded GCC x86_64) 12.2.0
+
+firmware image provenance (rebuilt from source this run):
+  OK   boot.S -> build/fw/boot.hex
+  OK   C firmware -> build/fw/firmware.elf
+  OK   firmware.elf -> build/fw/rom.hex + tcm.hex
+  OK   boot_jump.S -> build/sim/apb_jump.hex (TLCM redirect)
+  OK   apb_integrated.S -> build/sim/apb_integrated.hex
+  sha256 d9a6be2a3e06484575501042786f90af4978658fad076b802f36053796aeb096  build/fw/boot.hex
+  sha256 20694f401da450c353802701d21438499b8798ffba830524d6633c435a70da56  build/fw/firmware.elf
+  sha256 d948ee8ff94d0c87e5339afd04368f0d44eb4e9aaf52fb02005dc1b82926223a  build/fw/firmware.bin
+  sha256 c1fbc10cf3f035d123d9f5f7e86e4e47eba8f307dff54d36392585c015f1eb6f  build/fw/rom.hex
+  sha256 625cda23b1d18b90a790a18d308869c628a2bc006690340f216ed866d42c18da  build/fw/tcm.hex
+  sha256 8bcb3384c76c4175c113a9bfaa2adb8a131603df0169f6281986397add160b9b  build/sim/apb_jump.hex
+  sha256 66a4cf1564a339c7adb9d019836ed6176bcb899a05140ad14ae5ef933467b1f0  build/sim/apb_integrated.hex
+
+BUILD-FAIL isa (directed RV32IM + traps)  [compile error]
+BUILD-FAIL boot (full SoC)  [compile error]
+BUILD-FAIL uart (pin level)  [compile error]
+BUILD-FAIL reset_ctrl (watchdog reset)  [compile error]
+BUILD-FAIL power_mgr sleep/wake  [compile error]
+BUILD-FAIL clint  [compile error]
+BUILD-FAIL plic  [compile error]
+BUILD-FAIL gpio  [compile error]
+BUILD-FAIL spi  [compile error]
+BUILD-FAIL i2c  [compile error]
+BUILD-FAIL i2c transaction (write/read/nack)  [compile error]
+BUILD-FAIL pwm  [compile error]
+BUILD-FAIL timer  [compile error]
+BUILD-FAIL watchdog  [compile error]
+BUILD-FAIL i2s  [compile error]
+BUILD-FAIL sram  [compile error]
+BUILD-FAIL debug_jtag  [compile error]
+BUILD-FAIL firmware (C demo)  [compile error]
+BUILD-FAIL plic protocol (sync + claim)  [compile error]
+BUILD-FAIL spi device model (mode 0)  [compile error]
+BUILD-FAIL jtag protocol (TAP subset)  [compile error]
+BUILD-FAIL watchdog audit (reload)  [compile error]
+BUILD-FAIL sram audit (strobes/RAW)  [compile error]
+BUILD-FAIL plic bounds (IDs 1-8)  [compile error]
+BUILD-FAIL cpu csr arch (imm/illegal/minstret)  [compile error]
+BUILD-FAIL apb addressing (integrated bus)  [compile error]
+BUILD-FAIL watchdog reset recovery  [compile error]
+
+PASS 0 / 27

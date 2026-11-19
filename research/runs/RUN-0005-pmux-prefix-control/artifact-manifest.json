@@ -1,0 +1,53 @@
+{
+  "generated_utc": "2026-11-18T13:12:36.567Z",
+  "artifacts": [
+    {
+      "path": "research/runs/RUN-0005-pmux-prefix-control/logs/prefix_map.log",
+      "exists": true,
+      "bytes": 7541,
+      "sha256": "8fd01830882474cf818f01c4b7bb9760878b34ff814e75beb81205132c610ae0"
+    },
+    {
+      "path": "research/runs/RUN-0005-pmux-prefix-control/logs/prefix_sim.log",
+      "exists": true,
+      "bytes": 787,
+      "sha256": "89947491a55dde6c767096c1f0422daa0ee100f260dfb00a65c2eef6eaa8ad28"
+    },
+    {
+      "path": "asic/synthesis/techmap/pmux_probe.il",
+      "exists": true,
+      "bytes": 1490,
+      "sha256": "b31079281974d71c43ef100e494b2d2823e9498301e60237da1f7e102b15e7a0"
+    },
+    {
+      "path": "asic/synthesis/techmap/pmux_golden.v",
+      "exists": true,
+      "bytes": 1088,
+      "sha256": "994815d08564dc4cdeb643a357f55a75bf4d9b7235f24ef98a1a83d8a5d3c0fe"
+    },
+    {
+      "path": "asic/synthesis/techmap/tb_pmux_map.v",
+      "exists": true,
+      "bytes": 4807,
+      "sha256": "9fffebf648f7cfb530dfab5e47cf86b9c18e13c121e7953ff66bd565dccb94a2"
+    },
+    {
+      "path": "asic/synthesis/techmap/map_pmux.ys",
+      "exists": true,
+      "bytes": 545,
+      "sha256": "11bd240ec30d6cc6519a539e803755a68721044bccb5a9e86a98ea1df3bb39ba"
+    },
+    {
+      "path": "scripts/eda/run_pmux_map_test.js",
+      "exists": true,
+      "bytes": 7531,
+      "sha256": "a55e5f58d4c3eb443c00195443b6f84c3e630035a1b83f0c7468abaeba9e3a6e"
+    },
+    {
+      "path": "build/asic_evidence/sky130_map.v",
+      "exists": true,
+      "bytes": 28165,
+      "sha256": "6687870974e5a516f7922fc3d6c9ab7c6d01aa07b7e2bff459e44a51ba2651b8"
+    }
+  ]
+}

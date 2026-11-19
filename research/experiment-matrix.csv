@@ -1,0 +1,10 @@
+id,condition,purpose,source_sha,tools,status,run_id
+E0,baseline reproducibility,Reproduce regression and unified gate at the reviewed commit with no toolchain overrides,025ef24,Icarus 14.0 + Yosys 0.69+154 + SBY 0.69 + Verible v0.0-4298 + xPack GCC 12.2.0,complete,RUN-0001-baseline-025ef24
+E1,i2c-stop-phasing,"Discriminating STOP assertion in tb_i2c_xfer, proven to fail on the pre-fix RTL and pass after",025ef24 + local patch,Icarus 14.0,complete,RUN-0002/RUN-0003/RUN-0004
+E2,pmux-width,WIDTH>1 self-check for the single-select $pmux branch,025ef24 + local patch,Yosys 0.69+154,complete,RUN-0005/RUN-0006
+E3,fullsoc-check-failclosed,Promote a full-SoC structural problem count to a non-zero exit,025ef24 + local patch,Yosys 0.69+154,complete,RUN-0007-structural-failclosed
+E4,memory-inventory,"Elaborated memory inventory reconciled against the address map, interconnect decode, linker and synthesis evidence, with drift controls",025ef24 + local patch,Yosys 0.69+154 + node,complete,RUN-0009-memory-audit
+E5,firmware-provenance,Provenance for the published arithmetic demonstration source (F4),025ef24 + local patch,git + Yosys,planned,—
+E6,dfrbp-model-fidelity,Prove the dfrbp behavioural model against the liberty and the SkyWater UDP with a directed test and a pre-fix negative control,025ef24 + local patch,Icarus 14.0 + Yosys 0.69+154,complete,RUN-0008-dfrbp-model
+E7,toolchain-unification,"One validated resolver for every driver, with explicit precedence, target/flag validation, fail-closed overrides and negative controls",025ef24 + local patch,xPack GCC 12.2.0 + node 26.7.0,complete,RUN-0010-toolchain-unification
+E8,evidence-correlation,"Trace every current PASS claim to source state, command, tool versions, exit code and artifact hash; rebuild what had no surviving artifact; publish the arithmetic source (F4)",025ef24 + local patch,"Icarus 14.0 + Yosys 0.69+154 + SBY 0.69 + Verilator 5.053 + xPack GCC 12.2.0 + MinGW g++ 16.1.0",complete,RUN-0011-evidence-provenance

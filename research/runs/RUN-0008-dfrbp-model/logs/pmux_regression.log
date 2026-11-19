@@ -1,0 +1,9 @@
+PASS  techmap probes — yosys exit 0, log build\asic_evidence\pmux_map_test\logs\postfix_map.log
+PASS  structure pmux_s1_w8 — 8 mux2_1 instance(s), expected 8
+PASS  structure pmux_s3_w8 — 24 mux2_1 instance(s), expected 24
+PASS  structure pmux_s1_w1 — 1 mux2_1 instance(s), expected 1
+PASS  compile mapped netlist — iverilog exit 0
+PASS  simulation vs golden — PMUX_MAP_TEST: 393608 vectors checked, 0 mismatches; vvp exit 0
+PASS  equivalence ($pmux vs netlist) — yosys exit 0
+
+PMUX_MAP_TEST: 7/7 steps passed (map=build\asic_evidence\sky130_map.v, tag=postfix)

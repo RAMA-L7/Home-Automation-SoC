@@ -1,0 +1,22 @@
+{"step": "inventory", "command": "node research/runs/RUN-0011-evidence-provenance/inventory.js", "exit": 0, "result": "head 025ef24, 12 modified tracked files, 45 untracked paths, 248 hashed"}
+{"step": "f4_publish", "command": "cp build/asic_evidence/arith_test.v asic/synthesis/provenance/arith_test.v; cp build/asic_evidence/arith_work/tb_equiv.v asic/synthesis/provenance/tb_equiv.v", "exit": 0, "result": "byte-identical copies, sha256 4085e764... / 55e7bd5b..."}
+{"step": "f4_yosys_first_attempt", "command": "yosys -s asic/synthesis/provenance/map_arith.ys (rename -top <old> <new>)", "exit": 1, "result": "ERROR: Invalid number of arguments! - 'rename -top' takes only the new name; preserved in log history, script corrected to 'rename <old> <new>'"}
+{"step": "f4_yosys", "command": "cmd //c \"call D:\\tools\\oss-cad-suite\\environment.bat && yosys -s asic/synthesis/provenance/map_arith.ys\"", "exit": 0, "result": "techmap 0 problems, netlist build/asic_evidence/provenance_arith_mapped.v"}
+{"step": "f4_equivalence", "command": "iverilog -g2012 -DUSE_MAPPED -o build/asic_evidence/provenance_equiv.vvp asic/synthesis/provenance/tb_equiv.v asic/synthesis/provenance/arith_test.v build/asic_evidence/provenance_arith_mapped.v build/asic_evidence/arith_work/sky130_stub.v && vvp build/asic_evidence/provenance_equiv.vvp", "exit": 0, "result": "PASS: 1028 checks"}
+{"step": "f4_negative_control", "command": "iverilog -g2012 -DUSE_MAPPED -DCORRUPT_MAP ... && vvp", "exit": 1, "result": "MISMATCH + $fatal, as designed"}
+{"step": "regression_no_env", "command": "node scripts/eda/run_regression.js", "exit": 1, "result": "iverilog unavailable, PASS 0/27 - environment negative control, preserved"}
+{"step": "regression", "command": "cmd //c \"call D:\\tools\\oss-cad-suite\\environment.bat && node scripts/eda/run_regression.js\"", "exit": 0, "result": "PASS 27/27, firmware rebuilt in-run"}
+{"step": "firmware_build", "command": "node scripts/fw_build/build_fw.js", "exit": 0, "result": "firmware.elf 34544 B, text 3684 B"}
+{"step": "genmem", "command": "node scripts/fw_build/gen_fw_mem.js", "exit": 0, "result": "rom.hex 26 words, tcm.hex 895 words"}
+{"step": "e2e", "command": "node scripts/firmware/run_e2e.js", "exit": 0, "result": "7/7 steps, corruption control detected"}
+{"step": "formal", "command": "cmd //c \"call D:\\tools\\oss-cad-suite\\environment.bat && node scripts/formal/run_formal.js\"", "exit": 0, "result": "PASS 6/6"}
+{"step": "verilator_lint", "command": "verilator_bin.exe --lint-only -Wall --top-module has_soc -f rtl/filelist.f", "exit": 1, "result": "0 errors, 123 warnings over 24 files"}
+{"step": "verilator_build_prefix_control", "command": "git show HEAD:scripts/eda/verilator_build_soc.bat > build/verilator_build_soc_prefix.bat && build\\verilator_build_soc_prefix.bat tb_boot sim\\sim_top\\tb_boot.v build\\obj_soc_prefix", "exit": 1, "result": "make: can't open D:\\...\\obj_soc_prefix\\toolsverilator-shim\\bin\\verilator_includer - reproduces the backslash-in-VERILATOR_ROOT defect"}
+{"step": "verilator_build", "command": "scripts\\eda\\verilator_build_soc.bat tb_boot sim\\sim_top\\tb_boot.v build\\obj_soc_r11", "exit": 0, "result": "Vtb_boot.exe 565835 B, after setting SHIM with forward slashes"}
+{"step": "verilator_run", "command": "scripts\\eda\\verilator_run.bat build\\obj_soc_r11\\Vtb_boot.exe", "exit": 0, "result": "7/7 sub-tests, 4 ms simulated in 0.233 s"}
+{"step": "structural_fullsoc", "command": "node scripts/eda/check_structure.js --script asic/synthesis/fullsoc_map.ys --top has_soc --json build/asic_evidence/structural_check/has_soc_cells.json --tag fullsoc", "exit": 2, "result": "BLOCKED, 4 x $mem_v2 (expected until F5/F7)"}
+{"step": "memory_audit", "command": "yosys -s asic/synthesis/memory_audit.ys && node scripts/eda/audit_memory.js", "exit": 2, "result": "BLOCKED, ROM 4x / SRAM 2x aperture (F5)"}
+{"step": "synth_riscv_core", "command": "yosys -s build/synth_core_r11.ys (read, hierarchy, synth, stat)", "exit": 0, "result": "44,323 generic cells pre-ABC"}
+{"step": "pmux_map_test", "command": "node scripts/eda/run_pmux_map_test.js", "exit": 0, "result": "7/7, 393,608 vectors, 0 mismatches"}
+{"step": "dfrbp_model_test", "command": "node scripts/eda/run_dfrbp_model_test.js", "exit": 0, "result": "11/11, negative control exit 1"}
+{"step": "unified_gate", "command": "node scripts/verify.js", "exit": 0, "result": "10 passed, 0 failed, 0 blocked"}

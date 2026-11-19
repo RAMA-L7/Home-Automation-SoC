@@ -1,0 +1,4 @@
+{"seq":1,"what":"legacy flow on undriven design (control)","cwd":"D:/Home-Automation-SoC","cmd":"yosys (bare check) on asic/synthesis/structural_cases/undriven_top.v","exit":0,"log":"logs/legacy-undriven.log","note":"2 problems reported, exit 0: this is the F8 defect"}
+{"seq":2,"what":"checker control matrix","cwd":"D:/Home-Automation-SoC","cmd":"node scripts/eda/check_structure.js --self-test","exit":0,"log":"logs/structural_self_test.log"}
+{"seq":3,"what":"full SoC structural verdict","cwd":"D:/Home-Automation-SoC","cmd":"node scripts/eda/check_structure.js --script asic/synthesis/fullsoc_map.ys --top has_soc --json build/asic_evidence/structural_check/has_soc_cells.json --tag fullsoc","exit":2,"log":"logs/structural_full_soc.log"}
+{"seq":4,"what":"unified gate with the structural stage","cwd":"D:/Home-Automation-SoC","cmd":"node scripts/verify.js","exit":0,"log":"logs/gate_full.log"}

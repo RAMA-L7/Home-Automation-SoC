@@ -1,0 +1,27 @@
+{
+  "run_id": "RUN-0001-baseline-025ef24",
+  "experiment_id": "E0",
+  "purpose": "Reproduce the committed verification baseline at the reviewed commit with no toolchain overrides set",
+  "started_utc": "2026-11-18T12:18:52Z",
+  "ended_utc": "2026-11-18T12:28:02Z",
+  "source_sha": "025ef24f2f4444cac4c38dc62b659fac724770f4",
+  "worktree_dirty": false,
+  "framework": "Freebuff agent (Buffy)",
+  "model_provider": "DeepSeek",
+  "model_id": "DeepSeek V4.1 Flash",
+  "generation_settings": "UNKNOWN",
+  "quantization": "UNKNOWN",
+  "environment": {
+    "shell": "bash (Git Bash on Windows) invoking cmd for EDA tools",
+    "env_overrides_unset": ["RISCV_TOOLCHAIN_BIN", "RISCV_GCC_PREFIX"],
+    "python_on_path": "Windows Store stub (unusable); gate uses D:/tools/venv/Scripts/python.exe"
+  },
+  "exit_codes": { "regression": 0, "unified_gate": 0 },
+  "duration_s": { "regression": 256, "unified_gate": 294, "total": 550 },
+  "outcome": "reproduced",
+  "failure_classification": "none",
+  "infrastructure_notes": [
+    "verilator Perl wrapper fails (missing Pod/Usage.pm); verilator_bin.exe 5.053 works. The gate treats verilator as optional, so the documented Verilator 7/7 SoC boot was not re-run here.",
+    "Formal stage reported exit 0 but its properties were not independently reviewed"
+  ]
+}

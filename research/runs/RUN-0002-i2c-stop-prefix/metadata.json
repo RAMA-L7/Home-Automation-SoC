@@ -1,0 +1,19 @@
+{
+  "run_id": "RUN-0002-i2c-stop-prefix",
+  "experiment_id": "E1a",
+  "purpose": "Negative control: strengthened STOP assertion versus unmodified RTL (proves the defect is observable)",
+  "started_utc": "2026-11-18T12:29:00Z",
+  "source_sha": "025ef24f2f4444cac4c38dc62b659fac724770f4",
+  "worktree_dirty": true,
+  "dirty_files": ["sim/sim_top/tb_i2c_xfer.v"],
+  "dut": "rtl/rtl_peripherals/i2c_ctrl.sv (unmodified)",
+  "exit_codes": { "simulation": 1 },
+  "outcome": "fail-as-expected",
+  "observed": [
+    "WRITE: ... stops=0",
+    "FAIL: no STOP condition",
+    "FAIL: invalid STOP (SCL and SDA released in the same cycle)",
+    "FATAL: TB_I2C_XFER: 5 FAILURES"
+  ],
+  "meaning": "The pre-fix RTL does not produce a valid STOP on any of the three transactions; the old assertion (scl & !sda_p & sda) accepted the simultaneous release."
+}

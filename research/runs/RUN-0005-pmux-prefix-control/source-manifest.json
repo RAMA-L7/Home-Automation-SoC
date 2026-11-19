@@ -1,0 +1,16 @@
+{
+  "generated_utc": "2026-11-18T13:12:36.567Z",
+  "head": "025ef24f2f4444cac4c38dc62b659fac724770f4",
+  "branch": "main",
+  "remote": "https://github.com/RAMA-L7/Home-Automation-SoC.git",
+  "worktree_dirty": true,
+  "modified_tracked": [
+    "AGENTS.md",
+    "build/asic_evidence/sky130_map.v",
+    "rtl/rtl_peripherals/i2c_ctrl.sv",
+    "sim/sim_top/tb_i2c_xfer.v"
+  ],
+  "untracked_count": 41,
+  "generated_after_run": true,
+  "note": "A dirty worktree means results belong to HEAD plus these local changes, not to HEAD alone. This manifest is emitted after the run; when the worktree changed during the run, trust the state recorded at the start of the run (timing.txt / commands.jsonl), not this snapshot."
+}

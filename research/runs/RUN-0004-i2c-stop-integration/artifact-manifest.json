@@ -1,0 +1,35 @@
+{
+  "generated_utc": "2026-11-18T12:38:09.490Z",
+  "artifacts": [
+    {
+      "path": "research/runs/RUN-0004-i2c-stop-integration/logs/regression.log",
+      "exists": true,
+      "bytes": 1962,
+      "sha256": "a05f61e902ac70f63871d316af4a96a9016b77ebfba7a31e54f066a5f59f3e52"
+    },
+    {
+      "path": "research/runs/RUN-0004-i2c-stop-integration/logs/verify.log",
+      "exists": true,
+      "bytes": 589,
+      "sha256": "dd3ab293d39ec1ce8b519a81487763e7dce6a57ec4fdd6302398f0fcb25ae01c"
+    },
+    {
+      "path": "research/runs/RUN-0004-i2c-stop-integration/logs/timing.txt",
+      "exists": true,
+      "bytes": 158,
+      "sha256": "9ddd829ecfef80d7a09d86bfaba6432fecb7b9c97a7130798365ff376c4417db"
+    },
+    {
+      "path": "sim/sim_top/tb_i2c_xfer.v",
+      "exists": true,
+      "bytes": 9742,
+      "sha256": "96a154d2eacedce2b020fc837f609c542e62c970ff91592dd00a31c211163c19"
+    },
+    {
+      "path": "rtl/rtl_peripherals/i2c_ctrl.sv",
+      "exists": true,
+      "bytes": 10463,
+      "sha256": "23e90bfb0ab10d018aad1936a094c8d1df00f5c5707428a45280c3232c134d26"
+    }
+  ]
+}

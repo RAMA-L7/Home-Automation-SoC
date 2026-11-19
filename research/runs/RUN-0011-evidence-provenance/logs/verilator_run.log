@@ -1,0 +1,28 @@
+-Info: sim\sim_top\tb_boot.v:142: $dumpvar ignored, as Verilated without --trace
+=== HAS-SoC boot test ===
+[tb] reset released
+[uart] end of line (2 bytes)
+HAS-SoC boot: RV32IM[uart] end of line (24 bytes)
+PASS sram
+[tb] GPIO pins observed at 0xa5a5
+[uart] end of line (35 bytes)
+PASS gpio[uart] end of line (46 bytes)
+PASS muldiv[uart] end of line (59 bytes)
+PASS csr[uart] end of line (69 bytes)
+PASS plic[uart] end of line (80 bytes)
+PASS pwm[uart] end of line (90 bytes)
+PASS pwr[uart] end of line (100 bytes)
+[uart] end of line (102 bytes)
+summary pass=00000007 fail=00000000[uart] end of line (139 bytes)
+RESULT: ALL TESTS PASSED[uart] end of line (165 bytes)
+idle[uart] end of line (171 bytes)
+
+[tb] total UART bytes: 171
+[tb] firmware subtests passed: 7 / 7
+[tb] gpio pins captured: yes
+[tb] pwm_out[0] high cycles: 44450
+[tb] RESULT: PASS
+- sim\sim_top\tb_boot.v:179: Verilog $finish
+- S i m u l a t i o n   R e p o r t: Verilator 5.053 devel
+- Verilator: $finish at 4ms; walltime 0.233 s; speed 17.201 ms/s
+- Verilator: cpu 0.000 s on 1 threads; allocated 6 MB

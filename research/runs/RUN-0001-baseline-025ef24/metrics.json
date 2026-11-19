@@ -1,0 +1,7 @@
+{
+  "run_id": "RUN-0001-baseline-025ef24",
+  "regression": { "passed": 27, "total": 27, "exit": 0, "wall_s": 256, "log": "logs/regression.log" },
+  "unified_gate": { "passed": 9, "failed": 0, "blocked": 0, "exit": 0, "wall_s": 294, "log": "logs/verify.log",
+    "stages": ["tools","verible-syntax","verible-lint","regression","formal","cdc-inventory","protocol-tests","mermaid","docs-sync"] },
+  "primary_metric_note": "Correctness gate reproduced; not a capability metric by itself."
+}

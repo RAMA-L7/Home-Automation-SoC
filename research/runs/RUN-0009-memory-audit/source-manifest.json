@@ -1,0 +1,16 @@
+{
+  "generated_utc": "2026-11-18T14:39:29.721Z",
+  "head": "025ef24f2f4444cac4c38dc62b659fac724770f4",
+  "branch": "main",
+  "worktree_dirty": true,
+  "modified_tracked": [
+    "AGENTS.md",
+    "build/asic_evidence/arith_work/sky130_stub.v",
+    "build/asic_evidence/sky130_map.v",
+    "rtl/rtl_peripherals/i2c_ctrl.sv",
+    "scripts/verify.js",
+    "sim/sim_top/tb_i2c_xfer.v"
+  ],
+  "functional_rtl_modified": false,
+  "note": "No functional RTL was modified in this run. The dirty set is inherited from RUN-0001..RUN-0008 (I2C STOP, $pmux mapper, dfrbp stub, verify.js stage, AGENTS.md)."
+}

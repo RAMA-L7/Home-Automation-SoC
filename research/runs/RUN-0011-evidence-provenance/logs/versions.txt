@@ -1,0 +1,11 @@
+git: git version 2.54.0.windows.1
+node: v26.7.0
+python: Python 3.10.11
+gcc: riscv-none-elf-gcc.exe (xPack GNU RISC-V Embedded GCC x86_64) 12.2.0
+gxx: g++.exe (MinGW-W64 x86_64-ucrt-mcf-seh, built by Brecht Sanders, r1) 16.1.0
+make: GNU Make 4.4.1
+verilator: Verilator 5.053 devel rev v5.052-119-g014c9820d (mod)
+verible: /usr/bin/bash: line 1: D:/tools/verible/bin/verible-verilog-syntax.exe: No such file or directory
+Icarus Verilog version 14.0 (devel) (s20260301-500-g2e81fcccb-dirty)
+Yosys 0.69+154 (git sha1 30d62572e-dirty, Release, GNU /usr/bin/x86_64-w64-mingw32-g++ 15.2.1)
+SBY v0.69

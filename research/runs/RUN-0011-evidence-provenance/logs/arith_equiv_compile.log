@@ -1,0 +1,2 @@
+$ iverilog -g2012 -DUSE_MAPPED -o build/asic_evidence/provenance_equiv.vvp asic/synthesis/provenance/tb_equiv.v asic/synthesis/provenance/arith_test.v build/asic_evidence/provenance_arith_mapped.v build/asic_evidence/arith_work/sky130_stub.v
+exit 0 (no diagnostics)

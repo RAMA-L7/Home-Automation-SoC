@@ -1,0 +1,9 @@
+PASS  control: current design and inventory are consistent -> exit 2
+PASS  control: missing inventory entry for an inferred memory -> exit 1
+PASS  control: inventory depth edited away from the design -> exit 1
+PASS  control: inventory claims the ROM mismatch is fixed -> exit 1
+PASS  control: address map ROM size changed -> exit 1
+PASS  control: interconnect ROM aperture changed -> exit 1
+PASS  control: ROM no longer has initialization data -> exit 1
+
+MEMORY_AUDIT: SELF-TEST PASS (7/7 controls)

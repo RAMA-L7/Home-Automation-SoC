@@ -1,0 +1,7 @@
+toolchain: D:\tools\xpack-riscv-none-elf-gcc-12.2.0-2\bin\riscv-none-elf-gcc.exe [installed]
+  version:   riscv-none-elf-gcc.exe (xPack GNU RISC-V Embedded GCC x86_64) 12.2.0
+  target:    riscv-none-elf
+  prefix:    riscv-none-elf-
+  binDir:    D:\tools\xpack-riscv-none-elf-gcc-12.2.0-2\bin
+  flags:     -march=rv32im -mabi=ilp32 accepted
+exit=0

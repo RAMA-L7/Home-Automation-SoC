@@ -1,0 +1,4 @@
+$ vvp D:\Home-Automation-SoC\build\asic_evidence\dfrbp_model\sim_postfix_stub.vvp
+
+DFRBP_MODEL: PASS checks=11 fails=0
+D:\Home-Automation-SoC\asic\synthesis\techmap\dfrbp_model\tb_dfrbp_model.v:121: $finish called at 8100 (1ps)

@@ -1,0 +1,33 @@
+{
+  "run_id": "RUN-0009-memory-audit",
+  "memories": {
+    "inferred_mem_v2_cells": 4,
+    "register_based_structures": 2,
+    "peripheral_fifos": 0,
+    "addressable_bytes": 180224,
+    "implemented_array_bytes": 360466,
+    "register_storage_bytes": 136,
+    "array_to_addressable_ratio": 1.9997
+  },
+  "by_region": {
+    "boot_rom": { "array_bytes": 65536, "decoded_bytes": 16384, "ratio": 4.0, "depth_words": 16384, "width_bits": 32, "read_ports": 2, "write_ports": 0 },
+    "tcm": { "array_bytes": 32768, "decoded_bytes": 32768, "ratio": 1.0, "depth_words": 8192, "width_bits": 32, "read_ports": 2, "write_ports": 1, "write_lanes": 4 },
+    "sram": { "array_bytes": 262144, "decoded_bytes": 131072, "ratio": 2.0, "depth_words": 65536, "width_bits": 32, "read_ports": 2, "write_ports": 1, "write_lanes": 4 },
+    "apb_decode_lut": { "bits": 144, "bytes": 18, "depth_words": 16, "width_bits": 9, "read_ports": 1, "write_ports": 0 }
+  },
+  "checks": {
+    "drift_controls_total": 7,
+    "drift_controls_passed": 7,
+    "audit_exit_code": 2,
+    "declared_gaps": 6,
+    "unified_gate_passed": 10,
+    "unified_gate_failed": 0,
+    "unified_gate_blocked": 0
+  },
+  "elaboration": {
+    "yosys": "0.69+154",
+    "nodes": "has_soc hierarchy, no flatten",
+    "memories_il_bytes": 1986975,
+    "stat_mem_cells": 4
+  }
+}

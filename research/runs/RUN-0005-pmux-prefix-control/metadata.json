@@ -1,0 +1,19 @@
+{
+  "run_id": "RUN-0005-pmux-prefix-control",
+  "experiment_id": "E2-negative-control",
+  "purpose": "Show the new $pmux test fails on the pre-fix mapper (git HEAD version of sky130_map.v)",
+  "recorded_utc": "2026-11-18T13:10:11Z",
+  "source_sha": "025ef24f2f4444cac4c38dc62b659fac724770f4",
+  "worktree_dirty": true,
+  "dirty_note": "I2C STOP fix from RUN-0002..RUN-0004 present; does not touch the mapper",
+  "mapper_under_test": "build/asic_evidence/pmux_map_test/sky130_map_prefix.v (git show HEAD:build/asic_evidence/sky130_map.v)",
+  "mapper_sha256": "d5fda0bbfc6b38f355f21d5570acab25934e543c2455aaa37e36a7db56cae8fc",
+  "command": "node scripts/eda/run_pmux_map_test.js --map build/asic_evidence/pmux_map_test/sky130_map_prefix.v --tag prefix",
+  "exit_code": 1,
+  "outcome": "fail-as-expected",
+  "interpretation": "One mux2_1 instance instead of 8, 130048 of 393608 vectors mismatched, mapped output equal to bit 0 of the payload only.",
+  "limitations": [
+    "The I²C fix is present in this tree; it is unrelated to the mapper but means the tree is not pristine 025ef24.",
+    "Negative control is run through the same runner; its equivalence step is reported as skipped because the mapper is not the project mapper."
+  ]
+}

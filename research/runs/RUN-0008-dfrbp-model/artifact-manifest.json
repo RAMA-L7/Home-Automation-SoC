@@ -1,0 +1,149 @@
+{
+  "generated_utc": "2026-11-18T14:19:22.596Z",
+  "artifacts": [
+    {
+      "path": "asic/synthesis/techmap/dfrbp_model/sky130_stub_prefix.v",
+      "exists": true,
+      "bytes": 5559,
+      "sha256": "78f7268eef9b8254adf6e840a2f34313078f8f21705d7d68ab7a4a1cb9e53108"
+    },
+    {
+      "path": "asic/synthesis/techmap/dfrbp_model/tb_dfrbp_model.v",
+      "exists": true,
+      "bytes": 4231,
+      "sha256": "62d163f24c7d7ef0da9b695d4d90d4f4f44ee5dd11b0d8bae2596b3b613a63cd"
+    },
+    {
+      "path": "build/asic_evidence/arith_work/sky130_stub.v",
+      "exists": true,
+      "bytes": 5779,
+      "sha256": "6ce0f8a1d2c3c4b67c2e332dc1aafdd59f5081a1ea7e0dcb9c67d12ceece237e"
+    },
+    {
+      "path": "build/asic_evidence/dfrbp_model/evidence.json",
+      "exists": true,
+      "bytes": 3626,
+      "sha256": "7328dede26dec2d0ac0526e03a848495f76b4f3f831cf0451bcf3f90d9dd8100"
+    },
+    {
+      "path": "build/asic_evidence/sky130_full_subset.lib",
+      "exists": true,
+      "bytes": 790413,
+      "sha256": "5256f24d564c5b3474de689d94237cd0f6c94eaa672a3c02a134e452af668d5b"
+    },
+    {
+      "path": "build/asic_evidence/sky130_map.v",
+      "exists": true,
+      "bytes": 28165,
+      "sha256": "6687870974e5a516f7922fc3d6c9ab7c6d01aa07b7e2bff459e44a51ba2651b8"
+    },
+    {
+      "path": "build/asic_evidence/sky130_tt.lib",
+      "exists": true,
+      "bytes": 12800135,
+      "sha256": "ec0e1067a35c8bf20b11e58d1e8ac53326067e4dac84a125cc1b917a3518d0d9"
+    },
+    {
+      "path": "research/runs/RUN-0008-dfrbp-model/commands.jsonl",
+      "exists": true,
+      "bytes": 1552,
+      "sha256": "378eec7d84aabe053547a5f538839c867334aed9fba18691593f38bc3056605e"
+    },
+    {
+      "path": "research/runs/RUN-0008-dfrbp-model/logs/control_model_test.log",
+      "exists": true,
+      "bytes": 1658,
+      "sha256": "d256e5df941d6ee93e1bf9ef35c28d989bae9a3a5ae4826946a8f94a4fd727f0"
+    },
+    {
+      "path": "research/runs/RUN-0008-dfrbp-model/logs/dfrbp_model_test.log",
+      "exists": true,
+      "bytes": 1581,
+      "sha256": "6d269dce67d3cfb72b176f5c02fefe2212099ec17c57f9d638674111f2fc84d4"
+    },
+    {
+      "path": "research/runs/RUN-0008-dfrbp-model/logs/evidence.json",
+      "exists": true,
+      "bytes": 3660,
+      "sha256": "36c3fa9d6a24c27aa1531a02c3a8f1ffe0eba9ad8e7048ffba44f0fe741b4b03"
+    },
+    {
+      "path": "research/runs/RUN-0008-dfrbp-model/logs/gate_summary.txt",
+      "exists": true,
+      "bytes": 578,
+      "sha256": "aca2675ba013d15d0115006000178943be2f2fb135d12f1c517ff3a829f7a4ff"
+    },
+    {
+      "path": "research/runs/RUN-0008-dfrbp-model/logs/pmux_regression.log",
+      "exists": true,
+      "bytes": 575,
+      "sha256": "12cd9777345df65b577ae68a0cf9f16a46997ad4d2b5968601e76e31ef116270"
+    },
+    {
+      "path": "research/runs/RUN-0008-dfrbp-model/logs/postfix_prefix_compile.log",
+      "exists": true,
+      "bytes": 254,
+      "sha256": "bb731d3b1d30945d74fd18694818cc40cc53d929b57abb4ad28dc5d2d2375ae5"
+    },
+    {
+      "path": "research/runs/RUN-0008-dfrbp-model/logs/postfix_prefix_sim.log",
+      "exists": true,
+      "bytes": 591,
+      "sha256": "be9917ed859bfc467f100e410a16399079dc7391d1af0ac9708ea4e2919703a4"
+    },
+    {
+      "path": "research/runs/RUN-0008-dfrbp-model/logs/postfix_stub_compile.log",
+      "exists": true,
+      "bytes": 241,
+      "sha256": "72a467e52e98839296ffc4435ea693a296c76e05b347ca8e4b709f248267f364"
+    },
+    {
+      "path": "research/runs/RUN-0008-dfrbp-model/logs/postfix_stub_sim.log",
+      "exists": true,
+      "bytes": 230,
+      "sha256": "0f64654ac366c9e760094a6036f717f30f7ddad541e4e0a04199f9bb46bd8083"
+    },
+    {
+      "path": "research/runs/RUN-0008-dfrbp-model/logs/regression.log",
+      "exists": true,
+      "bytes": 1962,
+      "sha256": "2f7f593d28ab7df4fc5c030a5ada29fd6308f5ff7be13e793851c1f6c9046a2d"
+    },
+    {
+      "path": "research/runs/RUN-0008-dfrbp-model/logs/structural_check.log",
+      "exists": true,
+      "bytes": 758,
+      "sha256": "d9cb8a93231a095d4d485bf76a75ed3907ad582f3e94481c4d9efdf1ea79ea53"
+    },
+    {
+      "path": "research/runs/RUN-0008-dfrbp-model/metadata.json",
+      "exists": true,
+      "bytes": 4540,
+      "sha256": "904373e2a4457506f45aa0c5b5e95eb36f4647c3123ff01bf9e750351aec61ad"
+    },
+    {
+      "path": "research/runs/RUN-0008-dfrbp-model/metrics.json",
+      "exists": true,
+      "bytes": 1442,
+      "sha256": "edf70de379d368a06a272e65cbc04ef1080aa8e2561a748d14cc73d3a5dee0c1"
+    },
+    {
+      "path": "research/runs/RUN-0008-dfrbp-model/review.md",
+      "exists": true,
+      "bytes": 8467,
+      "sha256": "28b9907acc0a6bae3ca94f9cba79bfb5ada4910311d4e80d5dd33a9a433fed7f"
+    },
+    {
+      "path": "research/runs/RUN-0008-dfrbp-model/source-manifest.json",
+      "exists": true,
+      "bytes": 571,
+      "sha256": "23e617c986cebd318896b8588f05f3dcd1a0307ca6c6a6d18ddc34a6d15a9b29"
+    },
+    {
+      "path": "scripts/eda/run_dfrbp_model_test.js",
+      "exists": true,
+      "bytes": 13256,
+      "sha256": "44c687f8d1c8d94040da561e541cd20f892c25424b0eac9bc55a9a92f48bd5c0"
+    }
+  ]
+}

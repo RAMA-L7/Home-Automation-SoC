@@ -1,0 +1,53 @@
+{
+  "run_id": "RUN-0008-dfrbp-model",
+  "dfrbp_model_test": {
+    "steps": 11,
+    "steps_passed": 11,
+    "directed_checks": 11,
+    "checks_failed": 0,
+    "exit_code": 0
+  },
+  "negative_control_model": {
+    "artifact": "asic/synthesis/techmap/dfrbp_model/sky130_stub_prefix.v",
+    "sha256": "78f7268eef9b8254adf6e840a2f34313078f8f21705d7d68ab7a4a1cb9e53108",
+    "steps": 11,
+    "steps_passed": 7,
+    "checks_failed": 3,
+    "exit_code": 1
+  },
+  "test_before_fix": {
+    "steps_passed": 5,
+    "steps": 8,
+    "checks_failed": 4,
+    "exit_code": 1,
+    "note": "runner had 8 steps at that moment; two inventory steps were added afterwards"
+  },
+  "liberty_definition": {
+    "cells": ["sky130_fd_sc_hd__dfrbp_1", "sky130_fd_sc_hd__dfrbp_2"],
+    "clocked_on": "CLK",
+    "clear": "!RESET_B",
+    "next_state": "D",
+    "rising_edge_arcs_per_cell": 2,
+    "falling_edge_arcs": 0,
+    "subset_lib_identical": true
+  },
+  "stub_comparison": {
+    "sequential_cells_checked": 11,
+    "sequential_cells_mismatched_before_fix": 1,
+    "sequential_cells_mismatched_after_fix": 0
+  },
+  "usage_inventory": {
+    "mapper_cell_types": 8,
+    "mapper_emits_dfrbp": false,
+    "netlist_files_scanned": 72,
+    "dfrbp_instantiations": 0
+  },
+  "regression": {
+    "pmux_map_test_steps": "7/7",
+    "pmux_vectors": 393608,
+    "pmux_mismatches": 0,
+    "unified_gate_passed": 10,
+    "unified_gate_failed": 0,
+    "unified_gate_blocked": 0
+  }
+}

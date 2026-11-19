@@ -1,0 +1,10 @@
+iverilog                   iverilog: unknown option -- -
+vvp                        vvp: unknown option -- -
+yosys                      Yosys 0.69+154 (git sha1 30d62572e-dirty, Release, GNU /usr/bin/x86_64-w64-mingw32-g++ 15.2.1)
+sby                        SBY v0.69
+verible-verilog-syntax     Version	v0.0-4298-g085eef05
+verible-verilog-lint       Version	v0.0-4298-g085eef05
+verilator                  not installed (optional)
+riscv toolchain            D:\tools\xpack-riscv-none-elf-gcc-12.2.0-2\bin\riscv-none-elf-gcc.exe [installed] riscv-none-elf-gcc.exe (xPack GNU RISC-V Embedded GCC x86_64) 12.2.0
+node                       v26.7.0
+python                     D:/tools/venv/Scripts/python.exe

@@ -1,0 +1,13 @@
+rtl/rtl_peripherals/i2c_ctrl.sv:144: sorry: constant selects in always_* processes are not fully supported (the process will be sensitive to all bits in 'shreg[7:0]').
+rtl/rtl_peripherals/i2c_ctrl.sv:278: sorry: constant selects in always_* processes are not fully supported (the process will be sensitive to all bits in 'paddr[31:0]').
+WRITE: addr=a0 data=5a bytes=1 ack_error=0 stops=0
+  FAIL: no STOP condition
+  FAIL: invalid STOP (SCL and SDA released in the same cycle)
+READ : addr=a1 rx=00000004 nack_seen=1 stops=0
+       DATA register = 3c
+  FAIL: no STOP condition
+  FAIL: invalid STOP (SCL and SDA released in the same cycle)
+NACK : addr=a0 data_bytes=0 ack_error=1
+  FAIL: no STOP after NACK abort
+FATAL: sim/sim_top/tb_i2c_xfer.v:277: TB_I2C_XFER: 5 FAILURES
+       Time: 6515000  Scope: tb_i2c_xfer

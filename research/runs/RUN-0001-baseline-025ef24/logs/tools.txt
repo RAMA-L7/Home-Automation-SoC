@@ -1,0 +1,97 @@
+== tool inventory: probe output, 2026-11-18T12:18:03Z ==
+Icarus Verilog version 14.0 (devel) (s20260301-500-g2e81fcccb-dirty)
+
+Copyright (c) 2000-2026 Stephen Williams (steve@icarus.com)
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License along
+  with this program; if not, write to the Free Software Foundation, Inc.,
+  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+Icarus Verilog Preprocessor version 14.0 (devel) (s20260301-500-g2e81fcccb-dirty)
+
+Copyright (c) 1999-2026 Stephen Williams (steve@icarus.com)
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License along
+  with this program; if not, write to the Free Software Foundation, Inc.,
+  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+Icarus Verilog Parser/Elaborator version 14.0 (devel) (s20260301-500-g2e81fcccb-dirty)
+
+Copyright (c) 1998-2026 Stephen Williams (steve@icarus.com)
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License along
+  with this program; if not, write to the Free Software Foundation, Inc.,
+  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+ FLAGS DLL vvp.tgt
+vvp.tgt: Icarus Verilog VVP Code Generator 14.0 (devel) (s20260301-500-g2e81fcccb-dirty)
+
+Copyright (c) 2001-2026 Stephen Williams (steve@icarus.com)
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License along
+  with this program; if not, write to the Free Software Foundation, Inc.,
+  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+Yosys 0.69+154 (git sha1 30d62572e-dirty, Release, GNU /usr/bin/x86_64-w64-mingw32-g++ 15.2.1)
+SBY v0.69
+'verilator' is not recognized as an internal or external command,
+operable program or batch file.
+'verible-verilog-lint' is not recognized as an internal or external command,
+operable program or batch file.
+--- python (venv) ---
+Python 3.10.11
+--- riscv gcc (discovered) ---
+riscv-none-elf-gcc.exe (xPack GNU RISC-V Embedded GCC x86_64) 12.2.0
+--- node / git ---
+v26.7.0
+git version 2.54.0.windows.1
+--- kicad ---
+10.0.8
+--- verilator (bash wrapper) ---
+Can't locate Pod/Usage.pm in @INC (you may need to install the Pod::Usage module) (@INC entries checked: /usr/lib/perl5/site_perl /usr/share/perl5/site_perl /usr/lib/perl5/vendor_perl /usr/share/perl5/vendor_perl /usr/lib/perl5/core_perl /usr/share/perl5/core_perl) at /d/tools/oss-cad-suite/bin/verilator line 17.
+BEGIN failed--compilation aborted at /d/tools/oss-cad-suite/bin/verilator line 17.
+--- verilator_bin.exe ---
+Verilator 5.053 devel rev v5.052-119-g014c9820d (mod)
+--- verible (D:/tools/verible) ---
+Version	v0.0-4298-g085eef05
+Version	v0.0-4298-g085eef05

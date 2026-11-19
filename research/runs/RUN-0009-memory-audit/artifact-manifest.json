@@ -1,0 +1,107 @@
+{
+  "generated_utc": "2026-11-18T14:39:29.721Z",
+  "artifacts": [
+    {
+      "path": "asic/synthesis/memory_audit.ys",
+      "exists": true,
+      "bytes": 2428,
+      "sha256": "70aaf7c15a36be89d9f470dc77ccf9936307dcfac862e0e048bd399a36d48a83"
+    },
+    {
+      "path": "asic/synthesis/memory_inventory.json",
+      "exists": true,
+      "bytes": 8276,
+      "sha256": "fd46a9173770bbb90a719224f492b44dc0b7bb4fc41d9d03729429e6955c05de"
+    },
+    {
+      "path": "build/asic_evidence/memory_audit/memories.il",
+      "exists": true,
+      "bytes": 1986975,
+      "sha256": "484ed47fdce2b9f87703db67882e3b189c9409d7ea3d63f09ec1213bcf93e963"
+    },
+    {
+      "path": "build/asic_evidence/memory_audit/memory_cells.json",
+      "exists": true,
+      "bytes": 20594,
+      "sha256": "143449254b3fecfa54c1cc684bf8ba9ebe248d645029634bbcfa9b9c6fde64f1"
+    },
+    {
+      "path": "research/MEMORY_ARCHITECTURE_AUDIT.md",
+      "exists": true,
+      "bytes": 11238,
+      "sha256": "d8c05d93670b4f66d78cb4d1dada0ad72638197e9f5feb417f205f41924900d0"
+    },
+    {
+      "path": "research/runs/RUN-0009-memory-audit/commands.jsonl",
+      "exists": true,
+      "bytes": 1247,
+      "sha256": "57985154f9ae9b73f059c1fc4511dda689b3a952b5652f1c594ff608b81206c4"
+    },
+    {
+      "path": "research/runs/RUN-0009-memory-audit/logs/audit_memory.log",
+      "exists": true,
+      "bytes": 651,
+      "sha256": "55545103ebd752351d03d34bb2d163f72234e402210b0ed1cb8768ed02f8604e"
+    },
+    {
+      "path": "research/runs/RUN-0009-memory-audit/logs/audit_self_test.log",
+      "exists": true,
+      "bytes": 499,
+      "sha256": "384c38844522c5d511fe3d298e7c81e9e46a061e877ee23c469c2b4aaa9fad7e"
+    },
+    {
+      "path": "research/runs/RUN-0009-memory-audit/logs/gate_summary.txt",
+      "exists": true,
+      "bytes": 578,
+      "sha256": "aca2675ba013d15d0115006000178943be2f2fb135d12f1c517ff3a829f7a4ff"
+    },
+    {
+      "path": "research/runs/RUN-0009-memory-audit/logs/hashes.txt",
+      "exists": true,
+      "bytes": 991,
+      "sha256": "49877f98fca0b154c346496271645865cdae43a99a0e60051d3cbe54853ce1a9"
+    },
+    {
+      "path": "research/runs/RUN-0009-memory-audit/logs/memory_cells.json",
+      "exists": true,
+      "bytes": 20594,
+      "sha256": "143449254b3fecfa54c1cc684bf8ba9ebe248d645029634bbcfa9b9c6fde64f1"
+    },
+    {
+      "path": "research/runs/RUN-0009-memory-audit/logs/memory_inventory.snapshot.json",
+      "exists": true,
+      "bytes": 8276,
+      "sha256": "fd46a9173770bbb90a719224f492b44dc0b7bb4fc41d9d03729429e6955c05de"
+    },
+    {
+      "path": "research/runs/RUN-0009-memory-audit/logs/yosys_memory_audit.log",
+      "exists": true,
+      "bytes": 4367111,
+      "sha256": "c2fb691e19b088ade8148a9a691c45b0886f9a6d12d304be00fe1cdb1586e141"
+    },
+    {
+      "path": "research/runs/RUN-0009-memory-audit/metadata.json",
+      "exists": true,
+      "bytes": 4600,
+      "sha256": "bc1c3028d5bbc85ff376e63dc167acb97753606fa2e344ccf1a16f397592f275"
+    },
+    {
+      "path": "research/runs/RUN-0009-memory-audit/metrics.json",
+      "exists": true,
+      "bytes": 1317,
+      "sha256": "97ce7edcc9156b6786c1b30313d1724a86e5b640b17f1524973a20413a3be76a"
+    },
+    {
+      "path": "research/runs/RUN-0009-memory-audit/review.md",
+      "exists": true,
+      "bytes": 4230,
+      "sha256": "b8fbbe00e72b027bd4d806afdbee03516c8580107d886a8fe14a1d4da17916a2"
+    },
+    {
+      "path": "scripts/eda/audit_memory.js",
+      "exists": true,
+      "bytes": 13216,
+      "sha256": "c575607f5a4dbd4db86b84d7255aae9060954b52d3dd6ecbd78042ea2f8cebbc"
+    }
+  ]
+}

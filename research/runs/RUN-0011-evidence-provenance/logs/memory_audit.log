@@ -1,0 +1,10 @@
+PASS  memory inventory, address map, interconnect and elaboration agree
+BLOCKED  6 declared ASIC gap(s):
+        MEM-ROM (rom): 65536 B, asic_status="unresolved"
+        MEM-TCM (sram_tcm): 32768 B, asic_status="unresolved"
+        MEM-SRAM (sram): 262144 B, asic_status="unresolved"
+        MEM-DECODE-LUT (decode_lut): 18 B, asic_status="unresolved"
+        MEM-ROM: array 65536 B vs decoded 16384 B must be reconciled
+        MEM-SRAM: array 262144 B vs decoded 131072 B must be reconciled
+
+MEMORY_AUDIT: BLOCKED

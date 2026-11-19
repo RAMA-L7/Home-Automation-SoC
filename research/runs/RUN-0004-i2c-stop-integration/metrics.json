@@ -1,0 +1,6 @@
+{
+  "run_id": "RUN-0004-i2c-stop-integration",
+  "regression": { "passed": 27, "total": 27, "exit": 0, "wall_s": 241 },
+  "unified_gate": { "passed": 9, "failed": 0, "blocked": 0, "exit": 0, "wall_s": 266 },
+  "i2c_transaction_test": { "result": "PASS", "stops_detected": 2, "invalid_stop_events": 0 }
+}

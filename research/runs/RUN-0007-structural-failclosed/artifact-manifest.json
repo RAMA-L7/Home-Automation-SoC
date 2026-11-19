@@ -1,0 +1,107 @@
+{
+  "generated_utc": "2026-11-18T13:47:15.928Z",
+  "artifacts": [
+    {
+      "path": "research/runs/RUN-0007-structural-failclosed/logs/structural_self_test.log",
+      "exists": true,
+      "bytes": 758,
+      "sha256": "d9cb8a93231a095d4d485bf76a75ed3907ad582f3e94481c4d9efdf1ea79ea53"
+    },
+    {
+      "path": "research/runs/RUN-0007-structural-failclosed/logs/structural_full_soc.log",
+      "exists": true,
+      "bytes": 300,
+      "sha256": "9d3c3a9b4224a7997fca120611112227b25d6459cc331a908ca9744876f9d3f0"
+    },
+    {
+      "path": "research/runs/RUN-0007-structural-failclosed/logs/gate_full.log",
+      "exists": true,
+      "bytes": 666,
+      "sha256": "e1668fa3f078159f6f1cf4543d5fc0426f838d5dbf6d45cb824cd3bbbdaa2add"
+    },
+    {
+      "path": "research/runs/RUN-0007-structural-failclosed/logs/legacy-undriven.log",
+      "exists": true,
+      "bytes": 4090,
+      "sha256": "73feb902a6fbdcb6573450b903bd0bc10a7a5b03e79409596d675f80be2b0751"
+    },
+    {
+      "path": "research/runs/RUN-0007-structural-failclosed/logs/fullsoc.log",
+      "exists": true,
+      "bytes": 4434577,
+      "sha256": "c3a4631d2f46493e54052e8dd2482f2829055e7c5e6311238181cce95c9f32e2"
+    },
+    {
+      "path": "research/runs/RUN-0007-structural-failclosed/logs/has_soc_cells.json",
+      "exists": true,
+      "bytes": 21307,
+      "sha256": "17a8a63bcbf3831365e003be152b9a7d135de74514c1d67a85d1fecd2d738bd0"
+    },
+    {
+      "path": "asic/synthesis/fullsoc_map.ys",
+      "exists": true,
+      "bytes": 2523,
+      "sha256": "78fc83e263727a7ff7e7c9d9b7de793fd229816b232885c741aea41bb4723d0b"
+    },
+    {
+      "path": "asic/synthesis/structural_policy.json",
+      "exists": true,
+      "bytes": 946,
+      "sha256": "f8e92d7e1822580eb4acda12720fe0b291fafb7a333bf6e15a9b9267d181fc4f"
+    },
+    {
+      "path": "asic/synthesis/structural_cases/undriven_top.v",
+      "exists": true,
+      "bytes": 260,
+      "sha256": "525a7a7375faf7a694340d2b0785fa6529106df5a102b67a1d64583e53ebdf9a"
+    },
+    {
+      "path": "asic/synthesis/structural_cases/multidriver_top.v",
+      "exists": true,
+      "bytes": 221,
+      "sha256": "0df9940e807ec523563d30933cdf2b4c03b9e792dbf450ade52540d137321c71"
+    },
+    {
+      "path": "asic/synthesis/structural_cases/undeclared_memory_top.v",
+      "exists": true,
+      "bytes": 318,
+      "sha256": "6d042a2311c2988b50b221e2689a184261318e1e2438d039896cda94cdfa88d6"
+    },
+    {
+      "path": "asic/synthesis/structural_cases/policy_mismatch_case.v",
+      "exists": true,
+      "bytes": 614,
+      "sha256": "1c957c25c8c8f98ca51fa24de08020c6654579c765d30b8b37fbd71a6cdf6c09"
+    },
+    {
+      "path": "asic/synthesis/structural_cases/unmapped_div_top.v",
+      "exists": true,
+      "bytes": 336,
+      "sha256": "b19cce0fe5ebd544c80f8c1209b94d8e9f693b95b13bf82083e569cf0399611b"
+    },
+    {
+      "path": "asic/synthesis/structural_cases/clean_baseline_top.v",
+      "exists": true,
+      "bytes": 301,
+      "sha256": "a7ae0f85fb3654dad4a7dfefa92592dd9a9982bb1e233d7a391cdbee11d23b7b"
+    },
+    {
+      "path": "scripts/eda/check_structure.js",
+      "exists": true,
+      "bytes": 11718,
+      "sha256": "34e49d4c10c10598570b06201977355529e6bcaae633c201d8be755049ef28fb"
+    },
+    {
+      "path": "scripts/verify.js",
+      "exists": true,
+      "bytes": 25373,
+      "sha256": "2d0808745180e09b4bb1c3eb77a814440e96da8d3ae8ca9f78659fc17e964c47"
+    },
+    {
+      "path": "build/asic_evidence/sky130_map.v",
+      "exists": true,
+      "bytes": 28165,
+      "sha256": "6687870974e5a516f7922fc3d6c9ab7c6d01aa07b7e2bff459e44a51ba2651b8"
+    }
+  ]
+}

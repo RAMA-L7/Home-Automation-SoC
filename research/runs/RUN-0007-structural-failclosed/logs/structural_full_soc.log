@@ -1,0 +1,4 @@
+STRUCTURAL_CHECK: BLOCKED (top=has_soc)
+  261999 leaf cells, 8 types
+  GAP $mem_v2 x4 — F7/TD-006: inferred memories with no macro implementation (1 in has_soc, 1 boot_rom, 2 distinct sram parameterizations). Measured 2026-11-18; the older '3 memories' note undercounted.
+STRUCTURAL_CHECK: BLOCKED

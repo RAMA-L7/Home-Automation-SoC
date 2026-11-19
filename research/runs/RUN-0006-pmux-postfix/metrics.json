@@ -1,0 +1,9 @@
+{
+  "run_id": "RUN-0006-pmux-postfix",
+  "mux2_1_instances": { "pmux_s1_w8": 8, "pmux_s3_w8": 24, "pmux_s1_w1": 1 },
+  "simulation": { "vectors": 393608, "mismatches": 0, "exit": 0 },
+  "equivalence": { "equiv_cells_proven": 9, "equiv_cells_unproven": 0, "modules": ["pmux_s1_w8", "pmux_s1_w1"] },
+  "yosys_check_problems": 0,
+  "arith_test_synthesis": { "exit": 0, "check_problems": 0, "mux2_1": 20, "netlist_identical_prefix_vs_postfix": true },
+  "test_suite": { "steps": 7, "passed": 7 }
+}

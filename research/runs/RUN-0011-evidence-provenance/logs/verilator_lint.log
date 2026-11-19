@@ -1,0 +1,485 @@
+%Warning-DECLFILENAME: rtl/rtl_top\has_addr_map.sv:7:9: Filename 'has_addr_map' does not match PACKAGE name: 'has_addr_map_pkg'
+    7 | package has_addr_map_pkg;
+      |         ^~~~~~~~~~~~~~~~
+                       ... For warning description see https://verilator.org/warn/DECLFILENAME?v=5.053
+                       ... Use "/* verilator lint_off DECLFILENAME */" and lint_on around source to disable this message.
+%Warning-PINCONNECTEMPTY: rtl/rtl_top\has_soc.sv:145:6: Instance pin connected by name with empty reference: 'debug_halted'
+  145 |     .debug_halted (),
+      |      ^~~~~~~~~~~~
+                          ... For warning description see https://verilator.org/warn/PINCONNECTEMPTY?v=5.053
+                          ... Use "/* verilator lint_off PINCONNECTEMPTY */" and lint_on around source to disable this message.
+%Warning-PINCONNECTEMPTY: rtl/rtl_top\has_soc.sv:146:6: Instance pin connected by name with empty reference: 'debug_running'
+  146 |     .debug_running()
+      |      ^~~~~~~~~~~~~
+%Warning-PINCONNECTEMPTY: rtl/rtl_top\has_soc.sv:237:6: Instance pin connected by name with empty reference: 'm_arprot'
+  237 |     .m_arprot  (),
+      |      ^~~~~~~~
+%Warning-PINCONNECTEMPTY: rtl/rtl_top\has_soc.sv:271:6: Instance pin connected by name with empty reference: 'm_arprot'
+  271 |     .m_arprot    (),
+      |      ^~~~~~~~
+%Warning-PINCONNECTEMPTY: rtl/rtl_top\has_soc.sv:462:28: Instance pin connected by name with empty reference: 'pready'
+  462 |     .prdata(prdata_gpio), .pready(), .pslverr(),
+      |                            ^~~~~~
+%Warning-PINCONNECTEMPTY: rtl/rtl_top\has_soc.sv:462:39: Instance pin connected by name with empty reference: 'pslverr'
+  462 |     .prdata(prdata_gpio), .pready(), .pslverr(),
+      |                                       ^~~~~~~
+%Warning-PINCONNECTEMPTY: rtl/rtl_top\has_soc.sv:468:28: Instance pin connected by name with empty reference: 'pready'
+  468 |     .prdata(prdata_uart), .pready(), .pslverr(),
+      |                            ^~~~~~
+%Warning-PINCONNECTEMPTY: rtl/rtl_top\has_soc.sv:468:39: Instance pin connected by name with empty reference: 'pslverr'
+  468 |     .prdata(prdata_uart), .pready(), .pslverr(),
+      |                                       ^~~~~~~
+%Warning-PINCONNECTEMPTY: rtl/rtl_top\has_soc.sv:474:27: Instance pin connected by name with empty reference: 'pready'
+  474 |     .prdata(prdata_i2c), .pready(), .pslverr(),
+      |                           ^~~~~~
+%Warning-PINCONNECTEMPTY: rtl/rtl_top\has_soc.sv:474:38: Instance pin connected by name with empty reference: 'pslverr'
+  474 |     .prdata(prdata_i2c), .pready(), .pslverr(),
+      |                                      ^~~~~~~
+%Warning-PINCONNECTEMPTY: rtl/rtl_top\has_soc.sv:480:27: Instance pin connected by name with empty reference: 'pready'
+  480 |     .prdata(prdata_spi), .pready(), .pslverr(),
+      |                           ^~~~~~
+%Warning-PINCONNECTEMPTY: rtl/rtl_top\has_soc.sv:480:38: Instance pin connected by name with empty reference: 'pslverr'
+  480 |     .prdata(prdata_spi), .pready(), .pslverr(),
+      |                                      ^~~~~~~
+%Warning-PINCONNECTEMPTY: rtl/rtl_top\has_soc.sv:487:27: Instance pin connected by name with empty reference: 'pready'
+  487 |     .prdata(prdata_pwm), .pready(), .pslverr(),
+      |                           ^~~~~~
+%Warning-PINCONNECTEMPTY: rtl/rtl_top\has_soc.sv:487:38: Instance pin connected by name with empty reference: 'pslverr'
+  487 |     .prdata(prdata_pwm), .pready(), .pslverr(),
+      |                                      ^~~~~~~
+%Warning-PINCONNECTEMPTY: rtl/rtl_top\has_soc.sv:493:29: Instance pin connected by name with empty reference: 'pready'
+  493 |     .prdata(prdata_timer), .pready(), .pslverr(),
+      |                             ^~~~~~
+%Warning-PINCONNECTEMPTY: rtl/rtl_top\has_soc.sv:493:40: Instance pin connected by name with empty reference: 'pslverr'
+  493 |     .prdata(prdata_timer), .pready(), .pslverr(),
+      |                                        ^~~~~~~
+%Warning-PINCONNECTEMPTY: rtl/rtl_top\has_soc.sv:503:28: Instance pin connected by name with empty reference: 'pready'
+  503 |     .prdata(prdata_wdog), .pready(), .pslverr(),
+      |                            ^~~~~~
+%Warning-PINCONNECTEMPTY: rtl/rtl_top\has_soc.sv:503:39: Instance pin connected by name with empty reference: 'pslverr'
+  503 |     .prdata(prdata_wdog), .pready(), .pslverr(),
+      |                                       ^~~~~~~
+%Warning-PINCONNECTEMPTY: rtl/rtl_top\has_soc.sv:513:27: Instance pin connected by name with empty reference: 'pready'
+  513 |     .prdata(prdata_i2s), .pready(), .pslverr(),
+      |                           ^~~~~~
+%Warning-PINCONNECTEMPTY: rtl/rtl_top\has_soc.sv:513:38: Instance pin connected by name with empty reference: 'pslverr'
+  513 |     .prdata(prdata_i2s), .pready(), .pslverr(),
+      |                                      ^~~~~~~
+%Warning-PINCONNECTEMPTY: rtl/rtl_top\has_soc.sv:521:27: Instance pin connected by name with empty reference: 'pready'
+  521 |     .prdata(prdata_pwr), .pready(), .pslverr(),
+      |                           ^~~~~~
+%Warning-PINCONNECTEMPTY: rtl/rtl_top\has_soc.sv:521:38: Instance pin connected by name with empty reference: 'pslverr'
+  521 |     .prdata(prdata_pwr), .pready(), .pslverr(),
+      |                                      ^~~~~~~
+%Warning-IMPORTSTAR: rtl/rtl_top\has_soc.sv:15:8: 'import::*' in $unit scope may pollute global namespace
+   15 | import has_addr_map_pkg::*;
+      |        ^~~~~~~~~~~~~~~~
+                     ... For warning description see https://verilator.org/warn/IMPORTSTAR?v=5.053
+                     ... Use "/* verilator lint_off IMPORTSTAR */" and lint_on around source to disable this message.
+%Warning-WIDTHTRUNC: rtl/rtl_peripherals\plic.sv:90:16: Bit extraction of var[7:0] requires 3 bit index, not 4 bits.
+                                                      : ... note: In instance 'has_soc.intc_inst.plic_inst'
+   90 |         claimed[claim_id - 4'd1] <= 1'b1;
+      |                ^
+                     ... For warning description see https://verilator.org/warn/WIDTHTRUNC?v=5.053
+                     ... Use "/* verilator lint_off WIDTHTRUNC */" and lint_on around source to disable this message.
+%Warning-WIDTHTRUNC: rtl/rtl_peripherals\plic.sv:108:13: Bit extraction of array[7:0] requires 3 bit index, not 4 bits.
+                                                       : ... note: In instance 'has_soc.intc_inst.plic_inst'
+  108 |         prio[4'(wr_addr[5:2] - 4'd1)] <= wr_data[7:0];
+      |             ^
+%Warning-WIDTHEXPAND: rtl/rtl_peripherals\plic.sv:107:41: Operator LT expects 32 bits on the LHS, but LHS's VARREF 'wr_addr' generates 12 bits.
+                                                        : ... note: In instance 'has_soc.intc_inst.plic_inst'
+  107 |       if (wr_addr >= 12'h004 && wr_addr < 12'h004 + 4*NUM_SOURCES)
+      |                                         ^
+                      ... For warning description see https://verilator.org/warn/WIDTHEXPAND?v=5.053
+                      ... Use "/* verilator lint_off WIDTHEXPAND */" and lint_on around source to disable this message.
+%Warning-WIDTHEXPAND: rtl/rtl_peripherals\plic.sv:107:51: Operator ADD expects 32 bits on the LHS, but LHS's CONST '12'h4' generates 12 bits.
+                                                        : ... note: In instance 'has_soc.intc_inst.plic_inst'
+  107 |       if (wr_addr >= 12'h004 && wr_addr < 12'h004 + 4*NUM_SOURCES)
+      |                                                   ^
+%Warning-WIDTHEXPAND: rtl/rtl_peripherals\plic.sv:123:14: Operator ASSIGN expects 4 bits on the Assign RHS, but Assign RHS's CONST '3'h0' generates 3 bits.
+                                                        : ... note: In instance 'has_soc.intc_inst.plic_inst'
+  123 |     claim_id = 3'd0;
+      |              ^
+%Warning-WIDTHTRUNC: rtl/rtl_peripherals\plic.sv:141:29: Bit extraction of array[7:0] requires 3 bit index, not 4 bits.
+                                                       : ... note: In instance 'has_soc.intc_inst.plic_inst'
+  141 |       rd_data = {24'd0, prio[4'(rd_addr[5:2] - 4'd1)]};
+      |                             ^
+%Warning-WIDTHEXPAND: rtl/rtl_peripherals\plic.sv:140:39: Operator LT expects 32 bits on the LHS, but LHS's VARREF 'rd_addr' generates 12 bits.
+                                                        : ... note: In instance 'has_soc.intc_inst.plic_inst'
+  140 |     if (rd_addr >= 12'h004 && rd_addr < 12'h004 + 4*NUM_SOURCES)
+      |                                       ^
+%Warning-WIDTHEXPAND: rtl/rtl_peripherals\plic.sv:140:49: Operator ADD expects 32 bits on the LHS, but LHS's CONST '12'h4' generates 12 bits.
+                                                        : ... note: In instance 'has_soc.intc_inst.plic_inst'
+  140 |     if (rd_addr >= 12'h004 && rd_addr < 12'h004 + 4*NUM_SOURCES)
+      |                                                 ^
+%Warning-WIDTHTRUNC: rtl/rtl_top\riscv_core.sv:646:32: Operator ASSIGNDLY expects 1 bits on the Assign RHS, but Assign RHS's CONST '2'h0' generates 2 bits.
+                                                     : ... note: In instance 'has_soc.core'
+  646 |           mstatus[MSTATUS_MPP] <= 2'b00;
+      |                                ^~
+%Warning-WIDTHTRUNC: rtl/rtl_top\riscv_core.sv:698:30: Operator ASSIGNDLY expects 1 bits on the Assign RHS, but Assign RHS's VARREF 'PRV_M' generates 2 bits.
+                                                     : ... note: In instance 'has_soc.core'
+  698 |         mstatus[MSTATUS_MPP] <= PRV_M;
+      |                              ^~
+%Warning-WIDTHEXPAND: rtl/rtl_peripherals\uart.sv:246:28: Operator COND expects 32 bits on the Conditional True, but Conditional True's REPLICATE generates 24 bits.
+                                                        : ... note: In instance 'has_soc.uart_inst'
+  246 |       10'd1: prdata = dlab ? {16'd0, div[15:8]} : {24'd0, ier};
+      |                            ^
+%Warning-WIDTHEXPAND: rtl/rtl_top\has_soc.sv:532:5: Operator CASE expects 9 bits on the Case expression, but Case expression's SEL generates 8 bits.
+                                                  : ... note: In instance 'has_soc'
+  532 |     case (paddr[19:12])
+      |     ^~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\has_soc.sv:250:22: Bits of signal are not used: 's_awprot'[17:15,11:0]
+                                                    : ... note: In instance 'has_soc'
+  250 |   logic [5:0] [2:0]  s_awprot, s_arprot;
+      |                      ^~~~~~~~
+                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.053
+                       ... Use "/* verilator lint_off UNUSEDSIGNAL */" and lint_on around source to disable this message.
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\has_soc.sv:250:32: Bits of signal are not used: 's_arprot'[17:15,11:0]
+                                                    : ... note: In instance 'has_soc'
+  250 |   logic [5:0] [2:0]  s_awprot, s_arprot;
+      |                                ^~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\has_soc.sv:439:55: Signal is not used: 'pwr_irq'
+                                                    : ... note: In instance 'has_soc'
+  439 |   logic        pwm_irq, timer_irq, wdog_irq, i2s_irq, pwr_irq;
+      |                                                       ^~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\gpio.sv:26:24: Bits of signal are not used: 'paddr'[31:12,1:0]
+                                                        : ... note: In instance 'has_soc.gpio_inst'
+   26 |   input  logic [31:0]  paddr,
+      |                        ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\gpio.sv:27:24: Bits of signal are not used: 'pwdata'[31:16]
+                                                        : ... note: In instance 'has_soc.gpio_inst'
+   27 |   input  logic [31:0]  pwdata,
+      |                        ^~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\gpio.sv:28:24: Signal is not used: 'pstrb'
+                                                        : ... note: In instance 'has_soc.gpio_inst'
+   28 |   input  logic [3:0]   pstrb,
+      |                        ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\uart.sv:37:24: Bits of signal are not used: 'paddr'[31:12,1:0]
+                                                        : ... note: In instance 'has_soc.uart_inst'
+   37 |   input  logic [31:0]  paddr,
+      |                        ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\uart.sv:38:24: Bits of signal are not used: 'pwdata'[31:8]
+                                                        : ... note: In instance 'has_soc.uart_inst'
+   38 |   input  logic [31:0]  pwdata,
+      |                        ^~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\uart.sv:39:24: Signal is not used: 'pstrb'
+                                                        : ... note: In instance 'has_soc.uart_inst'
+   39 |   input  logic [3:0]   pstrb,
+      |                        ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\uart.sv:51:46: Signal is not used: 'fcr'
+                                                        : ... note: In instance 'has_soc.uart_inst'
+   51 |   logic [7:0]  thr, rbr, ier, lcr, mcr, spr, fcr;
+      |                                              ^~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\i2c_ctrl.sv:38:24: Bits of signal are not used: 'paddr'[31:12,1:0]
+                                                            : ... note: In instance 'has_soc.i2c_inst'
+   38 |   input  logic [31:0]  paddr,
+      |                        ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\i2c_ctrl.sv:39:24: Bits of signal are not used: 'pwdata'[31:16]
+                                                            : ... note: In instance 'has_soc.i2c_inst'
+   39 |   input  logic [31:0]  pwdata,
+      |                        ^~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\i2c_ctrl.sv:40:24: Signal is not used: 'pstrb'
+                                                            : ... note: In instance 'has_soc.i2c_inst'
+   40 |   input  logic [3:0]   pstrb,
+      |                        ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\i2c_ctrl.sv:73:16: Signal is not used: 'do_stop'
+                                                            : ... note: In instance 'has_soc.i2c_inst'
+   73 |   logic        do_stop;
+      |                ^~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\spi_ctrl.sv:21:24: Bits of signal are not used: 'paddr'[31:12,1:0]
+                                                            : ... note: In instance 'has_soc.spi_inst'
+   21 |   input  logic [31:0]  paddr,
+      |                        ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\spi_ctrl.sv:22:24: Bits of signal are not used: 'pwdata'[31:16]
+                                                            : ... note: In instance 'has_soc.spi_inst'
+   22 |   input  logic [31:0]  pwdata,
+      |                        ^~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\spi_ctrl.sv:23:24: Signal is not used: 'pstrb'
+                                                            : ... note: In instance 'has_soc.spi_inst'
+   23 |   input  logic [3:0]   pstrb,
+      |                        ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\pwm.sv:23:24: Bits of signal are not used: 'paddr'[31:12,1:0]
+                                                       : ... note: In instance 'has_soc.pwm_inst'
+   23 |   input  logic [31:0]  paddr,
+      |                        ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\pwm.sv:24:24: Bits of signal are not used: 'pwdata'[31:16]
+                                                       : ... note: In instance 'has_soc.pwm_inst'
+   24 |   input  logic [31:0]  pwdata,
+      |                        ^~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\pwm.sv:25:24: Signal is not used: 'pstrb'
+                                                       : ... note: In instance 'has_soc.pwm_inst'
+   25 |   input  logic [3:0]   pstrb,
+      |                        ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\timer.sv:19:24: Bits of signal are not used: 'paddr'[31:12,1:0]
+                                                         : ... note: In instance 'has_soc.timer_inst'
+   19 |   input  logic [31:0]  paddr,
+      |                        ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\timer.sv:21:24: Signal is not used: 'pstrb'
+                                                         : ... note: In instance 'has_soc.timer_inst'
+   21 |   input  logic [3:0]   pstrb,
+      |                        ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\watchdog.sv:21:24: Bits of signal are not used: 'paddr'[31:12,1:0]
+                                                            : ... note: In instance 'has_soc.wdog_inst'
+   21 |   input  logic [31:0]  paddr,
+      |                        ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\watchdog.sv:23:24: Signal is not used: 'pstrb'
+                                                            : ... note: In instance 'has_soc.wdog_inst'
+   23 |   input  logic [3:0]   pstrb,
+      |                        ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\i2s.sv:20:24: Bits of signal are not used: 'paddr'[31:12,1:0]
+                                                       : ... note: In instance 'has_soc.i2s_inst'
+   20 |   input  logic [31:0]  paddr,
+      |                        ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\i2s.sv:21:24: Bits of signal are not used: 'pwdata'[31:16]
+                                                       : ... note: In instance 'has_soc.i2s_inst'
+   21 |   input  logic [31:0]  pwdata,
+      |                        ^~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\i2s.sv:22:24: Signal is not used: 'pstrb'
+                                                       : ... note: In instance 'has_soc.i2s_inst'
+   22 |   input  logic [3:0]   pstrb,
+      |                        ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\i2s.sv:29:24: Signal is not used: 'i2s_din'
+                                                       : ... note: In instance 'has_soc.i2s_inst'
+   29 |   input  logic         i2s_din,
+      |                        ^~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\i2s.sv:34:16: Signal is not used: 'tx_sample'
+                                                       : ... note: In instance 'has_soc.i2s_inst'
+   34 |   logic [15:0] tx_sample, pending_sample;
+      |                ^~~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\power_mgr_regs.sv:15:24: Bits of signal are not used: 'paddr'[31:12,1:0]
+                                                                  : ... note: In instance 'has_soc.pwr_inst'
+   15 |   input  logic [31:0]  paddr,
+      |                        ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\power_mgr_regs.sv:16:24: Bits of signal are not used: 'pwdata'[31:1]
+                                                                  : ... note: In instance 'has_soc.pwr_inst'
+   16 |   input  logic [31:0]  pwdata,
+      |                        ^~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\power_mgr_regs.sv:17:24: Signal is not used: 'pstrb'
+                                                                  : ... note: In instance 'has_soc.pwr_inst'
+   17 |   input  logic [3:0]   pstrb,
+      |                        ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\debug_jtag.sv:28:24: Signal is not used: 'trst_n'
+                                                              : ... note: In instance 'has_soc.jtag_inst'
+   28 |   input  logic         trst_n
+      |                        ^~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\qspi_flash_ctrl.sv:26:24: Signal is not used: 'awaddr'
+                                                                   : ... note: In instance 'has_soc.qspi_ctrl'
+   26 |   input  logic [31:0]  awaddr,
+      |                        ^~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\qspi_flash_ctrl.sv:29:24: Signal is not used: 'wdata'
+                                                                   : ... note: In instance 'has_soc.qspi_ctrl'
+   29 |   input  logic [31:0]  wdata,
+      |                        ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\qspi_flash_ctrl.sv:30:24: Signal is not used: 'wstrb'
+                                                                   : ... note: In instance 'has_soc.qspi_ctrl'
+   30 |   input  logic [3:0]   wstrb,
+      |                        ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\qspi_flash_ctrl.sv:36:24: Bits of signal are not used: 'araddr'[31:24]
+                                                                   : ... note: In instance 'has_soc.qspi_ctrl'
+   36 |   input  logic [31:0]  araddr,
+      |                        ^~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\qspi_flash_ctrl.sv:52:16: Signal is not used: 'addr_q'
+                                                                   : ... note: In instance 'has_soc.qspi_ctrl'
+   52 |   logic [23:0] addr_q;
+      |                ^~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\boot_rom.sv:32:34: Signal is not used: 'awaddr'
+                                                    : ... note: In instance 'has_soc.rom_inst'
+   32 |   input  logic [DATA_WIDTH-1:0]  awaddr,
+      |                                  ^~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\boot_rom.sv:35:34: Signal is not used: 'wdata'
+                                                    : ... note: In instance 'has_soc.rom_inst'
+   35 |   input  logic [DATA_WIDTH-1:0]  wdata,
+      |                                  ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\boot_rom.sv:36:34: Signal is not used: 'wstrb'
+                                                    : ... note: In instance 'has_soc.rom_inst'
+   36 |   input  logic [3:0]             wstrb,
+      |                                  ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\boot_rom.sv:42:34: Bits of signal are not used: 'araddr'[31:16]
+                                                    : ... note: In instance 'has_soc.rom_inst'
+   42 |   input  logic [DATA_WIDTH-1:0]  araddr,
+      |                                  ^~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\boot_rom.sv:57:26: Bits of signal are not used: 'if_addr_q'[1:0]
+                                                    : ... note: In instance 'has_soc.rom_inst'
+   57 |   logic [ADDR_WIDTH-1:0] if_addr_q;
+      |                          ^~~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\boot_rom.sv:84:26: Bits of signal are not used: 'ax_raddr_q'[1:0]
+                                                    : ... note: In instance 'has_soc.rom_inst'
+   84 |   logic [ADDR_WIDTH-1:0] ax_raddr_q;
+      |                          ^~~~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\sram.sv:63:26: Signal is not used: 'waddr_q'
+                                                : ... note: In instance 'has_soc.sram_inst'
+   63 |   logic [ADDR_WIDTH-1:0] waddr_q, raddr_q;
+      |                          ^~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\sram.sv:63:35: Bits of signal are not used: 'raddr_q'[1:0]
+                                                : ... note: In instance 'has_soc.sram_inst'
+   63 |   logic [ADDR_WIDTH-1:0] waddr_q, raddr_q;
+      |                                   ^~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\sram.sv:64:26: Signal is not used: 'wdata_q'
+                                                : ... note: In instance 'has_soc.sram_inst'
+   64 |   logic [DATA_WIDTH-1:0] wdata_q;
+      |                          ^~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\sram.sv:65:26: Signal is not used: 'wstrb_q'
+                                                : ... note: In instance 'has_soc.sram_inst'
+   65 |   logic [3:0]            wstrb_q;
+      |                          ^~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\sram.sv:124:26: Bits of signal are not used: 'i_addr_q'[1:0]
+                                                 : ... note: In instance 'has_soc.sram_inst'
+  124 |   logic [ADDR_WIDTH-1:0] i_addr_q;
+      |                          ^~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\intc_axi.sv:23:24: Signal is not used: 'wstrb'
+                                                    : ... note: In instance 'has_soc.intc_inst'
+   23 |   input  logic [3:0]   wstrb,
+      |                        ^~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\intc_axi.sv:45:16: Bits of signal are not used: 'addr_q'[31:13]
+                                                    : ... note: In instance 'has_soc.intc_inst'
+   45 |   logic [31:0] addr_q;
+      |                ^~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\axi_lite_interconnect.sv:126:30: Signal is not used: 'ar_accept'
+                                                                  : ... note: In instance 'has_soc.axi_ic'
+  126 |   logic aw_accept, w_accept, ar_accept;
+      |                              ^~~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\axi_lite_to_apb.sv:23:34: Signal is not used: 's_awprot'
+                                                           : ... note: In instance 'has_soc.apb_bridge'
+   23 |   input  logic [2:0]             s_awprot,
+      |                                  ^~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\axi_lite_to_apb.sv:34:34: Signal is not used: 's_arprot'
+                                                           : ... note: In instance 'has_soc.apb_bridge'
+   34 |   input  logic [2:0]             s_arprot,
+      |                                  ^~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\req_gnt_to_axi_lite.sv:49:34: Bits of signal are not used: 'm_bresp'[0]
+                                                               : ... note: In instance 'has_soc.data_adapter'
+   49 |   input  logic [1:0]             m_bresp,
+      |                                  ^~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\req_gnt_to_axi_lite.sv:57:34: Bits of signal are not used: 'm_rresp'[0]
+                                                               : ... note: In instance 'has_soc.data_adapter'
+   57 |   input  logic [1:0]             m_rresp
+      |                                  ^~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\req_gnt_to_axi_lite.sv:72:26: Signal is not used: 'is_write_q'
+                                                               : ... note: In instance 'has_soc.data_adapter'
+   72 |   logic                  is_write_q;
+      |                          ^~~~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\riscv_core.sv:39:34: Signal is not used: 'instr_gnt'
+                                                      : ... note: In instance 'has_soc.core'
+   39 |   input  logic                   instr_gnt,
+      |                                  ^~~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\riscv_core.sv:49:34: Signal is not used: 'data_gnt'
+                                                      : ... note: In instance 'has_soc.core'
+   49 |   input  logic                   data_gnt,
+      |                                  ^~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\riscv_core.sv:212:15: Bits of signal are not used: 'prod_ss'[31:0]
+                                                       : ... note: In instance 'has_soc.core'
+  212 |   wire [63:0] prod_ss = $signed(rs1_val) * $signed(rs2_val);
+      |               ^~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_top\riscv_core.sv:213:15: Bits of signal are not used: 'prod_su'[31:0]
+                                                       : ... note: In instance 'has_soc.core'
+  213 |   wire [63:0] prod_su = $signed(rs1_val) * $signed({1'b0, rs2_val});
+      |               ^~~~~~~
+%Warning-UNUSEDPARAM: rtl/rtl_top\has_addr_map.sv:24:27: Parameter is not used: 'ADDR_GPIO_BASE'
+                                                       : ... note: In instance 'has_soc.tcm_inst'
+   24 |   localparam logic [31:0] ADDR_GPIO_BASE      = 32'h5000_0000;
+      |                           ^~~~~~~~~~~~~~
+                      ... For warning description see https://verilator.org/warn/UNUSEDPARAM?v=5.053
+                      ... Use "/* verilator lint_off UNUSEDPARAM */" and lint_on around source to disable this message.
+%Warning-UNUSEDPARAM: rtl/rtl_top\has_addr_map.sv:25:27: Parameter is not used: 'ADDR_GPIO_SIZE'
+                                                       : ... note: In instance 'has_soc.tcm_inst'
+   25 |   localparam logic [31:0] ADDR_GPIO_SIZE      = 32'h0000_1000;
+      |                           ^~~~~~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/rtl_top\has_addr_map.sv:26:27: Parameter is not used: 'ADDR_UART_BASE'
+                                                       : ... note: In instance 'has_soc.tcm_inst'
+   26 |   localparam logic [31:0] ADDR_UART_BASE      = 32'h5000_1000;
+      |                           ^~~~~~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/rtl_top\has_addr_map.sv:27:27: Parameter is not used: 'ADDR_UART_SIZE'
+                                                       : ... note: In instance 'has_soc.tcm_inst'
+   27 |   localparam logic [31:0] ADDR_UART_SIZE      = 32'h0000_1000;
+      |                           ^~~~~~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/rtl_top\has_addr_map.sv:28:27: Parameter is not used: 'ADDR_I2C_BASE'
+                                                       : ... note: In instance 'has_soc.tcm_inst'
+   28 |   localparam logic [31:0] ADDR_I2C_BASE       = 32'h5000_2000;
+      |                           ^~~~~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/rtl_top\has_addr_map.sv:29:27: Parameter is not used: 'ADDR_I2C_SIZE'
+                                                       : ... note: In instance 'has_soc.tcm_inst'
+   29 |   localparam logic [31:0] ADDR_I2C_SIZE       = 32'h0000_1000;
+      |                           ^~~~~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/rtl_top\has_addr_map.sv:30:27: Parameter is not used: 'ADDR_SPI_BASE'
+                                                       : ... note: In instance 'has_soc.tcm_inst'
+   30 |   localparam logic [31:0] ADDR_SPI_BASE       = 32'h5000_3000;
+      |                           ^~~~~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/rtl_top\has_addr_map.sv:31:27: Parameter is not used: 'ADDR_SPI_SIZE'
+                                                       : ... note: In instance 'has_soc.tcm_inst'
+   31 |   localparam logic [31:0] ADDR_SPI_SIZE       = 32'h0000_1000;
+      |                           ^~~~~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/rtl_top\has_addr_map.sv:32:27: Parameter is not used: 'ADDR_PWM_BASE'
+                                                       : ... note: In instance 'has_soc.tcm_inst'
+   32 |   localparam logic [31:0] ADDR_PWM_BASE       = 32'h5000_4000;
+      |                           ^~~~~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/rtl_top\has_addr_map.sv:33:27: Parameter is not used: 'ADDR_PWM_SIZE'
+                                                       : ... note: In instance 'has_soc.tcm_inst'
+   33 |   localparam logic [31:0] ADDR_PWM_SIZE       = 32'h0000_1000;
+      |                           ^~~~~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/rtl_top\has_addr_map.sv:34:27: Parameter is not used: 'ADDR_TIMER_BASE'
+                                                       : ... note: In instance 'has_soc.tcm_inst'
+   34 |   localparam logic [31:0] ADDR_TIMER_BASE     = 32'h5000_5000;
+      |                           ^~~~~~~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/rtl_top\has_addr_map.sv:35:27: Parameter is not used: 'ADDR_TIMER_SIZE'
+                                                       : ... note: In instance 'has_soc.tcm_inst'
+   35 |   localparam logic [31:0] ADDR_TIMER_SIZE     = 32'h0000_1000;
+      |                           ^~~~~~~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/rtl_top\has_addr_map.sv:36:27: Parameter is not used: 'ADDR_WDOG_BASE'
+                                                       : ... note: In instance 'has_soc.tcm_inst'
+   36 |   localparam logic [31:0] ADDR_WDOG_BASE      = 32'h5000_6000;
+      |                           ^~~~~~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/rtl_top\has_addr_map.sv:37:27: Parameter is not used: 'ADDR_WDOG_SIZE'
+                                                       : ... note: In instance 'has_soc.tcm_inst'
+   37 |   localparam logic [31:0] ADDR_WDOG_SIZE      = 32'h0000_1000;
+      |                           ^~~~~~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/rtl_top\has_addr_map.sv:38:27: Parameter is not used: 'ADDR_I2S_BASE'
+                                                       : ... note: In instance 'has_soc.tcm_inst'
+   38 |   localparam logic [31:0] ADDR_I2S_BASE       = 32'h5000_7000;
+      |                           ^~~~~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/rtl_top\has_addr_map.sv:39:27: Parameter is not used: 'ADDR_I2S_SIZE'
+                                                       : ... note: In instance 'has_soc.tcm_inst'
+   39 |   localparam logic [31:0] ADDR_I2S_SIZE       = 32'h0000_1000;
+      |                           ^~~~~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/rtl_top\has_addr_map.sv:40:27: Parameter is not used: 'ADDR_PWRMGR_BASE'
+                                                       : ... note: In instance 'has_soc.tcm_inst'
+   40 |   localparam logic [31:0] ADDR_PWRMGR_BASE    = 32'h5000_8000;
+      |                           ^~~~~~~~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/rtl_top\has_addr_map.sv:41:27: Parameter is not used: 'ADDR_PWRMGR_SIZE'
+                                                       : ... note: In instance 'has_soc.tcm_inst'
+   41 |   localparam logic [31:0] ADDR_PWRMGR_SIZE    = 32'h0000_1000;
+      |                           ^~~~~~~~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/rtl_top\has_addr_map.sv:44:27: Parameter is not used: 'ADDR_CLINT_BASE'
+                                                       : ... note: In instance 'has_soc.tcm_inst'
+   44 |   localparam logic [31:0] ADDR_CLINT_BASE     = 32'h8000_0000;
+      |                           ^~~~~~~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/rtl_top\has_addr_map.sv:45:27: Parameter is not used: 'ADDR_CLINT_SIZE'
+                                                       : ... note: In instance 'has_soc.tcm_inst'
+   45 |   localparam logic [31:0] ADDR_CLINT_SIZE     = 32'h0000_1000;
+      |                           ^~~~~~~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/rtl_top\has_addr_map.sv:46:27: Parameter is not used: 'ADDR_PLIC_BASE'
+                                                       : ... note: In instance 'has_soc.tcm_inst'
+   46 |   localparam logic [31:0] ADDR_PLIC_BASE      = 32'h8000_1000;
+      |                           ^~~~~~~~~~~~~~
+%Warning-UNUSEDPARAM: rtl/rtl_top\has_addr_map.sv:47:27: Parameter is not used: 'ADDR_PLIC_SIZE'
+                                                       : ... note: In instance 'has_soc.tcm_inst'
+   47 |   localparam logic [31:0] ADDR_PLIC_SIZE      = 32'h0000_F000;
+      |                           ^~~~~~~~~~~~~~
+%Warning-UNUSEDSIGNAL: rtl/rtl_peripherals\plic.sv:27:39: Bits of signal are not used: 'wr_data'[31:8]
+                                                        : ... note: In instance 'has_soc.intc_inst.plic_inst'
+   27 |   input  logic [31:0]                 wr_data,
+      |                                       ^~~~~~~
+%Warning-UNSIGNED: rtl/rtl_top\has_addr_map.sv:51:16: Comparison is constant due to unsigned arithmetic
+                                                    : ... note: In instance 'has_soc.tcm_inst'
+   51 |     if      (a >= ADDR_BOOT_ROM_BASE  && a < ADDR_BOOT_ROM_BASE  + ADDR_BOOT_ROM_SIZE)  addr_region = 0;
+      |                ^~
+                   ... For warning description see https://verilator.org/warn/UNSIGNED?v=5.053
+                   ... Use "/* verilator lint_off UNSIGNED */" and lint_on around source to disable this message.
+%Warning-UNSIGNED: rtl/rtl_top\axi_lite_interconnect.sv:114:16: Comparison is constant due to unsigned arithmetic
+                                                              : ... note: In instance 'has_soc.axi_ic'
+  114 |     if      (a >= 32'h0000_0000 && a < 32'h0000_4000         ) decode_sel = SELW'(0);
+      |                ^~
+%Warning-UNSIGNED: rtl/rtl_top\has_soc.sv:159:31: Comparison is constant due to unsigned arithmetic
+                                                : ... note: In instance 'has_soc'
+  159 |   wire sel_rom  = (instr_addr >= ADDR_BOOT_ROM_BASE) &&
+      |                               ^~
+%Error: Exiting due to 123 warning(s)

@@ -1,0 +1,23 @@
+{
+  "generated_utc": "2026-11-18T12:30:11.819Z",
+  "artifacts": [
+    {
+      "path": "research/runs/RUN-0003-i2c-stop-postfix/logs/sim.log",
+      "exists": true,
+      "bytes": 629,
+      "sha256": "81847dbfa64e745427944977781387e2c0c5445c9dd48fe15a52ad82107ecd64"
+    },
+    {
+      "path": "sim/sim_top/tb_i2c_xfer.v",
+      "exists": true,
+      "bytes": 9742,
+      "sha256": "96a154d2eacedce2b020fc837f609c542e62c970ff91592dd00a31c211163c19"
+    },
+    {
+      "path": "rtl/rtl_peripherals/i2c_ctrl.sv",
+      "exists": true,
+      "bytes": 10463,
+      "sha256": "23e90bfb0ab10d018aad1936a094c8d1df00f5c5707428a45280c3232c134d26"
+    }
+  ]
+}

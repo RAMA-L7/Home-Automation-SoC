@@ -1,0 +1,24 @@
+{
+  "run_id": "RUN-0007-structural-failclosed",
+  "experiment_id": "E3",
+  "purpose": "Make structural validation fail closed: a mapped design with undriven outputs, multiple drivers, unexpected/unmapped cells or a stale declared inventory must not pass, and the unified gate must prove the checker can fail",
+  "recorded_utc": "2026-11-18T13:43:00Z",
+  "source_sha": "025ef24f2f4444cac4c38dc62b659fac724770f4",
+  "worktree_dirty": true,
+  "dirty_files": ["rtl/rtl_peripherals/i2c_ctrl.sv", "sim/sim_top/tb_i2c_xfer.v", "build/asic_evidence/sky130_map.v", "scripts/verify.js"],
+  "commands": [
+    "yosys -s asic/synthesis/fullsoc_map.ys",
+    "node scripts/eda/check_structure.js --self-test",
+    "node scripts/eda/check_structure.js --script asic/synthesis/fullsoc_map.ys --top has_soc --json build/asic_evidence/structural_check/has_soc_cells.json --tag fullsoc",
+    "node scripts/verify.js"
+  ],
+  "exit_codes": { "fullsoc_map_yosys": 0, "self_test": 0, "fullsoc_checker": 2, "unified_gate": 0 },
+  "outcome": "fail-closed behaviour enforced; full SoC reports BLOCKED on declared memories",
+  "interpretation": "The legacy flow (bare `check`) exits 0 while reporting 2 problems on an undriven design. The enforced path exits 1 on the same design and on every other injected defect, passes a clean design, and reports the real SoC as BLOCKED (exit 2) because 4 inferred memories remain, instead of passing it.",
+  "limitations": [
+    "The full-SoC design is not flattened (behavioural SRAM disagrees with flatten: std::bad_alloc), so cell counts are per module definition. Every module in has_soc is instantiated once today; a reused module would make the declared counts ambiguous.",
+    "The declared memory inventory is a manual policy value (4). It is enforced strictly, so RTL changes will fail the check until the policy is updated, but the number itself is not derived from the address map.",
+    "No equivalence, DRC, LVS, timing or power property is part of this check; it is structural only.",
+    "The unified gate runs the checker's control matrix (fast), not the 200 s full-SoC mapping; the full SoC verdict is reproduced by the separate checker command."
+  ]
+}

@@ -1,0 +1,7 @@
+=== RTL vs Sky130-mapped arith_test ===
+*** NEGATIVE CONTROL: mapped netlist is intentionally corrupted ***
+MISMATCH [reset] op=00 a=0 b=0 en=0 rst_n=1
+  rtl: y=0000 zero=1
+  map: y=0001 zero=1
+FATAL: asic/synthesis/provenance/tb_equiv.v:68: equivalence check failed
+       Time: 4000  Scope: tb_equiv.check

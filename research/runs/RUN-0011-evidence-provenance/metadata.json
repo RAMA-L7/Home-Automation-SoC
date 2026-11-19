@@ -1,0 +1,41 @@
+{
+  "run_id": "RUN-0011-evidence-provenance",
+  "title": "F4 evidence provenance and F9 verification correlation",
+  "started_utc": "2026-11-18T15:28:00Z",
+  "completed_utc": "2026-11-18T16:28:00Z",
+  "agent": "Buffy (model: DeepSeek V4.1 Flash)",
+  "session": "S-2026-11-18-7",
+  "baseline": {
+    "head": "025ef24f2f4444cac4c38dc62b659fac724770f4",
+    "branch": "main",
+    "worktree": "dirty",
+    "dirty_tracked_files": 19,
+    "note": "19 modified tracked files at completion: the 12 carried in from RUN-0010, plus README.md, the two verilator build scripts, the two banner-marked historical reports, docs/architecture/BLOCK_DIAGRAM.txt (regenerated) and scripts/docs/gen_block_diagram.py; scripts/verify.js was already dirty and changed again here."
+  },
+  "changed": [
+    "README.md",
+    "reports/verification/README.md",
+    "reports/verification/TEST_RESULTS.md",
+    "scripts/verify.js",
+    "scripts/eda/verilator_build.bat",
+    "scripts/eda/verilator_build_soc.bat",
+    "asic/synthesis/provenance/arith_test.v (new)",
+    "asic/synthesis/provenance/tb_equiv.v (new)",
+    "asic/synthesis/provenance/map_arith.ys (new)",
+    "reports/verification/VERIFICATION_BASELINE_2826b5b.md (provenance banner)",
+    "docs/architecture/BLOCK_DIAGRAM.txt",
+    "scripts/docs/gen_block_diagram.py"
+  ],
+  "not_changed": [
+    "rtl/**",
+    "sim/**/tb_*.v",
+    "firmware/**",
+    "acceptance criteria",
+    "tests"
+  ],
+  "verdicts": {
+    "F4": "FIXED",
+    "F9": "PARTIAL (current results traced; historical and PPA claims remain unverified)"
+  },
+  "highest_gate": "PARTIAL (G0/G1/G2 partial, G3/G4 open; no gate satisfied)"
+}

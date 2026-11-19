@@ -1,0 +1,2 @@
+$ iverilog -g2012 -o D:\Home-Automation-SoC\build\asic_evidence\dfrbp_model\sim_postfix_stub.vvp D:\Home-Automation-SoC\asic\synthesis\techmap\dfrbp_model\tb_dfrbp_model.v D:\Home-Automation-SoC\build\asic_evidence\arith_work\sky130_stub.v
+

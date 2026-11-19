@@ -1,0 +1,9 @@
+rtl/rtl_peripherals/i2c_ctrl.sv:146: sorry: constant selects in always_* processes are not fully supported (the process will be sensitive to all bits in 'shreg[7:0]').
+rtl/rtl_peripherals/i2c_ctrl.sv:283: sorry: constant selects in always_* processes are not fully supported (the process will be sensitive to all bits in 'paddr[31:0]').
+WRITE: addr=a0 data=5a bytes=1 ack_error=0 stops=1
+  PASS: write transaction
+READ : addr=a1 rx=00000004 nack_seen=1 stops=1
+       DATA register = 3c
+NACK : addr=a0 data_bytes=0 ack_error=1
+TB_I2C_XFER: ALL TESTS PASSED
+sim/sim_top/tb_i2c_xfer.v:275: $finish called at 6785000 (1ps)

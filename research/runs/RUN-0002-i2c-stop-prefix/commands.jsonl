@@ -1,0 +1,1 @@
+{"seq":1,"what":"compile+run I2C transaction test against unmodified RTL","cwd":"D:/Home-Automation-SoC","cmd":"cmd //c \"call D:\tools\oss-cad-suite\environment.bat && iverilog -g2012 -o build/sim/tb_i2c_xfer_pre.vvp -s tb_i2c_xfer sim/sim_top/tb_i2c_xfer.v rtl/rtl_peripherals/i2c_ctrl.sv && vvp build/sim/tb_i2c_xfer_pre.vvp\"","exit":1,"log":"logs/sim.log"}

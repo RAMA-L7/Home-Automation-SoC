@@ -1,0 +1,8 @@
+ok   legacy-undriven: expected exit 0 with reported problems, got exit 0, 2 problem(s) — pre-fix flow (bare check) passes a design with undriven outputs
+ok   undriven: expected exit 1, got exit 1 — check -assert rejects undriven outputs
+ok   multidriver: expected exit 1, got exit 1 — multiple drivers rejected
+ok   undeclared-memory: expected exit 1, got exit 1 — undeclared inferred memory rejected
+ok   stale-policy: expected exit 1, got exit 1 — declared memory count must match the design
+ok   unmapped-div: expected exit 1, got exit 1 — cell the map does not handle is reported, not shipped
+ok   clean-baseline: expected exit 0, got exit 0 — fully mapped design passes
+STRUCTURAL_CHECK: SELF-TEST PASS (7/7 controls behaved as specified)

@@ -1,0 +1,84 @@
+{
+  "run_id": "RUN-0009-memory-audit",
+  "experiment_id": "E4",
+  "findings": ["F5", "F7"],
+  "purpose": "Establish the complete SoC memory inventory from elaboration, reconcile it against the address map, interconnect decode, linker and requirement, classify each memory, state Sky130 macro requirements without claiming compatibility, and add drift controls",
+  "recorded_utc": "2026-11-18T14:35:00Z",
+  "recorded_local": "2026-11-18 20:05 IST",
+  "source_sha": "025ef24f2f4444cac4c38dc62b659fac724770f4",
+  "worktree_dirty": true,
+  "dirty_files": [
+    "AGENTS.md",
+    "build/asic_evidence/arith_work/sky130_stub.v",
+    "build/asic_evidence/sky130_map.v",
+    "rtl/rtl_peripherals/i2c_ctrl.sv",
+    "scripts/verify.js",
+    "sim/sim_top/tb_i2c_xfer.v"
+  ],
+  "functional_rtl_modified": false,
+  "evidence_sources": {
+    "elaboration": {
+      "script": "asic/synthesis/memory_audit.ys",
+      "sha256": "70aaf7c15a36be89d9f470dc77ccf9936307dcfac862e0e048bd399a36d48a83",
+      "outputs": {
+        "build/asic_evidence/memory_audit/memories.il": "484ed47fdce2b9f87703db67882e3b189c9409d7ea3d63f09ec1213bcf93e963",
+        "build/asic_evidence/memory_audit/memory_cells.json": "143449254b3fecfa54c1cc684bf8ba9ebe248d645029634bbcfa9b9c6fde64f1"
+      }
+    },
+    "declared_inventory": {
+      "path": "asic/synthesis/memory_inventory.json",
+      "sha256": "fd46a9173770bbb90a719224f492b44dc0b7bb4fc41d9d03729429e6955c05de"
+    },
+    "checker": {
+      "path": "scripts/eda/audit_memory.js",
+      "sha256": "c575607f5a4dbd4db86b84d7255aae9060954b52d3dd6ecbd78042ea2f8cebbc"
+    },
+    "source_hashes": {
+      "rtl/rtl_top/has_addr_map.sv": "ef67cdc565fed6e5e3ca3b60a4bf96b1d432da193efd13afc785104fa88b1288",
+      "rtl/rtl_top/axi_lite_interconnect.sv": "0d3897e8305fd38d5a4dd806cbd7404c1b4f8110116f231d629374e432b08683",
+      "rtl/rtl_top/boot_rom.sv": "d065f93b586d07bb75c152496d506ad28a459d2b0b49dcde192833eb044f02bc",
+      "rtl/rtl_top/sram.sv": "d2fe9de6705c408bde2f09b17c2d7c05a86bc3db25e641654397d5b469e04e81",
+      "firmware/bare_metal/linker.ld": "6b4b008224264160c2a315910438eb10b108f9dba72c30bda0fdf37555608ef6"
+    },
+    "external": {
+      "requirements": "docs/requirements/system_requirements.md FR-MEM-001 (128 KB on-chip SRAM)",
+      "decision_record": "docs/architecture/ARCHITECTURE_DECISION_RECORDS.md ARC-043 (OpenRAM 128 KB, PROPOSED, not implemented)",
+      "upstream_urls": [],
+      "note": "No memory macro or PDK was consulted because none is present; no compatibility is claimed."
+    }
+  },
+  "commands": [
+    "yosys -s asic/synthesis/memory_audit.ys",
+    "node scripts/eda/audit_memory.js --verbose",
+    "node scripts/eda/audit_memory.js --self-test"
+  ],
+  "exit_codes": {
+    "memory_audit_yosys": 0,
+    "audit_memory": 2,
+    "audit_memory_self_test": 0,
+    "unified_gate": 0
+  },
+  "measured": {
+    "inferred_memories": 4,
+    "addressable_bytes": 180224,
+    "implemented_array_bytes": 360466,
+    "register_storage_bytes": 136,
+    "rom_array_bytes": 65536,
+    "rom_decoded_bytes": 16384,
+    "tcm_array_bytes": 32768,
+    "tcm_decoded_bytes": 32768,
+    "sram_array_bytes": 262144,
+    "sram_decoded_bytes": 131072,
+    "decode_lut_bits": 144
+  },
+  "outcome": "F5 PASS (inventory and reconciliation complete, mismatch confirmed); F7 BLOCKED (inventory complete, no macro implementation); overall PARTIAL",
+  "interpretation": "The four inferred memories are now identified with exact geometry from an elaborated design, and the address map, interconnect decode, linker and requirement are consistent with each other but not with the RTL arrays: the ROM is 4x and the SRAM 2x the aperture. The excess capacity is unreachable, so nothing is functionally broken, but the arrays cannot be sized into a macro until the authoritative capacity is chosen. No memory macro exists and no PDK is provisioned, so F7 cannot pass.",
+  "limitations": [
+    "No memory macro (.lib/.lef/.gds) and no memory compiler: the macro requirement table is a specification, not a compatibility or feasibility claim.",
+    "No PDK provisioned, so no OpenRAM run, no macro timing, no area estimate.",
+    "Functional RTL was deliberately not modified; the F5 size discrepancy is reported, not fixed.",
+    "The decode LUT (16x9) is counted as an inferred ROM by the elaboration; it is combinational logic and should not become a macro.",
+    "Read-during-write behaviour of any replacement macro has not been checked; the RTL currently reads the pre-write word in the write cycle.",
+    "Self-reviewed only; no independent evaluator exists in this environment."
+  ]
+}

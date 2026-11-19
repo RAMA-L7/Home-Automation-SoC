@@ -1,0 +1,15 @@
+{
+  "generated_utc": "2026-11-18T14:15:19.912Z",
+  "head": "025ef24f2f4444cac4c38dc62b659fac724770f4",
+  "branch": "main",
+  "worktree_dirty": true,
+  "modified_tracked": [
+    "AGENTS.md",
+    "build/asic_evidence/arith_work/sky130_stub.v",
+    "build/asic_evidence/sky130_map.v",
+    "rtl/rtl_peripherals/i2c_ctrl.sv",
+    "scripts/verify.js",
+    "sim/sim_top/tb_i2c_xfer.v"
+  ],
+  "note": "Results belong to HEAD plus these local changes. The dfrbp fix is itself in a tracked file (build/asic_evidence/arith_work/sky130_stub.v), so it appears in modified_tracked."
+}

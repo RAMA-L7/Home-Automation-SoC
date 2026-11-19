@@ -1,0 +1,65 @@
+{
+  "run_id": "RUN-0008-dfrbp-model",
+  "experiment_id": "E6",
+  "finding": "F3",
+  "purpose": "Establish the authoritative sky130_fd_sc_hd__dfrbp definition (clock edge, reset polarity, clocked_on semantics), compare the mapper, the liberty and the behavioural stub, prove the model with a directed test and a negative control, and fix only the confirmed defect",
+  "recorded_utc": "2026-11-18T14:13:00Z",
+  "recorded_local": "2026-11-18 19:43 IST",
+  "source_sha": "025ef24f2f4444cac4c38dc62b659fac724770f4",
+  "worktree_dirty": true,
+  "dirty_files": [
+    "AGENTS.md",
+    "build/asic_evidence/arith_work/sky130_stub.v",
+    "build/asic_evidence/sky130_map.v",
+    "rtl/rtl_peripherals/i2c_ctrl.sv",
+    "scripts/verify.js",
+    "sim/sim_top/tb_i2c_xfer.v"
+  ],
+  "authoritative_sources": {
+    "liberty_full": {
+      "path": "build/asic_evidence/sky130_tt.lib",
+      "library": "sky130_fd_sc_hd__tt_025C_1v80",
+      "sha256": "ec0e1067a35c8bf20b11e58d1e8ac53326067e4dac84a125cc1b917a3518d0d9",
+      "definition": "cell (\"sky130_fd_sc_hd__dfrbp_1\") ff (\"IQ\",\"IQ_N\") { clear : \"!RESET_B\"; clocked_on : \"CLK\"; next_state : \"D\"; }, CLK->Q timing_type rising_edge (x2), RESET_B->Q clear"
+    },
+    "liberty_subset": {
+      "path": "build/asic_evidence/sky130_full_subset.lib",
+      "sha256": "5256f24d564c5b3474de689d94237cd0f6c94eaa672a3c02a134e452af668d5b",
+      "note": "ff/clocked_on blocks for dfrbp_1 and _2 are byte-identical to the full liberty; the earlier note that this file omitted them was wrong (corrected in REVIEW_LOG R-06)"
+    },
+    "upstream_verilog_functional": {
+      "url": "https://github.com/google/skywater-pdk-libs-sky130_fd_sc_hd/blob/main/cells/dfrbp/sky130_fd_sc_hd__dfrbp.functional.v",
+      "fetched_utc": "2026-11-18T14:05Z",
+      "evidence": "sky130_fd_sc_hd__udp_dff$PR dff0 (buf_Q, D, CLK, RESET); not not0 (RESET, RESET_B) — active-low RESET_B inverted into the active-high async reset"
+    },
+    "upstream_udp": {
+      "url": "https://github.com/google/skywater-pdk-libs-sky130_fd_sc_hd/blob/main/models/udp_dff_pr/sky130_fd_sc_hd__udp_dff_pr.v",
+      "fetched_utc": "2026-11-18T14:05Z",
+      "evidence": "primitive udp_dff$PR: 'Positive edge triggered D flip-flop with active high [reset]'; table rows '? ? 1 : ? : 0' (async reset) and '1 r 0 : ? : 1' / '0 r ? : ? : 0' (capture on rising edge r)"
+    },
+    "in_tree_cross_check": {
+      "path": "build/asic_evidence/arith_work/arith_test_full_mapped.v",
+      "note": "Yosys read_liberty-generated model of the same cell uses always @(posedge CLK, posedge _1_) with _1_ = ~RESET_B, i.e. rising edge, agreeing with the stub fix independently of the hand-written model"
+    }
+  },
+  "commands": [
+    "node scripts/eda/run_dfrbp_model_test.js",
+    "node scripts/eda/run_pmux_map_test.js",
+    "node scripts/verify.js"
+  ],
+  "exit_codes": {
+    "dfrbp_model_test": 0,
+    "dfrbp_negative_control": 1,
+    "pmux_map_test": 0,
+    "unified_gate": 0
+  },
+  "outcome": "dfrbp_1 and _2 stubs changed from negedge CLK to posedge CLK; 11/11 test steps pass; the preserved pre-fix model fails 4 of 11 directed checks (exit 1)",
+  "interpretation": "The stub contradicted the library. The liberty (clocked_on \"CLK\", clear \"!RESET_B\", rising_edge arcs), the SkyWater functional model (udp_dff$PR fed by ~RESET_B) and Yosys's own liberty-derived model all describe a rising-edge DFF with an asynchronous active-low clear. The stub used the falling edge. Fixed. No netlist in the repository instantiates dfrbp, so no previously reported result was affected.",
+  "limitations": [
+    "The mapper never emits dfrbp: $dff -> dfxtp_1, $adff (reset to 0) -> dfrtp_1, $adff (reset to 1) -> dfstp_1, and negative-edge registers are handled by inverting the clock into the same posedge cells. The test therefore proves the MODEL against the library, not a mapped netlist that uses it.",
+    "No netlist in the evidence tree or RTL instantiates dfrbp (0 in 72 files). The defect was latent: it would have produced wrong simulation results only if a future flow emitted the cell.",
+    "Functional only: no timing, no recovery/removal, no clock-to-Q delay, no power pins.",
+    "No independent reviewer exists in this environment; every check here is self-run and self-reviewed (G4.4 stays open).",
+    "The upstream functional model was read from the archived google/skywater-pdk-libs-sky130_fd_sc_hd repository (read-only since 2024-04-25); no upstream commit hash was pinned, only the main branch content fetched on 2026-11-18."
+  ]
+}

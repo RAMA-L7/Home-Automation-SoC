@@ -1,0 +1,268 @@
+$ yosys -s asic\synthesis\techmap\equiv_pmux.ys
+
+
+ /----------------------------------------------------------------------------\
+ |  yosys -- Yosys Open SYnthesis Suite                                       |
+ |  Copyright (C) 2012 - 2026  Claire Xenia Wolf <claire@yosyshq.com>         |
+ |  Distributed under an ISC-like license, type "license" to see terms        |
+ \----------------------------------------------------------------------------/
+ Yosys 0.69+154 (git sha1 30d62572e-dirty, Release, GNU /usr/bin/x86_64-w64-mingw32-g++ 15.2.1)
+
+-- Executing script file `asic\synthesis\techmap\equiv_pmux.ys' --
+
+1. Executing RTLIL frontend.
+Input filename: asic/synthesis/techmap/pmux_probe.il
+
+2. Executing TECHMAP pass (map to technology primitives).
+
+2.1. Executing Verilog-2005 frontend: build/asic_evidence/sky130_map.v
+Parsing Verilog input from `build/asic_evidence/sky130_map.v' to AST representation.
+Generating RTLIL representation for module `$not'.
+Generating RTLIL representation for module `$and'.
+Generating RTLIL representation for module `$or'.
+Generating RTLIL representation for module `$xor'.
+Generating RTLIL representation for module `$reduce_or'.
+Generating RTLIL representation for module `$reduce_bool'.
+Generating RTLIL representation for module `$reduce_and'.
+Generating RTLIL representation for module `$reduce_xor'.
+Generating RTLIL representation for module `$logic_and'.
+Generating RTLIL representation for module `$logic_or'.
+Generating RTLIL representation for module `$logic_not'.
+Generating RTLIL representation for module `$eq'.
+Generating RTLIL representation for module `$ne'.
+Generating RTLIL representation for module `$mux'.
+Generating RTLIL representation for module `$pmux'.
+Generating RTLIL representation for module `$dff'.
+Generating RTLIL representation for module `$adff'.
+Generating RTLIL representation for module `$add'.
+Generating RTLIL representation for module `$sub'.
+Generating RTLIL representation for module `$lt'.
+Generating RTLIL representation for module `$gt'.
+Generating RTLIL representation for module `$ge'.
+Generating RTLIL representation for module `$le'.
+Generating RTLIL representation for module `$_NOT_'.
+Generating RTLIL representation for module `$_AND_'.
+Generating RTLIL representation for module `$_NAND_'.
+Generating RTLIL representation for module `$_OR_'.
+Generating RTLIL representation for module `$_NOR_'.
+Generating RTLIL representation for module `$_XOR_'.
+Generating RTLIL representation for module `$_XNOR_'.
+Generating RTLIL representation for module `$_ANDNOT_'.
+Generating RTLIL representation for module `$_ORNOT_'.
+Generating RTLIL representation for module `$_MUX_'.
+Generating RTLIL representation for module `$_DFF_P_'.
+Generating RTLIL representation for module `$_DFF_N_'.
+Generating RTLIL representation for module `$_DFF_PN0_'.
+Generating RTLIL representation for module `$_DFF_PP0_'.
+Generating RTLIL representation for module `$_DFF_PN1_'.
+Generating RTLIL representation for module `$_DFF_PP1_'.
+Generating RTLIL representation for module `$_DFF_NN0_'.
+Generating RTLIL representation for module `$_DFF_NP0_'.
+Generating RTLIL representation for module `$_DFF_NN1_'.
+Generating RTLIL representation for module `$_DFF_NP1_'.
+Successfully finished Verilog frontend.
+
+2.2. Continuing TECHMAP pass.
+Using template $paramod$efaf52e19251f1f65fe6484ba524632cc703d8be$pmux for cells of type $pmux.
+Using template $paramod$645fe0cc96ae5edb83bff90cc2c78f4a20ca3e3c$pmux for cells of type $pmux.
+Using template $paramod$824a2ca00d29d886599434cf8ea60471635f2955$pmux for cells of type $pmux.
+No more expansions possible.
+<suppressed ~81 debug messages>
+
+3. Executing OPT pass (performing simple optimizations).
+
+3.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module pmux_s1_w1.
+Optimizing module pmux_s3_w8.
+Optimizing module pmux_s1_w8.
+
+3.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\pmux_s1_w1'.
+Computing hashes of 1 cells of `\pmux_s1_w1'.
+Finding duplicate cells in `\pmux_s1_w1'.
+Finding identical cells in module `\pmux_s3_w8'.
+Computing hashes of 24 cells of `\pmux_s3_w8'.
+Finding duplicate cells in `\pmux_s3_w8'.
+Finding identical cells in module `\pmux_s1_w8'.
+Computing hashes of 8 cells of `\pmux_s1_w8'.
+Finding duplicate cells in `\pmux_s1_w8'.
+Removed a total of 0 cells.
+
+3.3. Executing OPT_DFF pass (perform DFF optimizations).
+
+3.4. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \pmux_s1_w1..
+Finding unused cells or wires in module \pmux_s3_w8..
+Finding unused cells or wires in module \pmux_s1_w8..
+Removed 0 unused cells and 7 unused wires.
+<suppressed ~7 debug messages>
+
+3.5. Finished fast OPT passes.
+
+4. Executing Verilog-2005 frontend: asic/synthesis/techmap/pmux_cell_model.v
+Parsing Verilog input from `asic/synthesis/techmap/pmux_cell_model.v' to AST representation.
+Generating RTLIL representation for module `\sky130_fd_sc_hd__mux2_1'.
+Successfully finished Verilog frontend.
+
+5. Executing FLATTEN pass (flatten design).
+<suppressed ~33 debug messages>
+
+6. Executing OPT pass (performing simple optimizations).
+
+6.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module sky130_fd_sc_hd__mux2_1.
+Optimizing module pmux_s1_w1.
+Optimizing module pmux_s3_w8.
+Optimizing module pmux_s1_w8.
+
+6.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\sky130_fd_sc_hd__mux2_1'.
+Computing hashes of 4 cells of `\sky130_fd_sc_hd__mux2_1'.
+Finding duplicate cells in `\sky130_fd_sc_hd__mux2_1'.
+Finding identical cells in module `\pmux_s1_w1'.
+Computing hashes of 5 cells of `\pmux_s1_w1'.
+Finding duplicate cells in `\pmux_s1_w1'.
+Finding identical cells in module `\pmux_s3_w8'.
+Computing hashes of 120 cells of `\pmux_s3_w8'.
+Finding duplicate cells in `\pmux_s3_w8'.
+Computing hashes of 99 cells of `\pmux_s3_w8'.
+Finding duplicate cells in `\pmux_s3_w8'.
+<suppressed ~63 debug messages>
+Finding identical cells in module `\pmux_s1_w8'.
+Computing hashes of 40 cells of `\pmux_s1_w8'.
+Finding duplicate cells in `\pmux_s1_w8'.
+Computing hashes of 33 cells of `\pmux_s1_w8'.
+Finding duplicate cells in `\pmux_s1_w8'.
+<suppressed ~21 debug messages>
+Removed a total of 28 cells.
+
+6.3. Executing OPT_DFF pass (perform DFF optimizations).
+
+6.4. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \sky130_fd_sc_hd__mux2_1..
+Finding unused cells or wires in module \pmux_s1_w1..
+Finding unused cells or wires in module \pmux_s3_w8..
+Finding unused cells or wires in module \pmux_s1_w8..
+Removed 0 unused cells and 62 unused wires.
+<suppressed ~4 debug messages>
+
+6.5. Finished fast OPT passes.
+Renaming module \pmux_s1_w8 to \gate_s1_w8.
+Renaming module \pmux_s3_w8 to \gate_s3_w8.
+Renaming module \pmux_s1_w1 to \gate_s1_w1.
+
+7. Executing RTLIL frontend.
+Input filename: asic/synthesis/techmap/pmux_probe.il
+
+8. Executing PMUXTREE pass.
+
+9. Executing OPT pass (performing simple optimizations).
+
+9.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module pmux_s1_w1.
+<suppressed ~1 debug messages>
+Optimizing module pmux_s3_w8.
+Optimizing module pmux_s1_w8.
+<suppressed ~1 debug messages>
+
+9.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\pmux_s1_w1'.
+Computing hashes of 2 cells of `\pmux_s1_w1'.
+Finding duplicate cells in `\pmux_s1_w1'.
+Finding identical cells in module `\pmux_s3_w8'.
+Computing hashes of 6 cells of `\pmux_s3_w8'.
+Finding duplicate cells in `\pmux_s3_w8'.
+Finding identical cells in module `\pmux_s1_w8'.
+Computing hashes of 2 cells of `\pmux_s1_w8'.
+Finding duplicate cells in `\pmux_s1_w8'.
+Removed a total of 0 cells.
+
+9.3. Executing OPT_DFF pass (perform DFF optimizations).
+
+9.4. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \pmux_s1_w1..
+Finding unused cells or wires in module \pmux_s3_w8..
+Finding unused cells or wires in module \pmux_s1_w8..
+Removed 4 unused cells and 9 unused wires.
+<suppressed ~7 debug messages>
+
+9.5. Finished fast OPT passes.
+Renaming module \pmux_s1_w8 to \gold_s1_w8.
+Renaming module \pmux_s3_w8 to \gold_s3_w8.
+Renaming module \pmux_s1_w1 to \gold_s1_w1.
+
+10. Executing EQUIV_MAKE pass (creating equiv checking module).
+Presumably equivalent wires: y_gold ({ \u.g_bit[7].chain_gold \u.g_bit[6].chain_gold \u.g_bit[5].chain_gold \u.g_bit[4].chain_gold \u.g_bit[3].chain_gold \u.g_bit[2].chain_gold \u.g_bit[1].chain_gold \u.g_bit[0].chain_gold }), y_gate (\y_gate) -> y
+Presumably equivalent wires: s_gold (\s_gold), s_gate (\s_gate) -> s
+Presumably equivalent wires: b_gold (\b_gold), b_gate (\b_gate) -> b
+Presumably equivalent wires: a_gold (\a_gold), a_gate (\a_gate) -> a
+
+11. Executing HIERARCHY pass (managing design hierarchy).
+
+11.1. Analyzing design hierarchy..
+Top module:  \equiv_s1_w8
+
+11.2. Analyzing design hierarchy..
+Top module:  \equiv_s1_w8
+Removing unused module `\gold_s1_w8'.
+Removing unused module `\gate_s1_w8'.
+Removed 2 unused modules.
+
+12. Executing EQUIV_SIMPLE pass.
+Found 8 unproven $equiv cells (1 groups) in equiv_s1_w8:
+ Grouping SAT models for \y:
+  Trying to prove $equiv for \y [0]:ezsat
+ success!
+  Trying to prove $equiv for \y [1]:ezsat
+ success!
+  Trying to prove $equiv for \y [2]:ezsat
+ success!
+  Trying to prove $equiv for \y [3]:ezsat
+ success!
+  Trying to prove $equiv for \y [4]:ezsat
+ success!
+  Trying to prove $equiv for \y [5]:ezsat
+ success!
+  Trying to prove $equiv for \y [6]:ezsat
+ success!
+  Trying to prove $equiv for \y [7]:ezsat
+ success!
+Proved 8 previously unproven $equiv cells.
+
+13. Executing EQUIV_STATUS pass.
+Found 8 $equiv cells in equiv_s1_w8:
+  Of those cells 8 are proven and 0 are unproven.
+  Equivalence successfully proven!
+
+14. Executing EQUIV_MAKE pass (creating equiv checking module).
+Presumably equivalent wires: y_gold (\y_gold), y_gate (\y_gate) -> y
+Presumably equivalent wires: s_gold (\s_gold), s_gate (\s_gate) -> s
+Presumably equivalent wires: b_gold (\b_gold), b_gate (\b_gate) -> b
+Presumably equivalent wires: a_gold (\a_gold), a_gate (\a_gate) -> a
+
+15. Executing HIERARCHY pass (managing design hierarchy).
+
+15.1. Analyzing design hierarchy..
+Top module:  \equiv_s1_w1
+
+15.2. Analyzing design hierarchy..
+Top module:  \equiv_s1_w1
+Removing unused module `\gold_s1_w1'.
+Removing unused module `\gate_s1_w1'.
+Removing unused module `\equiv_s1_w8'.
+Removed 3 unused modules.
+
+16. Executing EQUIV_SIMPLE pass.
+Found 1 unproven $equiv cells (1 groups) in equiv_s1_w1:
+  Trying to prove $equiv for \y:ezsat
+ success!
+Proved 1 previously unproven $equiv cells.
+
+17. Executing EQUIV_STATUS pass.
+Found 1 $equiv cells in equiv_s1_w1:
+  Of those cells 1 are proven and 0 are unproven.
+  Equivalence successfully proven!
+
+End of script. Logfile hash: d911d14c66
+Yosys 0.69+154 (git sha1 30d62572e-dirty, Release, GNU /usr/bin/x86_64-w64-mingw32-g++ 15.2.1)
+Time spent: 5% 6x rename (0 sec), 5% 6x design (0 sec), ...

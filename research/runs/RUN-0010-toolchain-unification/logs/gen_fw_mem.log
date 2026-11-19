@@ -1,0 +1,3 @@
+rom.hex: 26 words from .text.reset
+tcm.hex: 895 words from .text
+exit=0

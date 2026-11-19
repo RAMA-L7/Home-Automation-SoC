@@ -1,0 +1,1558 @@
+{
+  "generated": "2026-11-18T15:41:07.529Z",
+  "head": "025ef24f2f4444cac4c38dc62b659fac724770f4",
+  "branch": "main",
+  "dirty_tracked": 12,
+  "untracked": 45,
+  "status": [
+    " M AGENTS.md",
+    " M build/asic_evidence/arith_work/sky130_stub.v",
+    " M build/asic_evidence/sky130_map.v",
+    " M rtl/rtl_peripherals/i2c_ctrl.sv",
+    " M scripts/eda/run_regression.js",
+    " M scripts/firmware/run_e2e.js",
+    " M scripts/fw_build/build_fw.bat",
+    " M scripts/fw_build/build_fw.js",
+    " M scripts/fw_build/build_fw.py",
+    " M scripts/fw_build/toolchain.js",
+    " M scripts/verify.js",
+    " M sim/sim_top/tb_i2c_xfer.v",
+    "?? \"D\\357\\200\\272Home-Automation-SoCbuildasic_evidencearith_worksynth_map_direct_novb.txt\"",
+    "?? \"D\\357\\200\\272Home-Automation-SoCbuildasic_evidencearith_worksynth_map_vb_wrap2.txt\"",
+    "?? asic/synthesis/",
+    "?? experiments/",
+    "?? reports/ASIC_PHASE2_1_TIMER_MAPPING_CLOSURE.md",
+    "?? reports/ASIC_PHASE2_2_OPENROAD_MCP_AND_MAPPING_INVESTIGATION.md",
+    "?? reports/ASIC_PHASE2_3_PNR_READINESS_GATE.md",
+    "?? reports/ASIC_PHASE2_4_LIBERTY_AND_CLOCK_INVESTIGATION.md",
+    "?? reports/ASIC_PHASE2_5_TIMER_MAPPING_CLOSURE.md",
+    "?? reports/ASIC_PHASE2_6_TIMER_ENABLE_MAPPING.md",
+    "?? reports/ASIC_PHASE3_1_VISUAL_VALIDATION.md",
+    "?? reports/ASIC_PHASE3_2_CTS_READINESS.md",
+    "?? reports/ASIC_PHASE3_3_CLOCK_ARCHITECTURE_RECONCILIATION.md",
+    "?? reports/ASIC_PHASE3_4_CLOCK_DECISION_AND_CTS_APPROVAL.md",
+    "?? reports/ASIC_PHASE3_5_CTS_APPROVAL_GATE_HARDENING.md",
+    "?? reports/ASIC_PHASE3_6_CTS_APPROVAL_INPUT_INTEGRITY.md",
+    "?? reports/ASIC_PHASE3_7_FINAL_CTS_PREFLIGHT.md",
+    "?? reports/ASIC_PHASE4_0_CTS_PLACEMENT_ROOT_CAUSE.md",
+    "?? reports/ASIC_PHASE4_10_LEF_GEOMETRY_AND_PLACEMENT_ORIGIN_VERIFICATION.md",
+    "?? reports/ASIC_PHASE4_11_WSL_PLATFORM_AND_LEF_ACCESS_RECOVERY.md",
+    "?? reports/ASIC_PHASE4_12_AUTHORITATIVE_CTS_PLACEMENT_GEOMETRY.md",
+    "?? reports/ASIC_PHASE4_13_LEF_MASTER_ORIGIN_EXTRACTION.md",
+    "?? reports/ASIC_PHASE4_14_AUTHORITATIVE_CTS_X_SITE_ALIGNMENT_AUDIT.md",
+    "?? reports/ASIC_PHASE4_15_CTS_SITE_MISALIGNMENT_ROOT_CAUSE_ANALYSIS.md",
+    "?? reports/ASIC_PHASE4_16_CTS_REPAIR_READINESS_ASSESSMENT.md",
+    "?? reports/ASIC_PHASE4_17_SELECTIVE_CTS_LEGALIZATION_CAPABILITY_INVESTIGATION.md",
+    "?? reports/ASIC_PHASE4_18_CONTROLLED_CTS_PLACEMENT_REPAIR_EXPERIMENT.md",
+    "?? reports/ASIC_PHASE4_19_CTS_CANDIDATE_PHYSICAL_VALIDATION.md",
+    "?? reports/ASIC_PHASE4_1_CTS_PLACEMENT_EVIDENCE_VALIDATION.md",
+    "?? reports/ASIC_PHASE4_20_PHYSICAL_VALIDATION_AND_FLOW_INTEGRATION_READINESS.md",
+    "?? reports/ASIC_PHASE4_21_SDC_CLOSURE_AND_POST_CTS_GATE_PROTOTYPE.md",
+    "?? reports/ASIC_PHASE4_22_END_TO_END_POST_CTS_GATE_INTEGRATION_VALIDATION.md",
+    "?? reports/ASIC_PHASE4_2_CTS_PLACEMENT_REPAIR_EXPERIMENT.md",
+    "?? reports/ASIC_PHASE4_3_OPENROAD_PLACEMENT_VALIDATION.md",
+    "?? reports/ASIC_PHASE4_9_CTS_PLACEMENT_REPAIR_STRATEGY.md",
+    "?? reports/evidence/",
+    "?? reports/verification/VERIFICATION_BASELINE_2826b5b.md",
+    "?? research/",
+    "?? scripts/eda/audit_memory.js",
+    "?? scripts/eda/check_structure.js",
+    "?? scripts/eda/run_dfrbp_model_test.js",
+    "?? scripts/eda/run_pmux_map_test.js",
+    "?? scripts/fw_build/toolchain_test.js",
+    "?? sim/sim_top/tb_i2c_xfer.vvp",
+    "?? sky130_comb.lib"
+  ],
+  "diffstat": "AGENTS.md                                    |   8 +\n build/asic_evidence/arith_work/sky130_stub.v |   9 +-\n build/asic_evidence/sky130_map.v             |  21 ++-\n rtl/rtl_peripherals/i2c_ctrl.sv              |   9 +-\n scripts/eda/run_regression.js                |   7 +\n scripts/firmware/run_e2e.js                  |  32 +++-\n scripts/fw_build/build_fw.bat                |  63 ++-----\n scripts/fw_build/build_fw.js                 |   4 +-\n scripts/fw_build/build_fw.py                 | 194 ++++++++++++--------\n scripts/fw_build/toolchain.js                | 263 ++++++++++++++++++++++-----\n scripts/verify.js                            |  26 +++\n sim/sim_top/tb_i2c_xfer.v                    |  19 +-\n 12 files changed, 453 insertions(+), 202 deletions(-)",
+  "files": [
+    {
+      "path": "asic/synthesis/fullsoc_map.ys",
+      "sha256": "78fc83e263727a7ff7e7c9d9b7de793fd229816b232885c741aea41bb4723d0b",
+      "tracked": false,
+      "mtime": "2026-11-18T13:27:40.853Z"
+    },
+    {
+      "path": "asic/synthesis/memory_audit.ys",
+      "sha256": "70aaf7c15a36be89d9f470dc77ccf9936307dcfac862e0e048bd399a36d48a83",
+      "tracked": false,
+      "mtime": "2026-11-18T14:23:17.678Z"
+    },
+    {
+      "path": "asic/synthesis/memory_inventory.json",
+      "sha256": "fd46a9173770bbb90a719224f492b44dc0b7bb4fc41d9d03729429e6955c05de",
+      "tracked": false,
+      "mtime": "2026-11-18T14:31:34.086Z"
+    },
+    {
+      "path": "asic/synthesis/structural_policy.json",
+      "sha256": "d2e720fcf5b5839c1eac1655efffc07829be52bd65882ac944cfde5d2b98cfd3",
+      "tracked": false,
+      "mtime": "2026-11-18T14:34:17.692Z"
+    },
+    {
+      "path": "build/asic_evidence/arith_cmd10.txt",
+      "sha256": "5aae484d2d67aca12e209b588cb425b9233e41dee8650fca2cbd9577605b1945",
+      "tracked": false,
+      "mtime": "2026-11-16T18:33:01.267Z"
+    },
+    {
+      "path": "build/asic_evidence/arith_cmd11.txt",
+      "sha256": "bc91547bd3bd576bb293bb62dd01edcef1e536d053d7a9cf25387a54b4bc4f5b",
+      "tracked": false,
+      "mtime": "2026-11-16T18:34:12.878Z"
+    },
+    {
+      "path": "build/asic_evidence/arith_cmd12.txt",
+      "sha256": "fa443f4ed8ed11e96ef9a5464af7813d4b07b5709b738f7076c38544efbe761f",
+      "tracked": false,
+      "mtime": "2026-11-16T18:34:31.612Z"
+    },
+    {
+      "path": "build/asic_evidence/arith_cmd3.txt",
+      "sha256": "cb8058d122885e8d5eefdd6318914b566f9cefb64d41d5f21b3ee3757546d3ad",
+      "tracked": false,
+      "mtime": "2026-11-16T18:28:25.276Z"
+    },
+    {
+      "path": "build/asic_evidence/arith_cmd4.txt",
+      "sha256": "cb8058d122885e8d5eefdd6318914b566f9cefb64d41d5f21b3ee3757546d3ad",
+      "tracked": false,
+      "mtime": "2026-11-16T18:28:46.749Z"
+    },
+    {
+      "path": "build/asic_evidence/arith_cmd5.txt",
+      "sha256": "cb8058d122885e8d5eefdd6318914b566f9cefb64d41d5f21b3ee3757546d3ad",
+      "tracked": false,
+      "mtime": "2026-11-16T18:28:58.221Z"
+    },
+    {
+      "path": "build/asic_evidence/arith_cmd6.txt",
+      "sha256": "cb8058d122885e8d5eefdd6318914b566f9cefb64d41d5f21b3ee3757546d3ad",
+      "tracked": false,
+      "mtime": "2026-11-16T18:29:17.612Z"
+    },
+    {
+      "path": "build/asic_evidence/arith_cmd7.txt",
+      "sha256": "cb8058d122885e8d5eefdd6318914b566f9cefb64d41d5f21b3ee3757546d3ad",
+      "tracked": false,
+      "mtime": "2026-11-16T18:29:27.623Z"
+    },
+    {
+      "path": "build/asic_evidence/arith_cmd8.txt",
+      "sha256": "d700f93a4e080dc7f15a20b730140c2b8e0711ad922b8dc06d3e90ef6fb44203",
+      "tracked": false,
+      "mtime": "2026-11-16T18:31:11.542Z"
+    },
+    {
+      "path": "build/asic_evidence/arith_cmd9.txt",
+      "sha256": "6e21b0ac69acab2710fa853ef9c09c10b60200ab7446a3da6148c2c63c3313a2",
+      "tracked": false,
+      "mtime": "2026-11-16T18:32:46.338Z"
+    },
+    {
+      "path": "build/asic_evidence/arith_dump.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false,
+      "mtime": "2026-11-16T18:25:39.777Z"
+    },
+    {
+      "path": "build/asic_evidence/arith_dump2.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false,
+      "mtime": "2026-11-16T18:25:52.402Z"
+    },
+    {
+      "path": "build/asic_evidence/arith_test.v",
+      "sha256": "4085e764051d3b7ec7fff3377a3da828282ab42328f7eff1ac0f09bca75a07ef",
+      "tracked": false,
+      "mtime": "2026-11-16T18:25:39.722Z"
+    },
+    {
+      "path": "build/asic_evidence/arith_test_generic.v",
+      "sha256": "1759647b3a57cb300c370ca3e1ea262c1dd9a698f97327482156f214884a254c",
+      "tracked": false,
+      "mtime": "2026-11-16T18:33:01.258Z"
+    },
+    {
+      "path": "build/asic_evidence/cell_inv1.lib",
+      "sha256": "15031834403d48ec9ba93b9c00bcb5d1397b66f17102c04eb223950f1f4005c9",
+      "tracked": false,
+      "mtime": "2026-11-16T17:40:13.022Z"
+    },
+    {
+      "path": "build/asic_evidence/cmd_dslash.txt",
+      "sha256": "c69fb6a779633dfc0d8182f1ac559c116d670c1a18131554e2c98db93741fa8a",
+      "tracked": false,
+      "mtime": "2026-11-16T18:31:00.414Z"
+    },
+    {
+      "path": "build/asic_evidence/cmd_sanity.txt",
+      "sha256": "cb8058d122885e8d5eefdd6318914b566f9cefb64d41d5f21b3ee3757546d3ad",
+      "tracked": false,
+      "mtime": "2026-11-16T18:29:35.198Z"
+    },
+    {
+      "path": "build/asic_evidence/cmd_unq.txt",
+      "sha256": "cb8058d122885e8d5eefdd6318914b566f9cefb64d41d5f21b3ee3757546d3ad",
+      "tracked": false,
+      "mtime": "2026-11-16T18:29:42.860Z"
+    },
+    {
+      "path": "build/asic_evidence/dump.ys",
+      "sha256": "28c122881ac73f965059daa6aeae86d94345646240b8c02187b045c1b127a01a",
+      "tracked": false,
+      "mtime": "2026-11-16T17:49:08.230Z"
+    },
+    {
+      "path": "build/asic_evidence/full_soc_generic.log",
+      "sha256": "15c63507043697b55e9db287a4508491bd827045406d421da7d8aa3c7be7b8ca",
+      "tracked": false,
+      "mtime": "2026-11-16T17:57:03.065Z"
+    },
+    {
+      "path": "build/asic_evidence/full_soc_generic2.log",
+      "sha256": "87440ec41b64a433c612df464fb2a2daefaf6792799ae45dd51411ecadca7bec",
+      "tracked": false,
+      "mtime": "2026-11-16T18:00:32.504Z"
+    },
+    {
+      "path": "build/asic_evidence/full_soc_proc.log",
+      "sha256": "019467df9be6111125759aa778a05934f96783993d8a1e1ef9f826acf7757810",
+      "tracked": false,
+      "mtime": "2026-11-16T18:02:11.253Z"
+    },
+    {
+      "path": "build/asic_evidence/full_soc_techmap.log",
+      "sha256": "70e2d11c9349b662ab1ab90ce919d6924f837cce7e3165eca8383bb2503fb4ee",
+      "tracked": false,
+      "mtime": "2026-11-16T18:04:38.097Z"
+    },
+    {
+      "path": "build/asic_evidence/getcells.ys",
+      "sha256": "24ab8f62003512ffd9642226e586b48bf98539c734c04fc062e38042bda23a5d",
+      "tracked": false,
+      "mtime": "2026-11-16T17:51:13.141Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect.ys",
+      "sha256": "d6fdff3478c6d14b27bd63b6f2c7dac30038cbdec07164cea41d337168438d8c",
+      "tracked": false,
+      "mtime": "2026-11-16T17:49:01.501Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_all.rtlil",
+      "sha256": "38f2f1e8bc893ab748afe24a5420cf8da41b86207d40aea8ef9bafe3a6aba92e",
+      "tracked": false,
+      "mtime": "2026-11-16T17:50:18.539Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_all.v",
+      "sha256": "257908d7185f33a365404fd39bdc89d16caad5706b0497faccd05af91c004f8c",
+      "tracked": false,
+      "mtime": "2026-11-16T17:51:51.553Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_all.ys",
+      "sha256": "0b99d0751b0587d6e80bc93577c669cb6fa007174e0c6148c0356da9041750cf",
+      "tracked": false,
+      "mtime": "2026-11-16T17:50:18.488Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_all2.rtlil",
+      "sha256": "aba25a3c539133eea211cc8dd778c9f629d3560303e3334149d750e5c055a303",
+      "tracked": false,
+      "mtime": "2026-11-16T17:50:32.741Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_all2.ys",
+      "sha256": "8f7b06dc8fe868c06475c6e50b5096ba0d04a533b03df9f659943cb886b22002",
+      "tracked": false,
+      "mtime": "2026-11-16T17:50:32.635Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_all3.rtlil",
+      "sha256": "aba25a3c539133eea211cc8dd778c9f629d3560303e3334149d750e5c055a303",
+      "tracked": false,
+      "mtime": "2026-11-16T17:50:58.023Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_all3.ys",
+      "sha256": "41031bb9968381af7e8f5bea7e4f8b5610e14d10bae066cb398bf48d86a7d1e7",
+      "tracked": false,
+      "mtime": "2026-11-16T17:50:57.969Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_all4.rtlil",
+      "sha256": "aba25a3c539133eea211cc8dd778c9f629d3560303e3334149d750e5c055a303",
+      "tracked": false,
+      "mtime": "2026-11-16T17:51:07.634Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_all4.ys",
+      "sha256": "5fbdb67a4cf813414f2b505c39e06773787a31cbf8f519980c81b044fa997932",
+      "tracked": false,
+      "mtime": "2026-11-16T17:51:07.579Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_all5.rtlil",
+      "sha256": "aba25a3c539133eea211cc8dd778c9f629d3560303e3334149d750e5c055a303",
+      "tracked": false,
+      "mtime": "2026-11-16T17:51:13.245Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_all5.ys",
+      "sha256": "dc2edfdc4d003de6d632398709287dcfac749d09ec57ed7d5d61c61375f19238",
+      "tracked": false,
+      "mtime": "2026-11-16T17:51:13.194Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_all6.rtlil",
+      "sha256": "aba25a3c539133eea211cc8dd778c9f629d3560303e3334149d750e5c055a303",
+      "tracked": false,
+      "mtime": "2026-11-16T17:51:24.889Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_all6.ys",
+      "sha256": "c24007e4cac6ff30f6cf60ceb177cbd821d0ba81055a7c377b75ed3fc4345b36",
+      "tracked": false,
+      "mtime": "2026-11-16T17:51:24.812Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_all7.rtlil",
+      "sha256": "aba25a3c539133eea211cc8dd778c9f629d3560303e3334149d750e5c055a303",
+      "tracked": false,
+      "mtime": "2026-11-16T17:51:29.577Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_all7.ys",
+      "sha256": "d621b4a37cfa651fac20f898b4fbc8e6143f773f3dfc659ace42c3faadfb10c2",
+      "tracked": false,
+      "mtime": "2026-11-16T17:51:29.529Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_all8.rtlil",
+      "sha256": "aba25a3c539133eea211cc8dd778c9f629d3560303e3334149d750e5c055a303",
+      "tracked": false,
+      "mtime": "2026-11-16T17:51:35.159Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_all8.ys",
+      "sha256": "532b19e85a6c152ba8079aead67e0d5ab4c7566880b3182c07626dec82808181",
+      "tracked": false,
+      "mtime": "2026-11-16T17:51:35.089Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_all9.rtlil",
+      "sha256": "aba25a3c539133eea211cc8dd778c9f629d3560303e3334149d750e5c055a303",
+      "tracked": false,
+      "mtime": "2026-11-16T17:51:41.849Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_all9.ys",
+      "sha256": "bb0ea92dc291000eb93a513def015172a32549f606f0bf2c9b9edf01dfeb9b26",
+      "tracked": false,
+      "mtime": "2026-11-16T17:51:41.749Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_allA.rtlil",
+      "sha256": "2ad487db423f250c8902abf7db56c52e46252013f381c19419f65e7136690ea9",
+      "tracked": false,
+      "mtime": "2026-11-16T17:51:51.627Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_allA.ys",
+      "sha256": "88d1076df8447e756dde13bace4d15460e6f9bc5febcab3c504f2a06bd65be31",
+      "tracked": false,
+      "mtime": "2026-11-16T17:51:51.555Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_all_tech.v",
+      "sha256": "0aa36d4f8f7d964753c642073eb0f59697307a51e6bdeda54671a0220a608df9",
+      "tracked": false,
+      "mtime": "2026-11-16T17:52:38.105Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_all_tech2.v",
+      "sha256": "717b71932e308fa0d1d4dc7a88f752cf9eb1b89b7e513657ae23c6b74a7fcef9",
+      "tracked": false,
+      "mtime": "2026-11-16T17:54:01.910Z"
+    },
+    {
+      "path": "build/asic_evidence/inspect_cells.v",
+      "sha256": "240c9836e5b4e953fe8a707969cb663a8cc5cdc8a0d2dfa8f8adf99f2e6cd3b0",
+      "tracked": false,
+      "mtime": "2026-11-16T17:49:01.499Z"
+    },
+    {
+      "path": "build/asic_evidence/inv1.lib",
+      "sha256": "463f249a1e3559867b5892789c37fe1c9fbfad3b22e12536b8dc849a0967a176",
+      "tracked": false,
+      "mtime": "2026-11-16T17:40:21.331Z"
+    },
+    {
+      "path": "build/asic_evidence/inv1_full.lib",
+      "sha256": "1f90758475c31d87fd744fc45193ecf6c9cee0b086bc04ff1eb48c770ea0faf2",
+      "tracked": false,
+      "mtime": "2026-11-16T17:40:29.978Z"
+    },
+    {
+      "path": "build/asic_evidence/reset_ctrl_synth.v",
+      "sha256": "fc03b140e2db9f7aaa0431b09f8f9bd038de1142ff9a7abdca1beb31802ded1f",
+      "tracked": false,
+      "mtime": "2026-11-16T17:55:02.713Z"
+    },
+    {
+      "path": "build/asic_evidence/rtlil.ys",
+      "sha256": "5d9b65a0f82c2261b15b299613be72c56b27cacf22b8c0f073a3909543fc6013",
+      "tracked": false,
+      "mtime": "2026-11-16T17:49:14.253Z"
+    },
+    {
+      "path": "build/asic_evidence/show.ys",
+      "sha256": "3263f9e38a076621947c9d2df9e3b15cf32373e7d1c3c44c296347b29cb9cf8f",
+      "tracked": false,
+      "mtime": "2026-11-16T17:49:08.312Z"
+    },
+    {
+      "path": "build/asic_evidence/sky130_comb.lib",
+      "sha256": "0aa5b124a8d993466163004cd5f03f56059bd324cf13d701cb33c191311a2244",
+      "tracked": false,
+      "mtime": "2026-11-16T17:44:28.026Z"
+    },
+    {
+      "path": "build/asic_evidence/sky130_full_subset.lib",
+      "sha256": "5256f24d564c5b3474de689d94237cd0f6c94eaa672a3c02a134e452af668d5b",
+      "tracked": true,
+      "mtime": "2026-11-16T17:53:35.376Z"
+    },
+    {
+      "path": "build/asic_evidence/sky130_map.v",
+      "sha256": "6687870974e5a516f7922fc3d6c9ab7c6d01aa07b7e2bff459e44a51ba2651b8",
+      "tracked": true,
+      "mtime": "2026-11-18T12:57:25.059Z"
+    },
+    {
+      "path": "build/asic_evidence/sky130_min.lib",
+      "sha256": "5cba396c2adde508fa98681d0c591c9049a3125de3fc20183ef6a9f004d6dd25",
+      "tracked": false,
+      "mtime": "2026-11-16T17:40:05.577Z"
+    },
+    {
+      "path": "build/asic_evidence/sky130_subset.lib",
+      "sha256": "92a03d617081c58b8adebb342f294bb093e45b4105aa8c397382e4e735a52122",
+      "tracked": false,
+      "mtime": "2026-11-16T17:41:51.668Z"
+    },
+    {
+      "path": "build/asic_evidence/sky130_tt.lib",
+      "sha256": "ec0e1067a35c8bf20b11e58d1e8ac53326067e4dac84a125cc1b917a3518d0d9",
+      "tracked": false,
+      "mtime": "2026-11-16T17:39:34.754Z"
+    },
+    {
+      "path": "build/asic_evidence/synth10.ys",
+      "sha256": "ad68ed48694d43ab7ebb04f25316b0cef5d4cd37d072a65f437cca1635e05f80",
+      "tracked": false,
+      "mtime": "2026-11-16T17:43:45.912Z"
+    },
+    {
+      "path": "build/asic_evidence/synth12.ys",
+      "sha256": "20b35149081e7c0abb59707c72570a54b6626a4f7848738f748d3ab1e20282ae",
+      "tracked": false,
+      "mtime": "2026-11-16T17:43:52.991Z"
+    },
+    {
+      "path": "build/asic_evidence/synth13.ys",
+      "sha256": "898901ee861931cceae28103718e8aed4ccd731e534c956196338a8963cb641a",
+      "tracked": false,
+      "mtime": "2026-11-16T17:44:01.121Z"
+    },
+    {
+      "path": "build/asic_evidence/synth14.ys",
+      "sha256": "f7d2278ab9e3ec1056e85163cb4213fa434cfb1eb9e786d32603a3b406b3f1d9",
+      "tracked": false,
+      "mtime": "2026-11-16T17:44:11.925Z"
+    },
+    {
+      "path": "build/asic_evidence/synth2.ys",
+      "sha256": "a63187710d9b3a159c57c0904c23da5e985dcf31187f39676511dbf0aaea0b10",
+      "tracked": false,
+      "mtime": "2026-11-16T17:42:49.574Z"
+    },
+    {
+      "path": "build/asic_evidence/synth3.ys",
+      "sha256": "9214bba72ea52ca4c572f762b50246198e7b64d66e97ff037f3d3ff8947ff9a9",
+      "tracked": false,
+      "mtime": "2026-11-16T17:42:57.028Z"
+    },
+    {
+      "path": "build/asic_evidence/synth4.ys",
+      "sha256": "504bc92d7aaade58ff7b5272d0166d4ff9cd2216fdb948b0b64dde7e76acc0be",
+      "tracked": false,
+      "mtime": "2026-11-16T17:43:04.397Z"
+    },
+    {
+      "path": "build/asic_evidence/synth5.ys",
+      "sha256": "ff877acdec24ddd419b88016a88f22d1797ba158b4b76da55f04b4df58ab064f",
+      "tracked": false,
+      "mtime": "2026-11-16T17:43:12.747Z"
+    },
+    {
+      "path": "build/asic_evidence/synth6.ys",
+      "sha256": "9214bba72ea52ca4c572f762b50246198e7b64d66e97ff037f3d3ff8947ff9a9",
+      "tracked": false,
+      "mtime": "2026-11-16T17:43:21.125Z"
+    },
+    {
+      "path": "build/asic_evidence/synth7.ys",
+      "sha256": "7f626cfffb1fafc7257732fad30203afa63243df880f43ce37f8356004a4e67e",
+      "tracked": false,
+      "mtime": "2026-11-16T17:43:31.198Z"
+    },
+    {
+      "path": "build/asic_evidence/synth8.ys",
+      "sha256": "e350ab4ce7d39113fa435fb32851ae9c3e6e116fcfe2953adea895d7b0cf4179",
+      "tracked": false,
+      "mtime": "2026-11-16T17:43:31.528Z"
+    },
+    {
+      "path": "build/asic_evidence/synth9.ys",
+      "sha256": "ad68ed48694d43ab7ebb04f25316b0cef5d4cd37d072a65f437cca1635e05f80",
+      "tracked": false,
+      "mtime": "2026-11-16T17:43:38.419Z"
+    },
+    {
+      "path": "build/asic_evidence/synth_all.ys",
+      "sha256": "9e1e0d2a74173017c0fcd149e3f647d3535fe882be4f757b5d5a73462ee85979",
+      "tracked": false,
+      "mtime": "2026-11-16T17:47:15.570Z"
+    },
+    {
+      "path": "build/asic_evidence/synth_args.ys",
+      "sha256": "9c64ea6be8cb65cfafb83fead218258da58d7923cc176bffb9aaf53b875133c5",
+      "tracked": false,
+      "mtime": "2026-11-16T17:45:26.276Z"
+    },
+    {
+      "path": "build/asic_evidence/synth_args2.ys",
+      "sha256": "abd1f2f33d90326392971f68ad372ce8383d5275c21c0924706ca11c4112b5d4",
+      "tracked": false,
+      "mtime": "2026-11-16T17:45:35.518Z"
+    },
+    {
+      "path": "build/asic_evidence/synth_args3.ys",
+      "sha256": "a3f6c02a180c3fb5a277b3c87707684fd4d1b9fbf72a1cfab7c9b8ea7ac7c9c1",
+      "tracked": false,
+      "mtime": "2026-11-16T17:45:47.454Z"
+    },
+    {
+      "path": "build/asic_evidence/synth_comb.ys",
+      "sha256": "0d8e756ff27453f63056dab79c1f41ce31172e5982f5a4a31fa0ab44f74d88d3",
+      "tracked": false,
+      "mtime": "2026-11-16T17:44:28.122Z"
+    },
+    {
+      "path": "build/asic_evidence/synth_comb2.ys",
+      "sha256": "98b37a81121e40049ebfca1785921f62e431b260720867ac683fdf0257a4ec18",
+      "tracked": false,
+      "mtime": "2026-11-16T17:44:34.490Z"
+    },
+    {
+      "path": "build/asic_evidence/synth_comb3.ys",
+      "sha256": "0d8e756ff27453f63056dab79c1f41ce31172e5982f5a4a31fa0ab44f74d88d3",
+      "tracked": false,
+      "mtime": "2026-11-16T17:44:42.456Z"
+    },
+    {
+      "path": "build/asic_evidence/synth_cwd.ys",
+      "sha256": "bc959e237aab67b062775bb01ee5a3173e35b8c530069afdf55ea772b9cfbd79",
+      "tracked": false,
+      "mtime": "2026-11-16T17:45:01.657Z"
+    },
+    {
+      "path": "build/asic_evidence/synth_dot.ys",
+      "sha256": "c0706a87fb4533d73dd90c1c3ad2b519a3128cb5dd946e1a08a682ff7ad16d15",
+      "tracked": false,
+      "mtime": "2026-11-16T17:46:11.037Z"
+    },
+    {
+      "path": "build/asic_evidence/synth_eq.ys",
+      "sha256": "4025e0c3b05e2e62bb41108c543ea55e0dbb03bc84116460d601f7ca9f558d63",
+      "tracked": false,
+      "mtime": "2026-11-16T17:45:09.702Z"
+    },
+    {
+      "path": "build/asic_evidence/synth_eq2.ys",
+      "sha256": "6862e97129d41042d78b3bc2578b1b55607a35026de65b40e503da8eb050a82e",
+      "tracked": false,
+      "mtime": "2026-11-16T17:45:54.575Z"
+    },
+    {
+      "path": "build/asic_evidence/synth_inspect_tech.ys",
+      "sha256": "417e9dedf1925fda33fa4b1ce618c82e10dd55d94e1b25b360d1663f9e1c6375",
+      "tracked": false,
+      "mtime": "2026-11-16T17:52:38.015Z"
+    },
+    {
+      "path": "build/asic_evidence/synth_inspect_tech2.ys",
+      "sha256": "c64df745a0d33af94fb4049c4e23739fbe033f07a5cc18f17dde107b1bb7974b",
+      "tracked": false,
+      "mtime": "2026-11-16T17:54:01.831Z"
+    },
+    {
+      "path": "build/asic_evidence/synth_libmode.ys",
+      "sha256": "757ad4c7f6825a85d31735baa83451ebdf5fb3b7249386a42655c2efd5924b9b",
+      "tracked": false,
+      "mtime": "2026-11-16T17:47:07.761Z"
+    },
+    {
+      "path": "build/asic_evidence/synth_nocon.ys",
+      "sha256": "f0459a3e73c0498d206eb7b4da6ef7a6a24689cf83d06f349d1587fd4d3a1b6f",
+      "tracked": false,
+      "mtime": "2026-11-16T17:46:38.416Z"
+    },
+    {
+      "path": "build/asic_evidence/synth_quoted.ys",
+      "sha256": "eb19a0fe8ec9f5019d1247471465f0e99b37643459a42bc95dfc9829c88a7643",
+      "tracked": false,
+      "mtime": "2026-11-16T17:46:27.992Z"
+    },
+    {
+      "path": "build/asic_evidence/synth_readlib.ys",
+      "sha256": "4478b2ccc238b888545dbf3e0c9592c66b99388fd51c8ca93d2f837bb9de4b68",
+      "tracked": false,
+      "mtime": "2026-11-16T17:46:55.514Z"
+    },
+    {
+      "path": "build/asic_evidence/synth_reset_ctrl.ys",
+      "sha256": "5261b9ff6b312ffc962cf150eee9a10dd71d0d5472bb0f7f9220180179208372",
+      "tracked": false,
+      "mtime": "2026-11-16T17:55:02.616Z"
+    },
+    {
+      "path": "build/asic_evidence/synth_script.ys",
+      "sha256": "636b843e4e04a4e909c756445fba24721b186f6711c14ebf85edf3900426f119",
+      "tracked": false,
+      "mtime": "2026-11-16T17:42:08.997Z"
+    },
+    {
+      "path": "build/asic_evidence/synth_short.ys",
+      "sha256": "b8f7cecfdd1bdb96353a04423568a82f1ab7c44d7779bf636f7cc8dfc2a36eec",
+      "tracked": false,
+      "mtime": "2026-11-16T17:44:51.704Z"
+    },
+    {
+      "path": "build/asic_evidence/synth_tech.ys",
+      "sha256": "457e857e2650e09ef37e9de687165b8cc9d9141dc3cb2c1d6cc67aff288be5e4",
+      "tracked": false,
+      "mtime": "2026-11-16T17:49:33.517Z"
+    },
+    {
+      "path": "build/asic_evidence/synth_watchdog.ys",
+      "sha256": "ec5e858e3f6e8f3a9201c7a6af3b7e193c6a009e52813f72a61efa2d0c100af7",
+      "tracked": false,
+      "mtime": "2026-11-16T17:55:12.326Z"
+    },
+    {
+      "path": "build/asic_evidence/test.dot",
+      "sha256": "2ca5d2a5af20998c182919214044660ee3f93df5dd36f0e48815862b28d697dc",
+      "tracked": false,
+      "mtime": "2026-11-16T17:49:08.372Z"
+    },
+    {
+      "path": "build/asic_evidence/test.rtlil",
+      "sha256": "775d376e09db5459df2f8e5982f74eb64afdf1e04a4accc6bad3bb5d8e667e03",
+      "tracked": false,
+      "mtime": "2026-11-16T17:49:14.300Z"
+    },
+    {
+      "path": "build/asic_evidence/test.rtlil.new",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": false,
+      "mtime": "2026-11-16T17:49:08.393Z"
+    },
+    {
+      "path": "build/asic_evidence/test_dff.v",
+      "sha256": "6ef88751bd6e908926a37e6a1cd8f30a15837e1cb329944a674276a506bc2762",
+      "tracked": false,
+      "mtime": "2026-11-16T17:39:34.894Z"
+    },
+    {
+      "path": "build/asic_evidence/tiny.v",
+      "sha256": "0b357b10e6f1c9f8af8b37dfa3e0a3d78545f0147481ad34690ba70293829985",
+      "tracked": false,
+      "mtime": "2026-11-16T17:40:05.662Z"
+    },
+    {
+      "path": "build/asic_evidence/tiny2.v",
+      "sha256": "c80ef4308c174996aa2a7ef794e5b1d92331c24b2596a821c5066671392506e9",
+      "tracked": false,
+      "mtime": "2026-11-16T17:40:56.470Z"
+    },
+    {
+      "path": "build/asic_evidence/tiny2_all.v",
+      "sha256": "13c72fcb48eb2c55df2489b9a06e9b686a4d4733e399e010eb2df086eccb9281",
+      "tracked": false,
+      "mtime": "2026-11-16T17:47:15.888Z"
+    },
+    {
+      "path": "build/asic_evidence/tiny2_lib.v",
+      "sha256": "6642512eac6fd7fbac30d3a64ae1fcf73ceb7252712f3f78c6aa7bb38baf240d",
+      "tracked": false,
+      "mtime": "2026-11-16T17:43:31.426Z"
+    },
+    {
+      "path": "build/asic_evidence/tiny2_libmode.v",
+      "sha256": "2c359e6d42afb60d509a4d8c2f02ec5741464a83d5c0efeb3006714ad4dc9d62",
+      "tracked": false,
+      "mtime": "2026-11-16T17:47:07.876Z"
+    },
+    {
+      "path": "build/asic_evidence/tiny2_noabc.v",
+      "sha256": "2c359e6d42afb60d509a4d8c2f02ec5741464a83d5c0efeb3006714ad4dc9d62",
+      "tracked": false,
+      "mtime": "2026-11-16T17:40:56.620Z"
+    },
+    {
+      "path": "build/asic_evidence/tiny2_nocon.v",
+      "sha256": "2c359e6d42afb60d509a4d8c2f02ec5741464a83d5c0efeb3006714ad4dc9d62",
+      "tracked": false,
+      "mtime": "2026-11-16T17:46:55.141Z"
+    },
+    {
+      "path": "build/asic_evidence/tiny2_readlib.v",
+      "sha256": "2c359e6d42afb60d509a4d8c2f02ec5741464a83d5c0efeb3006714ad4dc9d62",
+      "tracked": false,
+      "mtime": "2026-11-16T17:46:55.637Z"
+    },
+    {
+      "path": "build/asic_evidence/tiny2_synth.v",
+      "sha256": "6642512eac6fd7fbac30d3a64ae1fcf73ceb7252712f3f78c6aa7bb38baf240d",
+      "tracked": false,
+      "mtime": "2026-11-16T17:41:51.984Z"
+    },
+    {
+      "path": "build/asic_evidence/tiny2_tech.v",
+      "sha256": "d398d7dd7305d8a082cd5800f46d55e144e896b7f1934d480e3eace6c2f81425",
+      "tracked": false,
+      "mtime": "2026-11-16T17:49:33.574Z"
+    },
+    {
+      "path": "build/asic_evidence/watchdog_synth.v",
+      "sha256": "d3a7a2cb501488eff38ed33bf728a462fe0b00597e4ba1252fa47403a8aa1140",
+      "tracked": false,
+      "mtime": "2026-11-16T17:55:19.666Z"
+    },
+    {
+      "path": "build/asic_evidence/yosys_dslash.txt",
+      "sha256": "fa0e273d86f41214e3c63c9aee32bd9f74cacfef1d0bd89f038137f97f2051f0",
+      "tracked": false,
+      "mtime": "2026-11-16T18:31:00.662Z"
+    },
+    {
+      "path": "build/asic_evidence/yosys_unq.txt",
+      "sha256": "cb8058d122885e8d5eefdd6318914b566f9cefb64d41d5f21b3ee3757546d3ad",
+      "tracked": false,
+      "mtime": "2026-11-16T18:29:42.937Z"
+    },
+    {
+      "path": "build/asic_evidence/yosys_ver_cmd.txt",
+      "sha256": "cb8058d122885e8d5eefdd6318914b566f9cefb64d41d5f21b3ee3757546d3ad",
+      "tracked": false,
+      "mtime": "2026-11-16T18:29:35.330Z"
+    },
+    {
+      "path": "firmware/bare_metal/boot.c",
+      "sha256": "9261bd7f6cc7488dd56d5c285d49d079c9bcd16ca63ac5e46f7ff30f1c16e14d",
+      "tracked": true,
+      "mtime": "2026-11-11T13:30:58.277Z"
+    },
+    {
+      "path": "firmware/bare_metal/boot.h",
+      "sha256": "dfac7f71c5d4c2af60581fa0ab5312bbc16414442f61c118b68fb73cf31c7340",
+      "tracked": true,
+      "mtime": "2026-11-11T13:29:23.278Z"
+    },
+    {
+      "path": "firmware/bare_metal/drivers.c",
+      "sha256": "212365b096792861f47002bd2bdf23ab11601451aa133f85f0303eeb5d78e09d",
+      "tracked": true,
+      "mtime": "2026-11-10T20:31:52.487Z"
+    },
+    {
+      "path": "firmware/bare_metal/drivers.h",
+      "sha256": "43efdc03b7b2b22530f65afb6d7571b6e67cee9ce54c21f084c410a776e8d45f",
+      "tracked": true,
+      "mtime": "2026-11-10T20:24:51.399Z"
+    },
+    {
+      "path": "firmware/bare_metal/host_comm.c",
+      "sha256": "0541f0d36c2a45fb044df11ac418a075e3ba7af1f9bc2adec37e8a1ccc4abe43",
+      "tracked": true,
+      "mtime": "2026-11-10T19:32:31.597Z"
+    },
+    {
+      "path": "firmware/bare_metal/linker.ld",
+      "sha256": "6b4b008224264160c2a315910438eb10b108f9dba72c30bda0fdf37555608ef6",
+      "tracked": true,
+      "mtime": "2026-11-10T19:31:53.027Z"
+    },
+    {
+      "path": "firmware/bare_metal/main.c",
+      "sha256": "e96aff1f5833ed7af8d96ddf58db89dd55c5fc3650e0ae8ed0de5e40d6a8f429",
+      "tracked": true,
+      "mtime": "2026-11-12T18:07:22.903Z"
+    },
+    {
+      "path": "firmware/bare_metal/ota.c",
+      "sha256": "9c324a16966fd531b3c193f16192c41a3f85de8150467dff7e1297175067d669",
+      "tracked": true,
+      "mtime": "2026-11-11T13:31:38.464Z"
+    },
+    {
+      "path": "firmware/bare_metal/startup.S",
+      "sha256": "a4dc66ae06ecf6e85fa341772bf59be9a085f1754b88a46ca0b339e881e83dd8",
+      "tracked": true,
+      "mtime": "2026-11-10T20:31:39.303Z"
+    },
+    {
+      "path": "reports/verification/README.md",
+      "sha256": "5a19875a3f8551f3089e2e2c76b46894a91484f57d129d89b8ec7db9cb23f265",
+      "tracked": true,
+      "mtime": "2026-11-12T17:49:26.576Z"
+    },
+    {
+      "path": "reports/verification/TEST_RESULTS.md",
+      "sha256": "7dd0f1a74769ec822c4ae9f2e4175cc197f09c2a359935a18eab009c936902b7",
+      "tracked": true,
+      "mtime": "2026-11-10T20:11:46.690Z"
+    },
+    {
+      "path": "reports/verification/VERIFICATION_BASELINE_2826b5b.md",
+      "sha256": "4795b784acaf562f1c1918c221763b94bbf02e78c4dc9682c05a2b850582f50a",
+      "tracked": false,
+      "mtime": "2026-11-17T17:16:31.810Z"
+    },
+    {
+      "path": "reports/verification/formal_interconnect.sby",
+      "sha256": "4e8cf8edefd1d6719cae2f1bdc8d92c0adf6b110d42e3966c08656b128d89381",
+      "tracked": true,
+      "mtime": "2026-11-10T19:44:53.118Z"
+    },
+    {
+      "path": "reports/verification/formal_properties.sv",
+      "sha256": "c2a1b3394028a6366e1fd8316ac539ec970cf5d95431ef90d6f8aa7cf8250247",
+      "tracked": true,
+      "mtime": "2026-11-11T03:51:43.975Z"
+    },
+    {
+      "path": "reports/verification/formal_sram.sby",
+      "sha256": "7bcb8e1e6e337004ac5ed4a3cfce9870b7e82650dc62ef4f7bd69adf6d81fdf7",
+      "tracked": true,
+      "mtime": "2026-11-10T19:30:39.722Z"
+    },
+    {
+      "path": "rtl/filelist.f",
+      "sha256": "f58ded357826e3564c57a77474c17f6de64d356c0f27084210a27952db017db9",
+      "tracked": true,
+      "mtime": "2026-11-11T14:47:22.013Z"
+    },
+    {
+      "path": "rtl/rtl_peripherals/clint.sv",
+      "sha256": "b838590c6f841e9b54b48e8954f574b2d6e3eabb9751f49f13119e2b68b3054d",
+      "tracked": true,
+      "mtime": "2026-11-10T20:09:52.448Z"
+    },
+    {
+      "path": "rtl/rtl_peripherals/debug_jtag.sv",
+      "sha256": "636147e9caaa7fc907740b3d6578498a2265c05e3ffe10d297d7f7a456fe03ca",
+      "tracked": true,
+      "mtime": "2026-11-12T17:46:28.073Z"
+    },
+    {
+      "path": "rtl/rtl_peripherals/gpio.sv",
+      "sha256": "be00da60a47d0020532e520daf47325f6f88881d34d093c16fbd44b44de32227",
+      "tracked": true,
+      "mtime": "2026-11-12T16:41:41.619Z"
+    },
+    {
+      "path": "rtl/rtl_peripherals/i2c_ctrl.sv",
+      "sha256": "23e90bfb0ab10d018aad1936a094c8d1df00f5c5707428a45280c3232c134d26",
+      "tracked": true,
+      "mtime": "2026-11-18T12:28:53.148Z"
+    },
+    {
+      "path": "rtl/rtl_peripherals/i2s.sv",
+      "sha256": "2dfae4c9dd22c2fc2a89a970373fa989eb275212b6d18db0061bb71c6e5f9199",
+      "tracked": true,
+      "mtime": "2026-11-10T19:59:54.930Z"
+    },
+    {
+      "path": "rtl/rtl_peripherals/plic.sv",
+      "sha256": "c1f324fab696d11b6a47d9249388916b0419901e926ff54a480b9e39cf9a94fb",
+      "tracked": true,
+      "mtime": "2026-11-16T13:06:31.740Z"
+    },
+    {
+      "path": "rtl/rtl_peripherals/power_mgr.sv",
+      "sha256": "61349058e9469815dabfe66683c6cab080c49451ffb8fe232972531fe11480d9",
+      "tracked": true,
+      "mtime": "2026-11-11T13:33:05.830Z"
+    },
+    {
+      "path": "rtl/rtl_peripherals/power_mgr_regs.sv",
+      "sha256": "f7444157358a5c814cfe64fbe2689de2a97aac3ce56b61e0084ef3811c0539a9",
+      "tracked": true,
+      "mtime": "2026-11-11T13:33:05.861Z"
+    },
+    {
+      "path": "rtl/rtl_peripherals/pwm.sv",
+      "sha256": "0a1469abea0e384271cbed676bb5fec783311eaf296db4c4eccd10dfd07288c4",
+      "tracked": true,
+      "mtime": "2026-11-12T16:46:01.177Z"
+    },
+    {
+      "path": "rtl/rtl_peripherals/qspi_flash_ctrl.sv",
+      "sha256": "868e48d0802e51e172ca254614a2f5c5652952970dcf0692ae657d3d3049f46f",
+      "tracked": true,
+      "mtime": "2026-11-10T20:01:16.604Z"
+    },
+    {
+      "path": "rtl/rtl_peripherals/spi_ctrl.sv",
+      "sha256": "312c7cd5cd9b550c8be57860580a02d1539dc5e4ead78368690199b29ab9fedf",
+      "tracked": true,
+      "mtime": "2026-11-12T16:03:59.549Z"
+    },
+    {
+      "path": "rtl/rtl_peripherals/timer.sv",
+      "sha256": "c31120dff456e65ccaa96cb58054b750f27f85fc001525966da4f3c77cf78511",
+      "tracked": true,
+      "mtime": "2026-11-12T16:41:41.628Z"
+    },
+    {
+      "path": "rtl/rtl_peripherals/uart.sv",
+      "sha256": "07d401f8eadf8af5ed19476fb1622dd627868b3c700c1fbcc60402cf56bc2dc0",
+      "tracked": true,
+      "mtime": "2026-11-17T16:15:20.731Z"
+    },
+    {
+      "path": "rtl/rtl_peripherals/watchdog.sv",
+      "sha256": "7dd566aedb038611ea93a90fe870ef3b4383ac9bf8f111a49870e3e06cc099d3",
+      "tracked": true,
+      "mtime": "2026-11-12T14:44:45.257Z"
+    },
+    {
+      "path": "rtl/rtl_top/axi_lite_interconnect.sv",
+      "sha256": "0d3897e8305fd38d5a4dd806cbd7404c1b4f8110116f231d629374e432b08683",
+      "tracked": true,
+      "mtime": "2026-11-16T16:51:20.460Z"
+    },
+    {
+      "path": "rtl/rtl_top/axi_lite_to_apb.sv",
+      "sha256": "2efbd8da0eb02042944df62d1d6ad774a3f3733601868966e357e09629cd71af",
+      "tracked": true,
+      "mtime": "2026-11-12T16:41:41.630Z"
+    },
+    {
+      "path": "rtl/rtl_top/boot_rom.sv",
+      "sha256": "d065f93b586d07bb75c152496d506ad28a459d2b0b49dcde192833eb044f02bc",
+      "tracked": true,
+      "mtime": "2026-11-12T16:58:17.655Z"
+    },
+    {
+      "path": "rtl/rtl_top/has_addr_map.sv",
+      "sha256": "ef67cdc565fed6e5e3ca3b60a4bf96b1d432da193efd13afc785104fa88b1288",
+      "tracked": true,
+      "mtime": "2026-11-12T16:46:19.519Z"
+    },
+    {
+      "path": "rtl/rtl_top/has_addr_map.vh",
+      "sha256": "9d2d7ffe3a5c71b35b5de98de8f10b69aa3ecf5b1d3581e2a33fba5060e0905d",
+      "tracked": true,
+      "mtime": "2026-11-10T19:31:07.294Z"
+    },
+    {
+      "path": "rtl/rtl_top/has_soc.sv",
+      "sha256": "0db16d330ed337d72b214908fa8b72ca35ccbd9032d312321efcf70414745b1a",
+      "tracked": true,
+      "mtime": "2026-11-16T16:17:56.809Z"
+    },
+    {
+      "path": "rtl/rtl_top/intc_axi.sv",
+      "sha256": "b12455b43d20b35ac90bb12a15c3e9617b9cf4dd3c0ebd2c12b65dd63d9a994e",
+      "tracked": true,
+      "mtime": "2026-11-10T19:43:21.905Z"
+    },
+    {
+      "path": "rtl/rtl_top/req_gnt_to_axi_lite.sv",
+      "sha256": "0247a8a982bc102189ad4b90755b3388be020ff6fd4479dbcad47705c1ab5935",
+      "tracked": true,
+      "mtime": "2026-11-12T16:41:41.634Z"
+    },
+    {
+      "path": "rtl/rtl_top/reset_ctrl.sv",
+      "sha256": "8beb7cc192a52368fc11601d139542fa7db777e2213b45c092bea52df18517fc",
+      "tracked": true,
+      "mtime": "2026-11-11T14:47:12.287Z"
+    },
+    {
+      "path": "rtl/rtl_top/riscv_core.sv",
+      "sha256": "e8e46c9aded0d99bce1dfd68b4aa57d15604416a23c3789c5efe18e6c6783710",
+      "tracked": true,
+      "mtime": "2026-11-16T13:07:00.510Z"
+    },
+    {
+      "path": "rtl/rtl_top/sram.sv",
+      "sha256": "d2fe9de6705c408bde2f09b17c2d7c05a86bc3db25e641654397d5b469e04e81",
+      "tracked": true,
+      "mtime": "2026-11-12T17:44:18.992Z"
+    },
+    {
+      "path": "scripts/check_binary_files.py",
+      "sha256": "a5d2252b23d5da8e7a1d1fcb6c6d8d06d23b506942f8cb43722937e806c8a839",
+      "tracked": true,
+      "mtime": "2026-11-10T18:58:46.079Z"
+    },
+    {
+      "path": "scripts/check_binary_files_simple.py",
+      "sha256": "ca427f393623bc4c176ba69104df2861802bdc7b6c3c4a4e531a1f820d7d9f5f",
+      "tracked": true,
+      "mtime": "2026-11-10T18:59:00.677Z"
+    },
+    {
+      "path": "scripts/eda/Makefile.icarus",
+      "sha256": "a11dccb7adf57f3645f4a0423528aafcf689f5f5d6cd8a88b85a0164db550574",
+      "tracked": true,
+      "mtime": "2026-11-10T19:32:15.237Z"
+    },
+    {
+      "path": "scripts/eda/Makefile.verilator",
+      "sha256": "c5fea7831a62bb6370669a14653ece6a06190b2af147a523aa31ece6a1771e1c",
+      "tracked": true,
+      "mtime": "2026-11-10T19:31:48.666Z"
+    },
+    {
+      "path": "scripts/eda/audit_memory.js",
+      "sha256": "c575607f5a4dbd4db86b84d7255aae9060954b52d3dd6ecbd78042ea2f8cebbc",
+      "tracked": false,
+      "mtime": "2026-11-18T14:31:23.611Z"
+    },
+    {
+      "path": "scripts/eda/check_structure.js",
+      "sha256": "34e49d4c10c10598570b06201977355529e6bcaae633c201d8be755049ef28fb",
+      "tracked": false,
+      "mtime": "2026-11-18T13:38:20.263Z"
+    },
+    {
+      "path": "scripts/eda/run_dfrbp_model_test.js",
+      "sha256": "44c687f8d1c8d94040da561e541cd20f892c25424b0eac9bc55a9a92f48bd5c0",
+      "tracked": false,
+      "mtime": "2026-11-18T14:06:23.485Z"
+    },
+    {
+      "path": "scripts/eda/run_icarus_sim.py",
+      "sha256": "2dc94ea6ace15546a8482ce727b39a63bea8fac854e66e122dbcfeae22be87f0",
+      "tracked": true,
+      "mtime": "2026-11-10T19:41:13.036Z"
+    },
+    {
+      "path": "scripts/eda/run_pmux_map_test.js",
+      "sha256": "a55e5f58d4c3eb443c00195443b6f84c3e630035a1b83f0c7468abaeba9e3a6e",
+      "tracked": false,
+      "mtime": "2026-11-18T12:59:31.015Z"
+    },
+    {
+      "path": "scripts/eda/run_regression.js",
+      "sha256": "6ffabf394c8d8a27fe02b02d3316e366f1a11ac47d80e24a95a7041a1fe4c0be",
+      "tracked": true,
+      "mtime": "2026-11-18T15:04:19.933Z"
+    },
+    {
+      "path": "scripts/eda/run_sim.bat",
+      "sha256": "54d60c656ccdfe5d6ec94e8357b2cc2003e77cd060530ec78124f0a9397cbc20",
+      "tracked": true,
+      "mtime": "2026-11-10T19:21:00.428Z"
+    },
+    {
+      "path": "scripts/eda/run_verilator.bat",
+      "sha256": "7e56144d61f0c1da8c2ebe02a003e207be229ea9a48aa0dc81496f5386ac8f4c",
+      "tracked": true,
+      "mtime": "2026-11-10T20:41:05.149Z"
+    },
+    {
+      "path": "scripts/eda/run_verilator_sim.py",
+      "sha256": "c38f17ad9dc256fbe14984cf0ee67b06387ae6721e15fe944ffb4de80d3073ef",
+      "tracked": true,
+      "mtime": "2026-11-10T19:40:42.165Z"
+    },
+    {
+      "path": "scripts/eda/verilator_build.bat",
+      "sha256": "74ee59f7797071c272025db2e9ea660b63b6f66543cdfa38f45a726e190c1872",
+      "tracked": true,
+      "mtime": "2026-11-11T19:18:17.734Z"
+    },
+    {
+      "path": "scripts/eda/verilator_build_soc.bat",
+      "sha256": "796200c5aa5fe3eb8d55d0140d531b2940fba624c02f665f842329eede129709",
+      "tracked": true,
+      "mtime": "2026-11-11T19:19:11.755Z"
+    },
+    {
+      "path": "scripts/eda/verilator_run.bat",
+      "sha256": "798fbe10ff41addfe423dff1bb09bf433851ebe75f52843f77bfb8d89225aa4b",
+      "tracked": true,
+      "mtime": "2026-11-11T19:03:46.389Z"
+    },
+    {
+      "path": "scripts/firmware/run_e2e.js",
+      "sha256": "e783357b0a3120f0c5d870f8973d4fa696391183fecc29b0351d94a8721abd20",
+      "tracked": true,
+      "mtime": "2026-11-18T14:49:47.419Z"
+    },
+    {
+      "path": "scripts/formal/cdc_inventory.js",
+      "sha256": "77f862da03b59cd5c4fd788fda9dd501b6c1b3d1cda2eb24547910524ffe531f",
+      "tracked": true,
+      "mtime": "2026-11-12T17:49:03.359Z"
+    },
+    {
+      "path": "scripts/formal/cdc_power_mgr.sby",
+      "sha256": "31e544a030d9cff2ccc1c9e43ef7328f16698be96b909e0ef18a8fed7ae3e4ff",
+      "tracked": true,
+      "mtime": "2026-11-12T15:25:57.966Z"
+    },
+    {
+      "path": "scripts/formal/cdc_power_mgr_fv.sv",
+      "sha256": "511db64668fe6bf6b3358191a1cb4af0728d173e260245697b32548d82734c76",
+      "tracked": true,
+      "mtime": "2026-11-12T15:25:52.072Z"
+    },
+    {
+      "path": "scripts/formal/plic_regs.sby",
+      "sha256": "9b8d18fcef76df0f4241140ca2abf5ab9fc79f9fecad373a8c65598e18b3f267",
+      "tracked": true,
+      "mtime": "2026-11-12T16:23:39.628Z"
+    },
+    {
+      "path": "scripts/formal/plic_regs_fv.sv",
+      "sha256": "88121060a2558cbde73051cdc7867d301cdb95a450eee90dc370710be7ab30f7",
+      "tracked": true,
+      "mtime": "2026-11-12T16:25:35.743Z"
+    },
+    {
+      "path": "scripts/formal/reset_ctrl.sby",
+      "sha256": "8abb9716e45203b2fc4ee9c6d1018fc6ecd8a243a754ca2ae03f8e2abec33be1",
+      "tracked": true,
+      "mtime": "2026-11-12T14:40:26.574Z"
+    },
+    {
+      "path": "scripts/formal/reset_ctrl_cover.sby",
+      "sha256": "bc145ca92b30c07a425cfee9a698579524a51d0b8d9c35170d4c824b92025045",
+      "tracked": true,
+      "mtime": "2026-11-16T13:34:16.657Z"
+    },
+    {
+      "path": "scripts/formal/reset_ctrl_fv.sv",
+      "sha256": "1531fa1f627bd23f663151ea58119fcf8ce91c144ef51ac3e12a1baff740aa41",
+      "tracked": true,
+      "mtime": "2026-11-16T13:32:27.060Z"
+    },
+    {
+      "path": "scripts/formal/reset_ctrl_seq.sby",
+      "sha256": "61a66d7d6d02150a8f7c734e4d9631b733205759c2e649deec1fe13ad90d6914",
+      "tracked": true,
+      "mtime": "2026-11-12T15:22:36.043Z"
+    },
+    {
+      "path": "scripts/formal/reset_ctrl_seq_fv.sv",
+      "sha256": "103a1183c3fa0beb7f786640c7a04c393da94eb16aa2e02adf308b0d7d30d2f6",
+      "tracked": true,
+      "mtime": "2026-11-12T15:23:11.795Z"
+    },
+    {
+      "path": "scripts/formal/reset_ctrl_short.sby",
+      "sha256": "04d817f41f80741ff722cc08324cb3b2df86837cb876ee5435801ad7c017c0b2",
+      "tracked": true,
+      "mtime": "2026-11-16T13:32:36.310Z"
+    },
+    {
+      "path": "scripts/formal/run_formal.js",
+      "sha256": "2467edbd47ee25978c8b310f5a14de16839b18fc356208931db4ed3e7bf0b1f3",
+      "tracked": true,
+      "mtime": "2026-11-16T13:33:46.419Z"
+    },
+    {
+      "path": "scripts/formal/run_sby.py",
+      "sha256": "53a00a4f419e1d26eea89b0b7ac209ffe06ec360fc8c13647e5c0463d0e290e4",
+      "tracked": true,
+      "mtime": "2026-11-12T15:36:08.444Z"
+    },
+    {
+      "path": "scripts/formal/watchdog.sby",
+      "sha256": "e0e10722d80e77d63e2de313205711285cd883b40d0cb4a69806241ac241d958",
+      "tracked": true,
+      "mtime": "2026-11-12T15:19:32.084Z"
+    },
+    {
+      "path": "scripts/formal/watchdog_fv.sv",
+      "sha256": "f0a25f427674dff0cda0fbe67d6f16528bfc15d1d0e4021d946399442086efff",
+      "tracked": true,
+      "mtime": "2026-11-12T15:21:31.263Z"
+    },
+    {
+      "path": "scripts/fw_build/build_fw.bat",
+      "sha256": "b9690326e80bd7331006bc2e09c4aefef0bd86db2b4dffa9b37073b294e55cf0",
+      "tracked": true,
+      "mtime": "2026-11-18T14:50:45.428Z"
+    },
+    {
+      "path": "scripts/fw_build/build_fw.js",
+      "sha256": "e464ced249b141336a9031133b406e963a25b9178e3931f7b1397216567fa9b3",
+      "tracked": true,
+      "mtime": "2026-11-18T14:49:57.985Z"
+    },
+    {
+      "path": "scripts/fw_build/build_fw.py",
+      "sha256": "b7bd4bb9918a2cbfd4a99273a7bea34a80e79e045baee7483d45bb85b84bd5e4",
+      "tracked": true,
+      "mtime": "2026-11-18T14:50:31.831Z"
+    },
+    {
+      "path": "scripts/fw_build/flash_fw.bat",
+      "sha256": "9c6d9ffefe0cb7026efa91f25cb152b85eae7519f02ecf5f74ae53a0775e4177",
+      "tracked": true,
+      "mtime": "2026-11-10T19:31:53.077Z"
+    },
+    {
+      "path": "scripts/fw_build/flash_fw.py",
+      "sha256": "e6ec8fc6750c7ca0f61feb07bb9e244612d55c59117f58976d4fc59fb814044f",
+      "tracked": true,
+      "mtime": "2026-11-10T19:45:57.460Z"
+    },
+    {
+      "path": "scripts/fw_build/gen_fw_mem.js",
+      "sha256": "9bc3b56d188ad302ec7ee95e2716817491e2dc9d39fbb49b89ad0cbefe5a3306",
+      "tracked": true,
+      "mtime": "2026-11-17T17:54:45.159Z"
+    },
+    {
+      "path": "scripts/fw_build/toolchain.js",
+      "sha256": "15dd644f0ec9aeb5ae80a93de42d9130100a1b2be370f00019f2d52057685732",
+      "tracked": true,
+      "mtime": "2026-11-18T14:52:19.335Z"
+    },
+    {
+      "path": "scripts/fw_build/toolchain_test.js",
+      "sha256": "c9a60e5db69fa50f5fc06c18d57afaec1c868d7f6867ac52defabdb2449f34a4",
+      "tracked": false,
+      "mtime": "2026-11-18T14:52:36.840Z"
+    },
+    {
+      "path": "scripts/verify.js",
+      "sha256": "c0162b677676ded3b2f82a11760b46600001e5992098777c16532e1595b0428f",
+      "tracked": true,
+      "mtime": "2026-11-18T14:50:53.215Z"
+    },
+    {
+      "path": "sim/sim_top/a.out",
+      "sha256": "99f7ecf585d6587c7085191540bde7fd4e591e0e5adb1fb336bc5bff89f96a65",
+      "tracked": false,
+      "mtime": "2026-11-11T02:48:27.596Z"
+    },
+    {
+      "path": "sim/sim_top/sim_main.cpp",
+      "sha256": "9b574c25a8d5f007aff17e0c7b164de003140d5e6345ede3d868020b7324cae4",
+      "tracked": true,
+      "mtime": "2026-11-10T19:20:53.588Z"
+    },
+    {
+      "path": "sim/sim_top/tb_all.vvp",
+      "sha256": "46fc03ce3bc43defcc33e541b94ebdc7334f313599495c79e0f1ec1e6acfd5a7",
+      "tracked": true,
+      "mtime": "2026-11-10T19:49:59.986Z"
+    },
+    {
+      "path": "sim/sim_top/tb_apb_cpu.v",
+      "sha256": "deed395f2e264be0f9ca6dcc4c9622d67d3e65df936287602f3118f80df39bd7",
+      "tracked": true,
+      "mtime": "2026-11-14T05:57:24.921Z"
+    },
+    {
+      "path": "sim/sim_top/tb_apb_integrated.v",
+      "sha256": "82bbeb4966ff6c95123b3bd2c5067684423156bb581660d112bc0aac3774d9ca",
+      "tracked": true,
+      "mtime": "2026-11-16T13:19:01.271Z"
+    },
+    {
+      "path": "sim/sim_top/tb_boot.v",
+      "sha256": "4f1587916e8cf34b0fd4c35013af330e1852e5320e14d695301851682f244304",
+      "tracked": true,
+      "mtime": "2026-11-11T13:27:07.087Z"
+    },
+    {
+      "path": "sim/sim_top/tb_clint.v",
+      "sha256": "884a45ae5c66397f5e6f5545341f4a7840d44b718e01347c4fa2c615dae9e018",
+      "tracked": true,
+      "mtime": "2026-11-11T13:40:56.726Z"
+    },
+    {
+      "path": "sim/sim_top/tb_clint.vvp",
+      "sha256": "46a98d2f64da300808ff3d0a718335514809bb113edfaf5efc3998c8cf3bf904",
+      "tracked": true,
+      "mtime": "2026-11-10T19:57:49.806Z"
+    },
+    {
+      "path": "sim/sim_top/tb_counter.v",
+      "sha256": "01e198ca68d4026e3bd19bf68d9a6dcea835e96e300ade7d59cf853ba5d4160f",
+      "tracked": true,
+      "mtime": "2026-11-11T18:51:32.116Z"
+    },
+    {
+      "path": "sim/sim_top/tb_cpu_arch.v",
+      "sha256": "7b77a83777081c6ce93f206129760a0a835add56c58f0ae32198324968f83a29",
+      "tracked": true,
+      "mtime": "2026-11-14T05:34:56.485Z"
+    },
+    {
+      "path": "sim/sim_top/tb_csr_arch.v",
+      "sha256": "e391d6835f8ad73a1bc31446e87d4d8a8fa4d135f3d70b350bd1aba88c99635a",
+      "tracked": true,
+      "mtime": "2026-11-16T13:16:16.306Z"
+    },
+    {
+      "path": "sim/sim_top/tb_debug_jtag.v",
+      "sha256": "43d8172e2d37c77e0169700f8066e3a3417f56cfcf9da6a70bc37edba6e1310f",
+      "tracked": true,
+      "mtime": "2026-11-11T13:38:47.713Z"
+    },
+    {
+      "path": "sim/sim_top/tb_debug_jtag.vvp",
+      "sha256": "9418a697d738b8e8daaf72a55a9b2ad3c1d0eb063bb5bf07b3a051cbb95cb3c4",
+      "tracked": true,
+      "mtime": "2026-11-10T20:11:35.564Z"
+    },
+    {
+      "path": "sim/sim_top/tb_firmware.v",
+      "sha256": "ba0b4811c410899c877e6e565ea0a95ee4aa8eb07d19001cd7ec791caaecd691",
+      "tracked": true,
+      "mtime": "2026-11-16T13:56:44.788Z"
+    },
+    {
+      "path": "sim/sim_top/tb_gpio.v",
+      "sha256": "bff50f903668345ab47b54ec23f566ecf8edec621065a3ff73972356ef0ad2fe",
+      "tracked": true,
+      "mtime": "2026-11-11T13:38:47.734Z"
+    },
+    {
+      "path": "sim/sim_top/tb_gpio.vvp",
+      "sha256": "68e7e28bf31c200f4d0e09e5fad086b089203c6164a2b1ac986f26f8b641db47",
+      "tracked": true,
+      "mtime": "2026-11-10T20:11:34.855Z"
+    },
+    {
+      "path": "sim/sim_top/tb_has_soc.v",
+      "sha256": "97021fa2e31dfc000951ab712db14eb5843078c8d2ec5ba7e1ddd3676901b70e",
+      "tracked": true,
+      "mtime": "2026-11-10T20:08:39.909Z"
+    },
+    {
+      "path": "sim/sim_top/tb_i2c.v",
+      "sha256": "12448421a5ef2bf91a8598d5b156c34987a8b76392a83842c7f9fe0eff170766",
+      "tracked": true,
+      "mtime": "2026-11-11T13:38:47.753Z"
+    },
+    {
+      "path": "sim/sim_top/tb_i2c.vvp",
+      "sha256": "85004b6ce5b619e260fdd6e41f22d69afca547f2c03a18b67999f48dec4f3ac4",
+      "tracked": true,
+      "mtime": "2026-11-10T19:45:18.733Z"
+    },
+    {
+      "path": "sim/sim_top/tb_i2c_xfer.v",
+      "sha256": "96a154d2eacedce2b020fc837f609c542e62c970ff91592dd00a31c211163c19",
+      "tracked": true,
+      "mtime": "2026-11-18T12:28:39.195Z"
+    },
+    {
+      "path": "sim/sim_top/tb_i2c_xfer.vvp",
+      "sha256": "a7943470c6c34e341e4bea38fe9250ef895eff07ddc12118bdb1cb230c2aca4c",
+      "tracked": false,
+      "mtime": "2026-11-17T16:10:19.152Z"
+    },
+    {
+      "path": "sim/sim_top/tb_i2s.v",
+      "sha256": "199e5a556ab21e46c23816182e8def5f0d0ed1b9050b23f1030205fb87bde759",
+      "tracked": true,
+      "mtime": "2026-11-11T13:38:47.778Z"
+    },
+    {
+      "path": "sim/sim_top/tb_i2s.vvp",
+      "sha256": "64ce60c96b15a7a4ccfb4b2006aa4e5c7d52a3b82970218768a218467dfd9ad0",
+      "tracked": true,
+      "mtime": "2026-11-10T20:11:35.208Z"
+    },
+    {
+      "path": "sim/sim_top/tb_isa.v",
+      "sha256": "a58f744f88008971630dafbc8dc092fb0630d02ebb6252bb7ce4a3dc8ad3fcdb",
+      "tracked": true,
+      "mtime": "2026-11-11T14:44:12.487Z"
+    },
+    {
+      "path": "sim/sim_top/tb_jtag_proto.v",
+      "sha256": "64c186f62e9f901c26ecbb8b4c1b3921ea31f777d622a9653a94b99a841654a0",
+      "tracked": true,
+      "mtime": "2026-11-12T15:58:06.522Z"
+    },
+    {
+      "path": "sim/sim_top/tb_plic.v",
+      "sha256": "691b26fe0c35909e72354240ae18246d6f1be62782da977a88c89f8a9edb8775",
+      "tracked": true,
+      "mtime": "2026-11-11T13:40:56.798Z"
+    },
+    {
+      "path": "sim/sim_top/tb_plic.vvp",
+      "sha256": "846a4f9dcd9a6bad79888791be85366193546c5733f15215d89da06834f29abe",
+      "tracked": true,
+      "mtime": "2026-11-10T20:10:48.572Z"
+    },
+    {
+      "path": "sim/sim_top/tb_plic_bounds.v",
+      "sha256": "1681417e260f47cd994e5bf4573cb708975352f9aca96fcf4b3b05ccad634a1e",
+      "tracked": true,
+      "mtime": "2026-11-16T13:11:25.663Z"
+    },
+    {
+      "path": "sim/sim_top/tb_plic_proto.v",
+      "sha256": "b07471b96694dab56be360a2d555c8cb66734154aa9fcf6e2fc75ff10a3ba6e1",
+      "tracked": true,
+      "mtime": "2026-11-12T15:48:46.272Z"
+    },
+    {
+      "path": "sim/sim_top/tb_plic_targeted.v",
+      "sha256": "f915803449778f9eb03c7374f8c6259146d3f9c57cff18952d0d2a80ab5d161b",
+      "tracked": true,
+      "mtime": "2026-11-14T05:34:08.678Z"
+    },
+    {
+      "path": "sim/sim_top/tb_power_mgr.v",
+      "sha256": "6dde9884b6fa54d05c8d8fcd4f578897bec2bd798eed80fa0c26996da641d5f3",
+      "tracked": true,
+      "mtime": "2026-11-11T13:36:02.947Z"
+    },
+    {
+      "path": "sim/sim_top/tb_power_mgr.vvp",
+      "sha256": "cb4fb952b69905b3f6b2768d9bd02c9cc0ab6d86c457007bde5805bb24dc0800",
+      "tracked": true,
+      "mtime": "2026-11-10T20:11:35.455Z"
+    },
+    {
+      "path": "sim/sim_top/tb_pwm.v",
+      "sha256": "74d52ff882b040353b1203ca92c7fa6c55e827b42088936acdfa246c95bb191b",
+      "tracked": true,
+      "mtime": "2026-11-11T13:38:47.809Z"
+    },
+    {
+      "path": "sim/sim_top/tb_pwm.vvp",
+      "sha256": "7156b2ee30b7e79b71fc09356d5de5e9c108c1226ef7a9a1402c24eb531b1982",
+      "tracked": true,
+      "mtime": "2026-11-10T20:39:54.306Z"
+    },
+    {
+      "path": "sim/sim_top/tb_reset_ctrl.v",
+      "sha256": "f2bb8429c8e91c0aa96237a2cb88006152cbc1a4a773861b2b4945f772cb87d7",
+      "tracked": true,
+      "mtime": "2026-11-11T14:49:48.519Z"
+    },
+    {
+      "path": "sim/sim_top/tb_reset_recovery.v",
+      "sha256": "edc77de8adf14560460e9967b696c9d404e478f3cd64fb6be1d80384f8712310",
+      "tracked": true,
+      "mtime": "2026-11-16T13:30:47.135Z"
+    },
+    {
+      "path": "sim/sim_top/tb_spi.v",
+      "sha256": "71d407a4392cbc0da7f235207a3325c1d6d1cf02a764b0b2626b8d471f8fbaf2",
+      "tracked": true,
+      "mtime": "2026-11-11T13:38:47.831Z"
+    },
+    {
+      "path": "sim/sim_top/tb_spi.vvp",
+      "sha256": "6ec08fc6a6d06c452245a4c55ba15d1f214225dad2f3637c9cad85f225d4b99b",
+      "tracked": true,
+      "mtime": "2026-11-10T19:46:22.411Z"
+    },
+    {
+      "path": "sim/sim_top/tb_spi_device.v",
+      "sha256": "c4fcfd2db57377a5adc47182abb7b3e35dc7c7b1d2d8c9d59f3458930b31411a",
+      "tracked": true,
+      "mtime": "2026-11-12T16:00:50.795Z"
+    },
+    {
+      "path": "sim/sim_top/tb_sram_audit.v",
+      "sha256": "f4b5299eaa42960c9fbb9c132a7799b93720f7a5a2bedd3a03932f0c499f8ab2",
+      "tracked": true,
+      "mtime": "2026-11-12T17:45:20.095Z"
+    },
+    {
+      "path": "sim/sim_top/tb_sram_simple.sv",
+      "sha256": "e1c6021e3fd155ac7fedeabd4c68391d656bdc97957bbe8c01bf7e76344f8c76",
+      "tracked": true,
+      "mtime": "2026-11-11T03:20:57.804Z"
+    },
+    {
+      "path": "sim/sim_top/tb_sram_simple.v",
+      "sha256": "84b9c96f80f5bdba327418cb8d9219659c3df88e60cd0fe47fa617172d064cba",
+      "tracked": true,
+      "mtime": "2026-11-11T13:38:47.857Z"
+    },
+    {
+      "path": "sim/sim_top/tb_sram_simple.vvp",
+      "sha256": "67e2d7849ba76a3185a4718ba1c592908f3ec385aeee81ad8f54ddf016c72947",
+      "tracked": true,
+      "mtime": "2026-11-10T20:11:34.767Z"
+    },
+    {
+      "path": "sim/sim_top/tb_timer.v",
+      "sha256": "2b82a87c8a0ff7c6209255335781437a847c23643d503de5fe96cf7eeecf13c1",
+      "tracked": true,
+      "mtime": "2026-11-11T13:38:47.871Z"
+    },
+    {
+      "path": "sim/sim_top/tb_timer.vvp",
+      "sha256": "3bfa9f19b8f3de8e810e049bbcbfd0f87fdc6ce47af58fb20e826df12103725a",
+      "tracked": true,
+      "mtime": "2026-11-10T20:11:34.948Z"
+    },
+    {
+      "path": "sim/sim_top/tb_uart.v",
+      "sha256": "d1fa17a92d601046fd858809085b52dfc5c8171f73bda0bb1d60808c0a4f5378",
+      "tracked": true,
+      "mtime": "2026-11-11T14:21:59.739Z"
+    },
+    {
+      "path": "sim/sim_top/tb_watchdog.v",
+      "sha256": "66d824e3e3c6e799fd7a9c1f1ce037c3fd04f02ca58fb33e83656c0a596e1424",
+      "tracked": true,
+      "mtime": "2026-11-11T13:38:47.883Z"
+    },
+    {
+      "path": "sim/sim_top/tb_watchdog.vvp",
+      "sha256": "d7d757e96c88729a2f3a09e4d2f70a11452d249e40a43403e59782cb5120e6b1",
+      "tracked": true,
+      "mtime": "2026-11-10T20:11:35.087Z"
+    },
+    {
+      "path": "sim/sim_top/tb_watchdog_audit.v",
+      "sha256": "e682c65f3e432f81cb96a17d113b83d01149adfe554f5385280ca9814e68f3e1",
+      "tracked": true,
+      "mtime": "2026-11-12T17:45:27.923Z"
+    },
+    {
+      "path": "sim/sim_top/tb_watchdog_reset_phase.v",
+      "sha256": "9e29d3c84e2c89bcaec58a483125f81c792d53b60ee81281841e220406d49d88",
+      "tracked": true,
+      "mtime": "2026-11-14T06:26:53.383Z"
+    }
+  ],
+  "missing": []
+}

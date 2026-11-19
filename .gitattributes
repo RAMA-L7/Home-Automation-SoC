@@ -109,3 +109,9 @@ Makefile     text eol=lf
 *.evt        binary
 *.out        binary
 
+
+# --- Research evidence: preserve bytes exactly ---------------------------------
+# Run manifests record sha256 over these files as produced. Line-ending
+# normalization would change every hash on a fresh checkout, so this rule
+# overrides the *.txt / *.json / *.csv rules above for research/ only.
+research/** -text
