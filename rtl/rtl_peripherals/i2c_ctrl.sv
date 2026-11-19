@@ -2,7 +2,8 @@
 // Home-Automation-SoC — I2C Master (APB)
 // Stage 2 RTL
 //
-// Single-byte master transaction, 100/400 kHz capable via CLKDIV.
+// Single-byte master transaction.  Standard mode (100 kHz) is verified; fast
+// mode (400 kHz) is not supported by this quarter-phase generator.
 // A "transaction" is one of:
 //   WRITE : START, (ADDR<<1)|0, ACK, DATA, ACK, STOP
 //   READ  : START, (ADDR<<1)|1, ACK, DATA, NACK, STOP
@@ -15,7 +16,16 @@
 //   0x10 STATUS  RO  bit0 busy, bit1 ack_error, bit2 done
 //   0x14 CLKDIV  RW  quarter-bit delay in pclk cycles (default 32)
 //
-// SCL frequency = pclk / (4 * (CLKDIV+1))
+// SCL frequency = pclk / (4 * (CLKDIV+1)); the four quarters are split 2 low /
+// 2 high, so tHIGH = tLOW = 2 * (CLKDIV+1) / pclk.  The split used to be
+// 1 high / 3 low, which at 100 kHz gave tHIGH = 2.5 us against the 4.0 us
+// standard-mode minimum (F10, see research/runs/RUN-0012).
+//
+// Supported mode: standard mode, 100 kHz (pclk 50 MHz, CLKDIV = 124 ->
+// tHIGH = tLOW = 5.0 us, fSCL = 100 kHz).  Fast mode (400 kHz) is NOT
+// supported by this generator: a 2:2 split gives tLOW = 1.24 us at fSCL =
+// 403 kHz, below the 1.3 us fast-mode minimum, and a 1:3 split fails
+// standard mode.  Selecting a separate duty would be a new feature.
 //
 // Correction notes (review findings):
 //   * The write path used to jump from the address ACK straight to STOP, so
@@ -83,7 +93,10 @@ module i2c_ctrl (
     case (state)
       I_IDLE:    if (busy) state_n = I_START_A;
 
-      I_START_A: if (q_done) state_n = I_START_B;
+      // START hold time: SDA falls at the start of this state, and SCL must
+      // not fall until tHD;STA has elapsed.  One quarter was 2.5 us at 100 kHz,
+      // below the 4.0 us minimum; two quarters give 5.0 us.
+      I_START_A: if (q_done && q == 2'd1) state_n = I_START_B;
       I_START_B: if (q_done) state_n = I_TX_BIT;
 
       // Transmit one byte (address or data), MSB first.
@@ -113,18 +126,27 @@ module i2c_ctrl (
       // STOP needs a real SCL-high/SDA-low interval before SDA rises, so this
       // state runs all four quarters instead of returning after the first.
       I_STOP_B:  if (q_done && q == 2'd3) state_n = I_DONE;
-      I_DONE:    state_n = I_IDLE;
+      // Bus-free time (tBUF): stay in DONE for a full four quarters before a
+      // new START can begin, so the guarantee does not depend on how quickly
+      // host software writes CMD.  Previously the next transaction could start
+      // one pclk after STOP and violate tBUF.
+      I_DONE:    if (q_done && q == 2'd3) state_n = I_IDLE;
       default:   state_n = I_IDLE;
     endcase
   end
 
   //--------------------------------------------------------------------------
   // Bus outputs — combinational decode of (state, quarter).
-  //   quarter 0 : SCL low, SDA set up
-  //   quarter 1 : SCL low, SDA stable
-  //   quarter 2 : SCL high (bit is sampled here)
+  //   quarter 0 : SCL low, SDA set up (SDA changes only while SCL is low)
+  //   quarter 1 : SCL high, SDA stable
+  //   quarter 2 : SCL high, bit sampled at the end of this quarter
   //   quarter 3 : SCL low, advance to the next bit
+  //
+  // SCL is therefore high for 2 of the 4 quarters.  A 1-of-4 high phase made
+  // tHIGH = quarter instead of 2*quarter and failed standard-mode timing.
   //--------------------------------------------------------------------------
+  wire scl_high_phase = (q == 2'd1) || (q == 2'd2);
+
   always_comb begin
     scl_drive_low = 1'b0;
     sda_drive_low = 1'b0;
@@ -142,19 +164,19 @@ module i2c_ctrl (
         sda_drive_low = 1'b0;
       end
       I_TX_BIT: begin
-        scl_drive_low = (q != 2'd2);
+        scl_drive_low = ~scl_high_phase;
         sda_drive_low = ~shreg[7];     // MSB first
       end
       I_ACK_RX: begin
-        scl_drive_low = (q != 2'd2);
+        scl_drive_low = ~scl_high_phase;
         sda_drive_low = 1'b0;          // released: slave drives ACK
       end
       I_RX_BIT: begin
-        scl_drive_low = (q != 2'd2);
+        scl_drive_low = ~scl_high_phase;
         sda_drive_low = 1'b0;          // released: slave drives data
       end
       I_RX_ACK: begin
-        scl_drive_low = (q != 2'd2);
+        scl_drive_low = ~scl_high_phase;
         sda_drive_low = 1'b0;          // released high == NACK
       end
       I_STOP_A: begin
@@ -235,6 +257,16 @@ module i2c_ctrl (
         qcnt <= qcnt - 16'd1;
       end
 
+      // ---------------- Completion one-shot ----------------
+      // DONE now spans a full four quarters to guarantee the bus-free time, so
+      // it must not keep driving busy/done every cycle: a CMD write arriving
+      // inside that window would be overwritten and the transfer swallowed.
+      // Latch the completion once, on the cycle that enters DONE.
+      if (state != I_DONE && state_n == I_DONE) begin
+        busy <= 1'b0;
+        done <= 1'b1;
+      end
+
       // ---------------- Bit engine ----------------
       case (state)
         // Bit completed: shift and advance, or hand over to the ACK state.
@@ -265,11 +297,6 @@ module i2c_ctrl (
 
         // Master NACK: capture the byte while SCL is high.
         I_RX_ACK: if (q_done && q == 2'd2) rx_data <= shreg;
-
-        I_DONE: begin
-          busy <= 1'b0;
-          done <= 1'b1;
-        end
 
         default: ;
       endcase
