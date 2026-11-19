@@ -424,3 +424,14 @@ created after the work. Each says so; the runs are the authoritative record.
 - **Verification status:** publication COMPLETE; functional 13/13 of 15 stages; `structural-design` BLOCKED (262,013 leaf cells, 8 types, 4 declared gaps); `memory-design` BLOCKED (4 declared gaps, all capacities matching). Controls: 16/16, 7/7, 5/5, 4/4.
 - **Blockers:** F7 memory macro (no `.lib`/`.lef`/`.gds`, no compiler, no PDK); G4.4 no independent evaluator. Both recorded, neither bypassed.
 - **Next:** obtain a memory macro (or a documented blackbox with ports, init and timing) behind the existing wrappers; commission an independent review of this run.
+
+## W-2026-11-19T1420Z-22 — completion: clean-checkout reproduction (F11)
+
+- **Local / UTC:** 2026-11-19 19:50 IST (2026-11-19T14:20Z)
+- **Status:** every earlier run had used the original working directory, which carried a populated `build/`. Re-running the gate in a separate Git worktree with only tracked files **failed**: `regression` 26/27 (`IMAGE-FAIL boot`) and both memory stages could not produce a verdict.
+- **Root cause (F11):** `scripts/fw/as.js` wrote `build/fw/boot.hex` without creating `build/fw` (ENOENT, before anything else created it); `asic/synthesis/memory_audit.ys` writes into `build/asic_evidence/memory_audit/` and this Yosys build has no `file mkdir`, so it exited 1 with `Can't create file`. Both had been masked by leftover build output in the author's checkout — the same class of defect as F4, one layer down.
+- **Fix:** producers create their own output directories; `audit_memory.js --elaborate` is now the documented entry point (mkdir → yosys → check) and elaborates the self-test baseline on demand, so the checker self-test no longer needs a previous design run. `memory_audit.ys` documents the wrapper in its header.
+- **Re-run at `eff293d` in the same clean worktree:** publication COMPLETE, 13 functional stages passed, 0 failed, 2 design stages BLOCKED, exit 2 — identical to the original-directory result.
+- **Preservation:** the raw logs of the first failing worktree were lost when it was removed; the defects were re-created deterministically at `d09d59e` and that reproduction is logged (`RUN-0014/logs/defects_at_d09d59e.log`). Labelled as a re-creation, not the original capture.
+- **Files changed:** `scripts/fw/as.js`, `scripts/eda/audit_memory.js`, `scripts/verify.js`, `asic/synthesis/memory_audit.ys`, `README.md`, `research/findings.csv`, `research/acceptance-gates.md`, `research/runs/RUN-0014-clean-checkout-reproduction/**`.
+- **Next:** memory macro (F7) and an independent reviewer (G4.4) remain the only blockers.

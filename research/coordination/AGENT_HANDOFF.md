@@ -22,6 +22,7 @@ history; this file is the one document rewritten at session boundaries.
 | Worktree | **clean** — 0 modified tracked files at the tested revision |
 | Verification gate | **13 of 15 stages passed, 0 failed, 2 BLOCKED** (ASIC readiness), exit 2 — `node scripts/closure.js`, RUN-0012 |
 | Publication check | **COMPLETE** — 58 exact paths + 2 trees read from the Git index, 0 gaps (RUN-0012) |
+| Clean-checkout reproduction | **PASS at `eff293d`** — the gate re-run in a separate worktree with only tracked files: publication COMPLETE, 13/13 functional, 2 design BLOCKED (RUN-0014). Two `build/`-dependent commands found and fixed there (F11) |
 | Regression | **PASS 27 / 27**, exit 0 |
 | Toolchain | one resolver (F6); xPack GCC **12.2.0-2**, target `riscv-none-elf` (RUN-0010) |
 | Verilator | **rebuilt and re-run (F9)** — boot 7/7, 4 ms simulated in 0.233 s; no exe existed before RUN-0011 |

@@ -1,0 +1,31 @@
+# The three commands that failed at d09d59e, run at eff293d on a tree with no build/fw and no audit output
+# revision: eff293d835fb5a49a54dcfba6c23a77a23718a6a
+
+== 1. assembler writes build/fw/boot.hex
+assembled 265 words -> build/fw/boot.hex (base 0x0, image 339 words)
+exit=0
+
+== 2. documented memory audit entry point (creates its output directory, elaborates, checks)
+$ yosys -s asic/synthesis/memory_audit.ys -> elaborated build/asic_evidence/memory_audit/ with yosys
+PASS  memory inventory, address map, interconnect and elaboration agree
+BLOCKED  4 declared ASIC gap(s):
+        MEM-ROM (rom): 16384 B, asic_status="unresolved"
+        MEM-TCM (sram_tcm): 32768 B, asic_status="unresolved"
+        MEM-SRAM (sram): 131072 B, asic_status="unresolved"
+        MEM-DECODE-LUT (decode_lut): 18 B, asic_status="unresolved"
+
+MEMORY_AUDIT: BLOCKED
+exit=2
+
+== 3. memory checker self-test
+      fixture baseline: artifacts already present
+PASS  control: current design and inventory are consistent -> exit 2
+PASS  control: missing inventory entry for an inferred memory -> exit 1
+PASS  control: inventory depth edited away from the design -> exit 1
+PASS  control: inventory claims a decoded aperture larger than the array -> exit 1
+PASS  control: address map ROM size changed -> exit 1
+PASS  control: interconnect ROM aperture changed -> exit 1
+PASS  control: ROM no longer has initialization data -> exit 1
+
+MEMORY_AUDIT: SELF-TEST PASS (7/7 controls)
+exit=0

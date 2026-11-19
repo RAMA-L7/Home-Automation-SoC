@@ -1,0 +1,39 @@
+{
+  "run_id": "RUN-0014-clean-checkout-reproduction",
+  "title": "Gate reproduced from a separate worktree; two clean-checkout defects found and fixed (F11)",
+  "started_utc": "2026-11-19T14:07:23Z",
+  "completed_utc": "2026-11-19T14:13:22Z",
+  "agent": "Buffy (model: DeepSeek V4.1 Flash)",
+  "session": "S-2026-11-19-1",
+  "experiment_condition": "development (agent-authored and agent-evaluated; NOT independently evaluated)",
+  "autonomy": "SELF-EVALUATED",
+  "why_this_run_exists": "Every earlier run used the original working directory, which carried a populated build/ tree. The closure task requires the candidate commands to work from a clean checkout, so the gate was executed in a separate Git worktree containing only tracked files. That failed, which is the result that matters: two stages had been passing only because of untracked build output.",
+  "tested_revisions": {
+    "failed_attempt": "d09d59e6fea9d83f094cfff1c6e109fb41b7c031",
+    "final": "eff293d (worktree at eff293d, tracked files only, git status empty)"
+  },
+  "new_finding": {
+    "id": "F11",
+    "class": "reproducibility",
+    "severity": "high",
+    "summary": "Two supported commands depended on build directories that existed only in the original checkout.",
+    "failure_1": "scripts/fw/as.js wrote build/fw/boot.hex without creating build/fw -> ENOENT; the boot regression reported IMAGE-FAIL and the suite 26/27.",
+    "failure_2": "asic/synthesis/memory_audit.ys writes into build/asic_evidence/memory_audit/ and this Yosys build has no `file mkdir` -> \"ERROR: Can't create file\"; the memory self-test then reported BLOCKED and the design stage exited 1 without a verdict.",
+    "fix": "producers create their own output directories; audit_memory.js gains --elaborate (mkdir + yosys + check) as the documented entry point and elaborates the self-test baseline on demand.",
+    "status": "FIXED",
+    "evidence": [
+      "logs/defects_at_d09d59e.log",
+      "logs/same_commands_at_eff293d.log",
+      "logs/regression.log (PASS 27 / 27 at eff293d)"
+    ]
+  },
+  "result_at_final_revision": {
+    "publication": "COMPLETE (exit 0, 0.3 s)",
+    "functional_stages": "13 passed, 0 failed, 0 blocked",
+    "design_stages": "0 passed, 2 blocked of 2",
+    "closure_exit": 2,
+    "matches_original_working_directory": true
+  },
+  "preservation_note": "The raw logs of the first failing worktree were destroyed when that worktree was removed, before they had been archived. The defects were therefore reproduced deterministically at d09d59e in a second worktree and logged (logs/defects_at_d09d59e.log); this is a reproduction of the failure, not the original capture, and it is labelled that way.",
+  "classification": "BLOCKED (ASIC readiness) — no FAIL at the final revision; every executed check passed"
+}

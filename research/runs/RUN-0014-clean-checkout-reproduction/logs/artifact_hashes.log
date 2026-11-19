@@ -1,0 +1,11 @@
+# artifact hashes (sha256) — RUN-0014
+# final tested revision: eff293d
+# generated 2026-11-19T14:14:26Z
+d1f1d2f1896963f27ae76201360a9024f7075087a06d01d59277d9e7ef971afd  research/runs/RUN-0014-clean-checkout-reproduction/logs/artifact_hashes.log
+4f01f11ef3822683299b29c25b9ad38b0d362139c76aae31561fe42cab0c727e  research/runs/RUN-0014-clean-checkout-reproduction/logs/closure_publication.log
+81e358b6b96334aa0dd49cbb4ccf193458d593ff5eea1a53a33460c5fc87ee3b  research/runs/RUN-0014-clean-checkout-reproduction/logs/closure_stdout.log
+81e358b6b96334aa0dd49cbb4ccf193458d593ff5eea1a53a33460c5fc87ee3b  research/runs/RUN-0014-clean-checkout-reproduction/logs/closure_summary.txt
+c47436917ab824dc0947900c8da1a6e3cd098454f7c1b627fada903248ae391e  research/runs/RUN-0014-clean-checkout-reproduction/logs/closure_verify.log
+9667eb3d41bd7ce6dc29f525da61e5848b9da1d0af5ee0da4cb319c08b3cbca6  research/runs/RUN-0014-clean-checkout-reproduction/logs/defects_at_d09d59e.log
+54391449320b216ee23caee9b65b7b6a211d28d8eae1954d347c6c91184e9fcb  research/runs/RUN-0014-clean-checkout-reproduction/logs/regression.log
+2e7e452eccc2356631eef322e95e2ed7636724ca197ee549a5f334e15edfcd78  research/runs/RUN-0014-clean-checkout-reproduction/logs/same_commands_at_eff293d.log

@@ -1,0 +1,9 @@
+$ node D:\Home-Automation-SoC\.worktree\repro\scripts\publication\check_publication.js
+
+PUBLICATION COMPLETENESS
+  HEAD       eff293d835fb5a49a54dcfba6c23a77a23718a6a
+  manifest   scripts/publication/required-inputs.json
+  exact      58 required path(s)
+  trees      research, asic/synthesis
+
+PUBLICATION: COMPLETE
