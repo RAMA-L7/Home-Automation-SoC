@@ -194,8 +194,7 @@ region changed. `audit_memory.js` now reports every array as `match`
 (180,224 B addressable, 180,242 B implemented including the LUT); 26 boundary,
 alias and byte-write checks in `sim/sim_top/tb_mem_contract.v`.
 
-> **No memory macro exists** (F7 BLOCKED). No `.lib`/`.lef`/`.gds` or memory compiler available. PDK not provisioned.
-
+> **Real memory macro IS integrated in the verified netlist `be827aa...`** (80 × `sky130_sram_2kbyte_1rw1r_32x512_8` + boot_rom, 47,432 stdcells, 142 unique types) — Phase 5.3B. However, the **physical implementation is still blocked** (WSL mount absent, PDN mismatch RUN-0021 PDN-217) and the **full-SoC physical signoff has not been run**. The verified netlist is in `artifacts/synthesis/2026-11-25_synth_20261125_234131/`. The frozen behavioural baseline `b558b41...` is preserved in `artifacts/synthesis/2026-11-25_synth_20261125_200125/`. |
 ***
 
 ## 🧩 Major SoC Components and Features
@@ -203,9 +202,10 @@ alias and byte-write checks in `sim/sim_top/tb_mem_contract.v`.
 | Component | Status | Key Details |
 |---|---|---|
 | **RV32IM Core** | ✅ RTL synthesized, 44,323 generic cells pre-ABC | `riscv_core.sv`: multi-cycle, machine mode, CSRs, traps, M extension. No C-ext, no user mode, no PMP. |
-| **Boot ROM** | ✅ 16 KiB, 2R 0W, initialized with NOP fill | `0x0`; elaborated from RTL; no silicon init image; default fill is NOP. |
-| **TCM** | ✅ 32 KiB, 2R1W ×4 lanes | `0x1_0000`; 4-lane interconnect. |
-| **SRAM** | ✅ 128 KiB, 2R1W ×4 lanes | `0x2000_0000`; 4-lane interconnect. |
+| **Boot ROM** | ✅ 16 KiB, 2R 0W, initialized with NOP fill | `0x0`; behavioural blackbox (`boot_rom.sv`), elaborated from RTL; no silicon init image; default fill is NOP. |
+| **TCM** | ✅ 32 KiB, 2R1W ×4 lanes | `0x1_0000`; 4-lane interconnect; **real 2 KiB macro banking (16 instances)** in the verified netlist. |
+| **SRAM** | ✅ 128 KiB, 2R1W ×4 lanes | `0x2000_0000`; 4-lane interconnect; **real 2 KiB macro banking (64 instances)** in the verified netlist. |
+| **Macro wrapper (SRAM/TCM)** | ✅ Verified (Icarus, 22/22) | `sram_macro_wrap.sv` / `tcm_macro_wrap.sv` implement real-macro banking for the available Sky130 `sky130_sram_2kbyte_1rw1r_32x512_8` (2 KiB, 32×512). Verified via testbench + proxy leaf: 22/22 checks pass (banking, byte strobes, read-after-write, bank selection, bank-boundary alias, instruction-port forward, reset persistence, collision smoke). Macro RTL proven structurally (Yosys parse/check exit 0); formal not yet applied to the real macro model. |
 | **AXI4-Lite Interconnect** | ✅ 1 master x 6 slaves | Routes to ROM, TCM, SRAM, QSPI, APB, INTC. |
 | **APB Peripheral Bridge** | ✅ 9 x 4 KB slots, one-hot decode | GPIO, UART, I2C, SPI, PWM, Timer, Watchdog, I2S, Power Manager. |
 | **Interrupt Controller** | ✅ CLINT + PLIC mux | CLINT: timer/software interrupts. PLIC: 8 sources, 1 context. |
@@ -226,7 +226,7 @@ alias and byte-write checks in `sim/sim_top/tb_mem_contract.v`.
 |---|---|---|---|
 | **RISC-V Toolchain** | xPack GCC | 12.2.0-2 | Target `riscv-none-elf`; unified resolver `scripts/fw_build/toolchain.js`; one real toolchain available |
 | **Yosys** | Synthesis | 0.69+154 | `techmap`, `dfflibmap`, `abc` front-end; `-liberty` broken (no PDK) |
-| **Icarus Verilog** | Simulation | 14.0 | Used for regression; unavailable without OSS CAD Suite environment |
+| **Icarus Verilog** | Simulation | 14.0 | Used for regression; available when the OSS CAD Suite environment is loaded (`call D:\tools\oss-cad-suite\environment.bat`); used this phase to run the macro-wrapper regression (22/22) |
 | **Verilator** | C++ simulation / lint | 5.053 | `verilator_bin.exe` works; Perl wrapper broken (`Pod/Usage.pm`). Gate falls back to `verilator_bin`. Lint: 0 errors, 123 `-Wall` warnings over 24 files. Boot: 4 ms simulated in 0.233 s wall (≈17 ms/s — the "~20,000×" claim was wrong by ~6 orders of magnitude). |
 | **Formal (SYN)** | SMT solver | via Yosys/SBY | 6/6 properties pass at current state |
 | **Verible Lint** | Localparam/style | v0.0-4298 | 54 localparam-style deviations pinned (uart 1, axi_lite_interconnect 1, has_addr_map 34, riscv_core 18) |
@@ -249,7 +249,7 @@ alias and byte-write checks in `sim/sim_top/tb_mem_contract.v`.
 
 | Verification Domain | Result | Evidence |
 |---|---|---|
-| **Regression (Icarus)** | 27/27 PASS, exit 0 | `runs/RUN-0011-evidence-provenance/logs/regression.log` |
+| **Regression (Icarus)** | 27/27 PASS + 22/22 macro-wrapper (exit 0) | `runs/RUN-0011-evidence-provenance/logs/regression.log`; `build/sim/tb_sram_macro_wrap_out.txt` (22/22, clean canonical run) |
 | **Unified gate** | functional stages PASS; **ASIC readiness BLOCKED** (2 design stages) | `runs/RUN-0012-closure-publication/logs/gate.log` |
 | **Firmware build** | exit 0; `.text` 3,684 B; rom 26 words; TCM 895 words | `scripts/fw_build/build_fw.js`; discovery via `toolchain.js` |
 | **Firmware E2E** | 7/7 steps, corruption control detected | `scripts/firmware/run_e2e.js` |
@@ -259,7 +259,7 @@ alias and byte-write checks in `sim/sim_top/tb_mem_contract.v`.
 | **Structural checker self-test** | 16/16 controls (checker only — not a design result) | `runs/RUN-0012-closure-publication/logs/structural_self_test.log` |
 | **Structural (actual full SoC)** | BLOCKED, exit 2 — 4 declared `$mem_v2` gaps | `runs/RUN-0012-closure-publication/logs/structural_design.log` |
 | **Memory audit self-test** | 7/7 drift controls | `runs/RUN-0012-closure-publication/logs/memory_self_test.log` |
-| **Memory audit (actual design)** | BLOCKED, exit 2 — arrays reconciled (F5), no macro (F7) | `runs/RUN-0012-closure-publication/logs/memory_design.log` |
+| **Memory audit (actual design)** | BLOCKED, exit 2 — arrays reconciled (F5); **real macro integrated in verified netlist `be827aa...` (80 `sky130_sram_2kbyte_1rw1r_32x512_8` + boot_rom), physical signoff still blocked** (WSL mount, PDN mismatch RUN-0021 PDN-217) | `runs/RUN-0012-closure-publication/logs/memory_design.log`; `reports/phase5_3b_report.md`; `artifacts/synthesis/2026-11-25_synth_20261125_234131/` |
 | **Memory contract boundaries** | 26/26 checks (apertures, aliases, byte writes) | `sim/sim_top/tb_mem_contract.v` |
 | **I²C standard-mode timing** | 23 checks at the pins, 100.00 kHz; 3 negative controls | `scripts/eda/run_i2c_timing.js` |
 | **$pmux mapping test** | 7/7 steps, 393,608 vectors, 0 mismatches | `scripts/eda/run_pmux_map_test.js` |
@@ -412,6 +412,7 @@ G4:     OPEN (all OPEN; G4.4 no independent evaluator)
 | RUN-0012 | Publication repair, memory contract, I²C timing, gate split | closure entry point on a clean tree; publication complete; 26/26 memory checks; 23 I²C timing checks + 3 controls; 16/16 structural controls; design stages BLOCKED |
 | RUN-0013 | Confirmation at the pushed revision | publication COMPLETE; 13/13 functional; 2 design BLOCKED (identical to RUN-0012) |
 | RUN-0014 | Clean-checkout reproduction | separate worktree: found and fixed F11, then publication COMPLETE, 13/13 functional, regression 27/27, 2 design BLOCKED |
+| RUN-0015 | Real-macro integration + macro-wrapper verification + ROM decision (Phase 5.3B) | 80 real `sky130_sram_2kbyte_1rw1r_32x512_8` macros + boot_rom in verified netlist `be827aa...`; 22/22 Icarus wrapper checks (proxy-leaf TB); Yosys structural parse/check exit 0; ROM = behavioural blackbox (no real ROM macro); both baselines preserved (frozen `b558b41...` + verified `be827aa...`); physical signoff still blocked (WSL mount, PDN mismatch RUN-0021 PDN-217) |
 
 > The `gate N/N` figures above are each run's own record and are preserved as
 > history. The gate grew from 9 to 10 to 13 stages (RUN-0012 split the checker
@@ -428,15 +429,18 @@ All run logs, commands, and artifact hashes are in `research/runs/`
 
 ### Environment limitations (no ASIC readiness)
 
-- **No fab PDK provisioning:** sky130A is not volare-enabled, so no OpenLane 2 flow has executed. No place, route, extraction, DRC/LVS, antenna or power analysis exists for the full SoC.
+- **Physical implementation blocked (not synthesis):** the verified netlist `be827aa...` exists (real macros integrated), but OpenROAD/OpenSTA flow cannot run here — the WSL mount of the project at `/mnt/d/Home-Automation-SoC` is absent/broken, and the Windows OpenROAD binary is a Linux ELF. This is the **WSL mount blocker**, carried from Phase 5.1; no place/route/extraction/DRC/LVS/STA for the full SoC has executed.
+- **PDN pin mismatch (RUN-0021 PDN-217):** the macros' LIB `pg_pin` names are `vccd1`/`vssd1`, which do not match the stock ORFS PDN patterns that expect `VPWR`/`VGND`. An explicit `add_global_connection(vccd1→VPWR, vssd1→VGND)` is required in the physical flow.
 - **No Vivado / FPGA hardware:** Stage 5 cannot be synthesized or programmed. FPGA claims are constrained but unverified.
 - **No independent evaluator:** G4 (audited handoff) is unreachable by construction; every result is SELF-EVALUATED.
 - **No held-out test set, no external reference model, no third-party signoff.**
 
 ### Design limitations
 
-- **4 inferred memories with no implementation:** F7 BLOCKED — no `.lib`/`.lef`/`.gds` or memory compiler. The checker reports exactly 4+2 declared gaps and exits 2 BLOCKED, never PASS.
-- **Memory capacity mismatch (F5) — fixed, not approved:** the arrays are now sized to the declared 16 KiB / 128 KiB contract, so design and declaration agree. The choice between resizing the arrays and enlarging the map was made unilaterally from an unambiguous written requirement; no independent reviewer exists to approve it.
+- **Memory init/reset gap (macro wrapper):** the real Sky130 `sky130_sram_2kbyte_1rw1r_32x512_8` macro has **no reset pin and no init path** (mem uninitialized at time 0). The wrapper resets only its own FSM/regs, not the macro's memory. TCM/SRAM must be initialized by boot code (or a real ROM macro, if one becomes available). The boot ROM (`boot_rom.sv`, 16 KiB behavioural blackbox) is the only initialized memory in the system.
+- **ROM macro unavailable:** no compatible read-only, initialized real macro exists on this machine (all real macros are writable SRAM). `boot_rom.sv` behavioural blackbox is retained as the only ROM implementation. This is a **system-level ROM-implementation gap**, not a wrapper defect; recorded in `reports/phase5_3b_report.md` §3.
+- **Formal not yet applied to the real macro model:** the macro behavioural model has `#delay`, `$display`, uninitialized `mem` — SBY/SMT solvers may not handle it cleanly; the existing formal `.sby` tasks target the old behavioural `sram.sv`, not the new macro wrapper. Formal equivalence between the wrapper and the real macro model is **not claimed**.
+- **Icarus simulation uses proxy leaf cells:** the real macro `.v` is Icarus-incompatible (`mem[addr_reg]` indexed access with a reg index → "Scope index expression is not constant"). The macro-wrapper verification (22/22) uses simulatable behavioural proxies (`tb_macro_leaf.v` / `tb_macro_leaf_1kb.v`) that mirror the macro protocol, not the real macro's internals. Timing-accurate macro behaviour is not verified by this method.
 - **Full-SoC flatten fails:** `std::bad_alloc` on behavioural SRAM; counts are per module definition, not a flat total.
 - **Verilator Perl wrapper broken:** `Pod/Usage.pm` missing; only `verilator_bin.exe` 5.053 works. The unified gate falls back to `verilator_bin` instead of reporting Verilator absent.
 - **Verilator lint: 123 warnings.** Calling 0 warnings "PASS" overstates it. Lint exits 1 under `-Wall`.
@@ -448,7 +452,7 @@ All run logs, commands, and artifact hashes are in `research/runs/`
 
 - **PPA does not exist:** No ABC `-liberty`, no PDK, no place/route. Cell counts are generic pre-ABC (riscv_core: 44,323 cells), not area or timing.
 - **No silicon exists:** Any statement implying measurement, foundry approval or manufacturing signoff would be false.
-- **No memory macro:** F7 cannot pass without a `.lib`/`.lef`/`.gds` or blackbox macro with documented timing.
+- **Physical signoff not done:** the verified netlist has real macros, but DRC/LVS/antenna/STA signoff for the full SoC has not been run (physical blockers above).
 - **F5 resolution not independently approved:** The memory arrays were sized to the existing requirement (16 KiB ROM, 128 KiB SRAM) rather than the requirement being changed. The rationale is recorded; no independent reviewer exists to confirm the reading of the requirement.
 
 ### Report limitations
@@ -463,10 +467,11 @@ All run logs, commands, and artifact hashes are in `research/runs/`
 
 | Phase | Objective | Blockers | Estimated effort |
 |---|---|---|---|
-| **Phase 4** | F5/F7 memory capacity decision and macro integration | No PDK, no memory macro, F5 decision documented but unapproved | 1–2 weeks (if PDK becomes available) |
+| **Phase 4** | F5/F7 memory capacity decision and macro integration | F5 documented but unapproved; no memory macro (now real-macro integrated for synthesis) | 1–2 weeks (if PDK becomes available) |
 | **Phase 5** | Formal property review with external reviewer | No independent evaluator in this environment | Requires external model or third-party signoff |
-| **Phase 6** | Gate G1–G4 advancement | G1.1, G1.3, G1.4, G1.5 partial; G2.4–G2.6 OPEN; G3 all OPEN; G4.4 no independent evaluator | Requires F5/F7 resolution + formal assumption review + DFT initiation |
-| **Phase 7** | PDK procurement and OpenLane 2 flow | volare sky130A not enabled; no memory compiler | External dependency; timeline unknown |
+| **Phase 5.3B (complete)** | Real-macro SRAM/TCM banking + macro-wrapper verification + ROM decision | **Done**: 80 real macros in verified netlist `be827aa...`; 22/22 wrapper checks; Yosys structural parse OK; ROM = behavioural blackbox (no real ROM macro); both baselines preserved | Phase 5.3B complete — see `reports/phase5_3b_report.md` |
+| **Phase 6** | Physical implementation (OpenROAD/OpenSTA flow) | **WSL mount blocker** (`/mnt/d/Home-Automation-SoC` absent); **PDN mismatch RUN-0021 PDN-217** (vccd1/vssd1 vs VPWR/VGND); no macro init path; no real ROM macro | Requires WSL mount fix + PDN global-connection fix + (optionally) ROM macro procurement |
+| **Phase 7** | Gate G1–G4 advancement | G1.1, G1.3, G1.4, G1.5 partial; G2.4–G2.6 OPEN; G3 all OPEN; G4.4 no independent evaluator | Requires physical signoff + formal assumption review + DFT initiation |
 | **Phase 8** | FPGA synthesis and implementation | Vivado not available; Nexys A7 constraints defined but not synthesized | Requires Vivado license and hardware |
 
 **Long-term goal (beyond this 10-day mandate):** With a provisioned sky130A PDK, complete OpenLane 2 flow (synthesis → place & route → DRC/LVS/STA → tapeout documentation). Without a PDK, this project remains a verified RTL + firmware + research-grade verification infrastructure study, not an ASIC-ready design.
@@ -482,21 +487,40 @@ All run logs, commands, and artifact hashes are in `research/runs/`
 ├── constraints/             pin assignment & timing constraints
 ├── docs/                    architecture, requirements, docs
 │   └── architecture/        block diagram, Mermaid, decision records
+│       └── MACRO_MAPPING_INVENTORY.md   real Sky130 macro availability + wrapper mapping (Phase 5.3B)
 ├── fpga/                    Nexys A7 constraints, bringup guide
 ├── ip/                      internal / third-party IP (none downloaded)
 ├── rtl/                     SystemVerilog RTL sources
 │   └── rtl_top/             top-level and peripheral modules
+│       ├── sram_macro_wrap.sv            SRAM macro-bank wrapper (64 macros, 128 KiB)
+│       ├── tcm_macro_wrap.sv             TCM macro-bank wrapper (16 macros, 32 KiB)
+│       ├── boot_rom.sv                    behavioural ROM blackbox (16 KiB)
+│       └── has_soc.sv                    SoC top (rom + tcm + sram instances)
 ├── sim/                     simulation top-level and wavefiles
+│   └── sim_top/            macro-wrapper directed TB + proxy leaf cells
+│       ├── tb_sram_macro_wrap.v         SRAM/TCM wrapper testbench (22 checks)
+│       ├── tb_macro_leaf.v              simulatable proxy for sky130_sram_2kbyte_1rw1r_32x512_8
+│       └── tb_macro_leaf_1kb.v          simulatable proxy for sky130_sram_1kbyte_1rw1r_32x256_8
 ├── constraints/             pin & timing constraints
 ├── asic/                    ASIC physical-design flow scripts
 │   ├── synthesis/           Yosys techmap, map scripts
 │   └── synthesis/provenance/  F4 byte-identical copies (arith_test.v, tb_equiv.v, map_arith.ys)
+├── artifacts/synthesis/     **preserved synthesis baselines** (NOT committed to git)
+│   ├── 2026-11-25_synth_20261125_200125/   frozen baseline b558b41... (behavioural sram ×2 + boot_rom)
+│   └── 2026-11-25_synth_20261125_234131/   verified real-macro netlist be827aa... (80 macros + boot_rom)
 ├── firmware/                Bare-metal + RTOS + driver sources
 ├── scripts/                 EDA and firmware build scripts
 │   ├── fw_build/            toolchain discovery + build flows
 │   ├── eda/                 yosys, Verilator, formal, structural checks
+│   │   └── probe3_full.bat  macro-wrapper compile+run (iverilog -g2012 -DUSE_POWER_PINS)
 │   └── docs/                code-generation scripts
+├── artifacts/synthesis/     **preserved synthesis baselines** (NOT committed to git)
+│   ├── 2026-11-25_synth_20261125_200125/   frozen baseline b558b41... (behavioural sram ×2 + boot_rom)
+│   └── 2026-11-25_synth_20261125_234131/   verified real-macro netlist be827aa... (80 macros + boot_rom)
 ├── reports/                 verification results, formal specs, delivery reports
+│   ├── phase5_3b_report.md             Phase 5.3B: macro integration, ROM decision, verification evidence
+│   ├── soc_synthesis_status_final.md  Phase 5.3A frozen-baseline synthesis report
+│   ├── synthesis_execution_summary.json   authoritative run result (be827aa...)
 │   └── verification/        historical reports (banner-marked)
 ├── tb/                      legacy testbenches (superseded by sim/sim_top/)
 ├── TECH_STACK.md            complete tech stack inventory

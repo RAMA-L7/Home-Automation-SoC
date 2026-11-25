@@ -203,6 +203,36 @@ All 22 SystemVerilog files pass `--lint-only -Wall`. 279 benign warnings (unused
 
 ---
 
+## Phase 5.3B — Real-Macro Integration & Macro-Wrapper Verification (2026-11-26)
+
+> **Current synthesis/verification state** for the synthesis and macro-verification
+> domains (supersedes the 2026-11-12 snapshot above in those domains only). The
+> 2026-11-12 numbers below (17/17 regression, behavioural `sram` blackbox, 43,700
+> cells) are preserved as history; see the Phase 5.3B report for current state.
+
+- **Verified real-macro netlist `be827aa...`** exists: 80 × `sky130_sram_2kbyte_1rw1r_32x512_8`
+  macro instances (64 SRAM + 16 TCM) + 1 `boot_rom`, 47,432 stdcells, 142 unique types.
+  Preserved in `artifacts/synthesis/2026-11-25_synth_20261125_234131/`; authoritative
+  run result in `reports/synthesis_execution_summary.json`.
+- **Phase 5.3A frozen baseline `b558b41...`** (behavioural `sram` ×2 + boot_rom ×1,
+  43,703 instances, 5.79 MB) preserved unchanged in
+  `artifacts/synthesis/2026-11-25_synth_20261125_200125/`.
+- **Macro-wrapper verification: 22/22 Icarus checks PASS** (clean canonical run,
+  `build/sim/tb_sram_macro_wrap_out.txt`, 0 failures, 0 DBG lines, exit 0).
+  Testbench: `sim/sim_top/tb_sram_macro_wrap.v` + proxy leaf cells
+  `tb_macro_leaf.v` / `tb_macro_leaf_1kb.v`.
+- **Macro RTL structurally proven**: Yosys 0.69+154 parses + elaborates the real
+  2 KiB macro model cleanly (exit 0).
+- **ROM decision**: no compatible read-only/initialized real macro exists; `boot_rom.sv`
+  behavioural blackbox retained. See `reports/phase5_3b_report.md` §3.
+- **Verification limitations**: Icarus simulation uses proxy leaf cells; formal not yet
+  applied to the real macro model; timing-accurate macro behaviour not verified by Icarus.
+- **Physical blockers (unchanged)**: WSL mount absent; PDN mismatch RUN-0021 PDN-217;
+  macro init/reset gap. Full-SoC physical signoff not run.
+- Full report: `reports/phase5_3b_report.md`. Macro inventory: `docs/architecture/MACRO_MAPPING_INVENTORY.md`.
+
+---
+
 ## Phase 3 (2026-11-12) — CDC hardening, peripheral verification, unified gate
 
 | Item | Result | Evidence |

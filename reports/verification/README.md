@@ -229,6 +229,43 @@ cd scripts/formal && sby -f -d ../../build/formal/watchdog watchdog.sby
 - No FPGA demonstration (Vivado not installed, no FPGA hardware)
 - No ASIC signoff (no sky130 PDK, no OpenROAD/OpenLane)
 - All power/timing figures are ESTIMATED, not measured
+
+---
+
+## Phase 5.3B — Real-Macro Integration & Macro-Wrapper Verification (2026-11-26)
+
+> **Current synthesis/verification state** (supersedes the 2026-11-12 snapshot above
+> for the synthesis and macro-verification domains). This snapshot's numbers (22/22
+> regression, 9/9 gate, 13 Icarus tests, behavioural `sram` blackbox) are preserved
+> as history; see the Phase 5.3B report for the current state.
+
+- **Verified real-macro netlist `be827aa...`** exists: 80 × `sky130_sram_2kbyte_1rw1r_32x512_8`
+  macro instances (64 SRAM + 16 TCM) + 1 `boot_rom`, 47,432 stdcells, 142 unique types.
+  Preserved in `artifacts/synthesis/2026-11-25_synth_20261125_234131/`; authoritative
+  run result in `reports/synthesis_execution_summary.json`.
+- **Phase 5.3A frozen baseline `b558b41...`** (behavioural `sram` ×2 + boot_rom ×1,
+  43,703 instances, 5.79 MB) is preserved unchanged in
+  `artifacts/synthesis/2026-11-25_synth_20261125_200125/`.
+- **Macro-wrapper verification: 22/22 Icarus checks PASS** (clean canonical run,
+  `build/sim/tb_sram_macro_wrap_out.txt`, 0 failures, 0 DBG lines, exit 0).
+  Testbench: `sim/sim_top/tb_sram_macro_wrap.v` + proxy leaf cells
+  `tb_macro_leaf.v` / `tb_macro_leaf_1kb.v`. Covers reset state, full-word
+  write/read, all 16 byte-strobe combos, read-after-write, bank selection,
+  bank-boundary alias, instruction-port forward, reset persistence, collision smoke.
+- **Macro RTL structurally proven**: Yosys 0.69+154 parses + elaborates the real
+  2 KiB macro model cleanly (exit 0; 64 benign conflicting-driver warnings).
+- **ROM decision**: no compatible read-only/initialized real macro exists (all real
+  macros are writable SRAM), so `boot_rom.sv` behavioural blackbox is retained.
+  Documented in `reports/phase5_3b_report.md` §3.
+- **Verification limitations (Phase 5.3B)**: Icarus simulation uses proxy leaf cells
+  (real macro `.v` is Icarus-incompatible); formal not yet applied to the real macro
+  model (existing `.sby` tasks target the old behavioural `sram.sv`); timing-accurate
+  macro behaviour not verified by Icarus.
+- **Physical blockers (unchanged)**: WSL mount of project at `/mnt/d/Home-Automation-SoC`
+  absent/broken (OpenROAD/OpenSTA are Linux ELF); PDN mismatch RUN-0021 PDN-217
+  (`vccd1`/`vssd1` vs `VPWR`/`VGND`); macro has no reset pin and no init path.
+  Full-SoC physical signoff not run.
+- Full report: `reports/phase5_3b_report.md`. Macro inventory: `docs/architecture/MACRO_MAPPING_INVENTORY.md`.
 - Formal proof scope is four tasks: watchdog, reset controller (two tasks) and
   the power-manager wake synchronizer.  Only `reset_ctrl` is unbounded; the other
   three are bounded BMC over directed, deterministic stimuli — complete for the
