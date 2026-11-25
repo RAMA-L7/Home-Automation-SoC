@@ -1,7 +1,7 @@
 # Agent handoff — Home-Automation-SoC
 
-**Last updated:** 2026-11-19 18:55 IST (2026-11-19T13:25Z)
-**Handoff owner:** `Agent: Buffy (model: DeepSeek V4.1 Flash)` — session `S-2026-11-19-1`
+**Last updated:** 2026-11-20 21:05 IST (2026-11-20T15:35Z)
+**Handoff owner:** `Agent: Buffy (model: Nemotron 3.5 Lightning)` — session `S-2026-11-20-23`
 **Read this file first, then:** `research/coordination/WORK_LOG.md` (last entry),
 `research/coordination/REVIEW_LOG.md` (open items), `research/findings.csv`.
 
@@ -17,9 +17,9 @@ history; this file is the one document rewritten at session boundaries.
 |---|---|
 | Phase | Day 2 of the 10-day research mandate (`research/protocol.md`) — the clock was **not** restarted |
 | Hard deadline | **2026-11-28T12:17:36Z** (2026-11-28 17:47 IST) |
-| Baseline commit | `5ae31650df2eb55d7e2e03d189babdf467a94167` — "fix(gate): count the design stages in the total"; tested revision for RUN-0012 |
-| Branch | `closure/publication-repair` (off `418688b`), fast-forwardable to `main` |
-| Worktree | **clean** — 0 modified tracked files at the tested revision |
+| Baseline commit | `67132f5` on `main` (= `origin/main`) — current tested revision; `67132f5` not `5ae3165` (stale entry corrected 2026-11-19 by RUN-0015) |
+| Branch | `main` — the `closure/publication-repair` branch was merged; the fast-forward note above is obsolete |
+| Worktree | **dirty** — 4 modified tracked files at the start of RUN-0016 (`research/coordination/AGENT_HANDOFF.md`, `…/WORK_LOG.md`, `…/REVIEW_LOG.md`, `research/findings.csv`), all under `research/` and all from RUN-0015/RUN-0016. `git diff --stat -- rtl/ asic/ sim/ scripts/ docs/` is **empty** |
 | Verification gate | **13 of 15 stages passed, 0 failed, 2 BLOCKED** (ASIC readiness), exit 2 — `node scripts/closure.js`, RUN-0012 |
 | Publication check | **COMPLETE** — 58 exact paths + 2 trees read from the Git index, 0 gaps (RUN-0012) |
 | Clean-checkout reproduction | **PASS at `eff293d`** — the gate re-run in a separate worktree with only tracked files: publication COMPLETE, 13/13 functional, 2 design BLOCKED (RUN-0014). Two `build/`-dependent commands found and fixed there (F11) |
@@ -28,10 +28,18 @@ history; this file is the one document rewritten at session boundaries.
 | Verilator | **rebuilt and re-run (F9)** — boot 7/7, 4 ms simulated in 0.233 s; no exe existed before RUN-0011 |
 | Evidence state | **RUN-0011 matrix**: every current PASS traced to source state, command, tools, exit and hash; historical reports banner-marked |
 | Highest gate | **G0 PASS** — G1/G2 PARTIAL, G3/G4 OPEN; no ASIC-readiness claim |
-| Memory audit | **F5 FIXED (RUN-0012)** — arrays sized to the approved contract (16 KiB ROM / 32 KiB TCM / 128 KiB SRAM); the earlier Option-B recommendation is superseded in the same document. **F7 BLOCKED** — inventory complete, no macro/PDK |
+| Memory audit | **F5 FIXED (RUN-0012)** — arrays sized to the approved contract (16 KiB ROM / 32 KiB TCM / 128 KiB SRAM); the earlier Option-B recommendation is superseded in the same document |
+| Tooling (gate-level sim) | **The sky130 cell models in `oss-cad-suite/examples/eqy/spm/sky130_fd_sc_hd.v` are unusable as shipped.** Their behavioural sequential cells declare `D_delayed`/`CLK_delayed`/`RESET_B_delayed`, pass them to the UDP, and never drive them (the assigns live in the uncompiled timing branch). Every flop is x for the whole simulation, including while held in async reset. This — and nothing in the design — is why RUN-0015's ROM gate-level comparison returned x. Repair with `research/runs/RUN-0018-rom-gl-failure-investigation/prototype/patch_cell_models.py` (240 delayed nets driven, 33 supply declarations) and use the patched copy for every GL run. With it, RUN-0015's unmodified netlist reproduces all 4096 ROM words exactly. Any gate-level result produced before this fix is suspect. |
+| Memory technology (width) | **RUN-0017 answered it at fixed depth: narrowing costs area.** No 32×256/128×512 sky130 macro exists and there is still no compiler, so a controlled sky130 measurement is BLOCKED (not faked). Using the controlled pairs that exist: 64×256 is **+16.2%** per usable byte vs 128×256 at depth 256, and 44×64 is **+5.6%** vs 80×64 at depth 64. A real compiled grid on disk (IHP SG13G2, 10 points, shape only) agrees — area/byte ∝ depth^−0.345 (r² 0.91) and a width halving costs 1.03–1.14×. So RUN-0016's −21.3% was a **depth** effect. Hypothetical 32×256 loses under every case (33.6–39.0 mm², +16…+35% vs 28.962 mm²); hypothetical **128×512** wins under every case (19.6–22.8 mm², −21…−32%). Packing verified: zero bit and zero aperture waste for the three candidates. **Recommendation: keep 128×256 today; if a compiler is authorised, compile deeper (128×512), not narrower.** |
+| Memory technology (RUN-0016) | **RUN-0016 measured the width question and could not close it.** There is **no memory compiler** on this machine (openram/openlane/klayout absent from PATH and from the venv; the only `*openram*` path is documentation images), so no native 32-bit macro was generated and none was invented. A genuine 32-bit 1RW1R **does** already exist — `sky130_sram_2kbyte_1rw1r_32x512_8` (32×512, 284,538 µm²) in OpenROAD `src/psm/test` data — but with **no Verilog model and no GDS**. One parameterised adapter (`MACRO_DW` 128/64/32 → 32/64/64 banks) is bit-identical to `sram.sv` in all three configurations (7,156 cycles, 0 mismatches, identical stimulus; 4 negative controls + a read-during-write control all detected). Cost: 128-bit 28.962 mm², 64-bit 33.637 mm² (+16.1%), 32×512 22.803 mm² (−21.3%) — but the 32-bit macro is **512 deep vs 256**, so the gain cannot be attributed to width; a 32×256 macro would need only 176.53 µm²/B to win. Keep the 128-bit macro among validated options |
+| Memory technology | **F7 PARTIALLY RESOLVED (RUN-0015)** — the "no macro/PDK" reason was **false** and is retracted: a full sky130 PDK, the 452-cell std-cell liberty and four pre-built 1RW+1R SRAM macros are installed locally. A banked 4 KiB-macro 2R1W adapter matches `sram.sv` bit-identically (7,086 cycles, 0 mismatches) after two measured contract fixes (AXI rdata hold: 703 cycles; same-word read-during-write: 319 cycles). **Area is the open half**: 28.89 mm² of macro area for the two RAMs. The **ROM cannot use these macros** (no init), and a standard-cell synthesis failed gate-level equivalence (4,096/4,096 words read `x`), so no ROM area is claimed |
 | I²C timing | **F10 FIXED (RUN-0012)** — standard mode 100 kHz only: fSCL 100.00 kHz, tHIGH 4700 ns, tLOW 5300 ns, tHD;STA 5000 ns, tSU;STO 5000 ns, tBUF 14720 ns measured at the pins; 400 kHz explicitly unsupported |
 | Evaluation status | SELF-EVALUATED — no independent evaluator exists in this environment |
-| Active task | closure task delivered: publication repaired, commands reproducible from a clean tree, checker self-tests split from design checks, I²C timing closed for the supported mode, memory contract reconciled. Awaiting the memory-macro dependency and an independent reviewer |
+| ASIC readiness (RUN-0019) | **NOT READY — the handoff package does not exist.** 14 handoff requirements: **1 PASS, 4 PARTIAL, 9 BLOCKED**; 16-domain scorecard: 1 PASS, 6 PARTIAL, 8 BLOCKED, 1 NOT MEASURED (`research/runs/RUN-0019-asic-handoff-readiness-audit/scorecard.csv`). Re-measured at `67132f5`: gate 13 PASS / 2 BLOCKED (exit 2), regression 27/27, full-SoC mapping exit 0 with 0 structural problems but **4 `$mem_v2` and no PPA pass**. Critical path: memory architecture infeasible at 176 KiB (44 macros = 31.8 mm² vs <10 mm² target) → clock architecture unimplemented (BLK-001) so no approvable SDC → pads/pinout (81 pad bits for 56 usable QFN-64 pins). Physical, DFT and signoff evidence is **absent**, not weak: 0 `.gds`, timer-block-only P&R, no scan/ATPG/BIST, no UPF/CPF, LVS never run. |
+| Memory architecture (RUN-0020) | **The `<10 mm2` target and the 176 KiB plan are mutually exclusive on sky130.** Measured from real macro LEF data: 160 KiB of RAM = **22.96 mm2** at the densest packing (2.3x the whole die), so the target implies **25-39 KiB of total RAM**. `NFR-AREA-003` (3.5 mm2 for 128 KiB) is **5-6.6x optimistic**. Recommended: **TCM 16 KiB + SRAM 8 KiB + 2 KiB std-cell boot ROM = 3.44 mm2 memory, ~8.9 mm2 die**, which needs no new IP and no firmware source change — firmware uses 3.7 KiB of code, a 4 KiB stack and **0 B of SRAM** (`research/runs/RUN-0020-soc-memory-feasibility/`). Alternative keeping capacity: 128 KiB off-chip (7.8 mm2). A denser or deeper macro does not fix it (hypothetical 128x512: 28.7 mm2 for 160 KiB). |
+| TCM macro physical pilot (RUN-0021) | Prototype only, no production RTL change (`research/runs/RUN-0021-tcm-physical-pilot/`). Equivalence PASS (258,286 checks, 0 mismatches). Synthesis: 1,353 logic cells / 10,068 um2 + 4 macros (A), 843 / 6,526 um2 + 8 macros (B). Completed OpenROAD run: 2.959 mm2 at 73% util, WNS -9.537 ns / TNS -272.371 ns at 20 ns (~34 MHz unrepaired), 74.7 mW (97.3% macro). **16 KiB TCM = 2.898 mm2 (4x128x256) or 2.283 mm2 (8x32x512)** — RUN-0020's B3 confirmed to 0.13%. Failures preserved: detailed route did not converge (10,133 -> 3,348 violations over 9 iterations), PDN failed (PDN-0217), 1,291 antenna-flagged nets on global-route wiring. Open question is now read-path timing, not area. |
+| TCM bank-mux timing (RUN-0022) | Prototype only, no production RTL change (`research/runs/RUN-0022-tcm-bank-mux-timing/`). Baseline reproduces RUN-0021 bit-identically (-9.537 ns). Five runs, identical netlists/SDC/floorplan/flow: v1 narrow mux **-7.696** (TNS worse, -360.1), v2 narrow+replicated select **-4.016** / TNS -86.4 (+16.4% logic area), **v0+repair_design -1.124 / TNS -7.213**, v2+repair -1.152. Repaired path: macro access **0.871 ns** of 18.624 ns; 6.888 ns is buffer chain. Verdict: keep the mux, repair fanout; no architecture change warranted, and the last 1.12 ns needs an output register (latency change).
+| Active task | RUN-0022 closed the TCM timing question the wrong way round, which is the useful answer: **mux restructuring loses to plain buffering** (`research/runs/RUN-0022-tcm-bank-mux-timing/report.md`). Baseline+`repair_design` reaches WNS -1.124 ns / TNS -7.213 (~47.3 MHz) where the best rewrite alone reaches -4.016; the macro is 0.87 ns of the path and 6.9 ns is buffer chain. Next executable steps: (1) adopt fanout repair (or max_fanout on select registers) in the TCM flow and re-measure on the routed design with SPEF; (2) decide with the SoC owner whether a one-cycle-latency output register is acceptable, since that is the only remaining lever for 50 MHz; (3) still open: converging detailed routing and a PDN that builds (RUN-0021).
 
 ### Dirty worktree (must be preserved)
 
@@ -515,7 +523,7 @@ F1, F2, F3, F8 are FIXED and were fixed test-first with a negative control.
 | Regression | **PASS 27 / 27**, exit 0 |
 | Highest gate | `PARTIAL` — G0/G1/G2 partial, G3/G4 open; **no gate is satisfied** |
 | Evaluation status | SELF-EVALUATED — no independent evaluator exists in this environment |
-| Active task | none in flight (this session only added the coordination system) |
+| Active task | none in flight (RUN-0024 BLOCKED: OpenROAD toolchain unavailable, sky130A PDK absent; framework complete, execution pending environment). Round 6 remediation: Phase 1 (A+B) PASS, Phase 3 Workstream D COMPLETE (P0-2 FIXED), Phase 4 Workstream E COMPLETE (P0-3 FIXED); Phase 5 / Workstream F COMPLETE (consumed-state + dependency integrity FIXED, Overall Phase 5 PASS; P0-2 FIXED in Phase 3R) |
 
 ### Dirty worktree (must be preserved)
 
@@ -571,3 +579,36 @@ F1, F2, F8 are FIXED and were fixed test-first with a negative control.
 - Full-SoC mapping takes ~200 s; it is a separate command, not a gate stage.
 
 ---
+
+
+---
+
+## Round 6 remediation addendum (2026-11-23)
+
+- **Phase 1** (Workstream A: External Trust Root; Workstream B: Provenance
+  Non-Elevation) - **PASS** (both), P0-1 blocked; evidence under
+  `third_remediation_round6_20261120/PHASE1/`.
+- **Phase 3** (Workstream D: Atomic Finalization) - **COMPLETE**, **P0-2
+  FIXED**; evidence under `third_remediation_round6_20261120/PHASE3/`.
+- **Phase 4** (Workstream E: Execution Identity / P0-3) - **COMPLETE**,
+  **P0-3 FIXED**; evidence under `third_remediation_round6_20261120/PHASE4/`.
+  Hex/base64-encoded `python -c` execution no longer evades classification:
+  `assistant/r6_authority.py:decode_aware_execution_risk` decodes payloads and
+  `r6_execution_guard` is called from `assistant/eco.py` before launch.
+- **Phase 4 verdict detail (measured):** execution identity enforcement PASS; static-classification bypass resistance PASS; WSL boundary enforcement PASS; P0-3 FIXED (hex, base64, nested, chr()-built all blocked at the spawn boundary). **Phase 3 regression FAIL**: A8 `test_cancel_during_commit_never_leaves_durable_production_pass` still leaves a durable PRODUCTION PASS after cancellation inside `_save_log` (`_AcceptanceGuard.expired()` is deadline-only). The Phase 3 test artifact `PHASE3/attack_tests/test_p02_reproduction.py` does not run. Both predate Phase 4 and were not fixed (out of Workstream E scope). Overall Phase 4 = PARTIAL.
+- **Source changed:** `WORKING_COPY/assistant/r6_authority.py` only (recursive decode + dynamic-inline fail-closed); SHA-256 in `PHASE4/evidence/r6_authority.py.snapshot`.
+- **Phase 3R (2026-11-23):** remediated the cancellation durable-PASS regression. Reproduced first (`PHASE3R/evidence/repro_cancellation_durable_pass.json`), then fixed `assistant/eco.py::_save_log` so deadline AND cancellation are latched at the commit boundary, with a post-write re-check; persisted terminal aligned to INCONCLUSIVE/INVALIDATED. 15/15 adversarial matrix, Phase 3 harness repaired (3 passed), Phase 4 17 passed, core suites 92 passed. **Supersedes the earlier Phase 3 'P0-2 FIXED' claim**: cancellation was NOT covered before Phase 3R. Snapshot SHA-256 in `PHASE3R/evidence/`.
+- **Phase 5 / Workstream F (2026-11-23):** reproduced 8/20 consumed-state and dependency-integrity gaps first (probe + preserved pre-fix module snapshot), then closed them in three files: `eco.VerifiedCandidate` (immutable contents, declared-path + digest-bound reads), `state_machine.derive_authorization` (declared consumption/deps must be verified, empty/opaque closures denied, duplicate evidence denied, structure-preserving dep normalization) and `r6_authority` (re-hashes declared consumed paths). Post-fix: 20/20 probes, 30/30 adversarial tests (11 of them failed on the pre-fix tree), 209+189+76 green regressions, Phase 3R 18 and Phase 4 17 still green. Remaining paths are ADR §1 T1/T3/T5 boundaries plus one Phase 1/2 schema item; **Workstream G not justified and not started**.
+- **Constraints honoured:** production repo `D:\audit\repo` untouched;
+  production commit `d8f2117e0e09df03e633ff2789faa699e09e748d` unchanged; no
+  commits/pushes/publication; all work inside the isolated Round 6 checkout.
+
+### Phase 6 — Cross-Phase Security Assurance Audit (2026-11-23)
+
+- **Verdict:** CROSS-PHASE PARTIAL — 23 of 26 composed scenarios pass their security invariants; 3 are intentionally violated as documented honest findings (F-01, F-02, F-03).
+- **Violations:** 
+  - F-01 (X12): Execution identity not re-derived at authorization boundary; `authoritative_qualification` returns True despite envelope carrying `execution_identity["path"]` without re-derivation from the actual spawn.
+  - F-02 (X19): Cancelled run still qualifies at the unit boundary; `authoritative_qualification` returns True after CANCEL because the legacy decision was PASS.
+  - F-03 (X25): exp.json rollback over a later failure restores PASS status; the unsigned descriptive ledger has no integrity protection to erase a later FAIL.
+- **Deliverables in `third_remediation_round6_20261120/PHASE6/`:** `skills_used.md`, `cross_phase_invariants.md`, `attack_matrix.md`, `before_after/README.md`, `regression/results.md`, `findings.md`, `final_adjudication.md`, `changed_files.md`, `attack_tests/chains.py`, `attack_tests/run_audit.py`, `attack_tests/test_cross_phase_chains.py`, `evidence/cross_phase_results.json`, `evidence/summary.json`.
+- **Stop condition:** "Stop after the final adjudication. Do not automatically begin remediation or Workstream G." No production code changes were made outside `PHASE6/`. The preserved commit `d8f2117e0e09df03e633ff2789faa699e09e748d` is unchanged.

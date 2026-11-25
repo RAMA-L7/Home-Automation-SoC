@@ -10,9 +10,9 @@
 //     power-manager registers
 //   * Interrupts: CLINT (software/timer) + PLIC (8 peripheral sources)
 //
-// Memory map: see has_addr_map_pkg
+// Memory map (address params from has_addr_map.vh include)
 //------------------------------------------------------------------------------
-import has_addr_map_pkg::*;
+`include "has_addr_map.vh"
 
 module has_soc #(
   // verilog_lint: waive explicit-parameter-storage-type
@@ -31,8 +31,7 @@ module has_soc #(
   input  logic         jtag_tdi,
   output logic         jtag_tdo,
   input  logic         jtag_trst_n,
-  // Interrupt inputs from pads (level sensitive)
-  input  logic [31:0]  ext_irq,
+  // NOTE: ext_irq removed (BLK-019, dead signal). Previously: input logic [31:0] ext_irq,
   // UART
   output logic         uart_tx,
   input  logic         uart_rx,
@@ -120,7 +119,7 @@ module has_soc #(
 
   logic         irq_ext, irq_timer, irq_soft;
 
-  riscv_core #(.RESET_PC(ADDR_BOOT_ROM_BASE)) core (
+  riscv_core #(.RESET_PC(`ADDR_BOOT_ROM_BASE)) core (
     .clk          (core_clk),
     .reset_n      (rst_sys_n),
     .instr_req    (instr_req),
@@ -156,12 +155,12 @@ module has_soc #(
   logic sram_i_req, sram_i_gnt, sram_i_rvalid;
   logic [31:0] sram_i_rdata;
 
-  wire sel_rom  = (instr_addr >= ADDR_BOOT_ROM_BASE) &&
-                  (instr_addr <  ADDR_BOOT_ROM_BASE + ADDR_BOOT_ROM_SIZE);
-  wire sel_tcm  = (instr_addr >= ADDR_TCM_BASE) &&
-                  (instr_addr <  ADDR_TCM_BASE + ADDR_TCM_SIZE);
-  wire sel_sram = (instr_addr >= ADDR_SRAM_BASE) &&
-                  (instr_addr <  ADDR_SRAM_BASE + ADDR_SRAM_SIZE);
+  wire sel_rom  = (instr_addr >= `ADDR_BOOT_ROM_BASE) &&
+                  (instr_addr <  `ADDR_BOOT_ROM_BASE + `ADDR_BOOT_ROM_SIZE);
+  wire sel_tcm  = (instr_addr >= `ADDR_TCM_BASE) &&
+                  (instr_addr <  `ADDR_TCM_BASE + `ADDR_TCM_SIZE);
+  wire sel_sram = (instr_addr >= `ADDR_SRAM_BASE) &&
+                  (instr_addr <  `ADDR_SRAM_BASE + `ADDR_SRAM_SIZE);
 
   assign rom_i_req  = instr_req && sel_rom;
   assign tcm_i_req  = instr_req && sel_tcm;
@@ -327,9 +326,24 @@ module has_soc #(
   );
 
   //--------------------------------------------------------------------------
-  // TCM (slave 1)
+  // TCM (slave 1) — real macro wrapper (Phase 5.3A)
   //--------------------------------------------------------------------------
-  sram #(.ADDR_WIDTH(15), .MEM_FILE(TCM_INIT_FILE)) tcm_inst (
+  // ADDR_WIDTH 15 == 32 KB, exactly the TCM aperture decoded above (FR-MEM-002).
+  // Replaces the behavioural `sram` blackbox with the macro wrapper; external interface
+  // (ports, widths, [14:0] address trimming) is preserved exactly. ROM still uses the
+  // behavioural boot_rom blackbox (ROM strategy is a documented open item, not a macro swap).
+  //
+  // MACRO: default 2 KiB macro (sky130_sram_2kbyte_1rw1r_32x512_8), 16 macros for 32 KiB.
+  // (The earlier plan used an 8-macro bank based on a non-existent 4 KiB macro; corrected
+  // here to 16 macros against the real 2 KiB macro. See sram_macro_wrap.sv header and the
+  // Phase 5.3A spec for the macro inventory on this machine.)
+  tcm_macro_wrap #(
+    .ADDR_WIDTH (15),
+    .DATA_WIDTH (32),
+    .MACRO_DW   (32),    // sky130_sram_2kbyte_1rw1r_32x512_8 — 32-bit word, 2 KiB
+    .MACRO_AW   (9),     // 512 words/macro
+    .NUM_MACROS (16)     // 32 KiB / 2 KiB = 16 macros
+  ) tcm_inst (
     .clk      (core_clk),
     .reset_n  (rst_sys_n),
     .awvalid  (s_awvalid[1]), .awaddr(s_awaddr[1][14:0]), .awready(s_awready[1]),
@@ -344,11 +358,23 @@ module has_soc #(
   );
 
   //--------------------------------------------------------------------------
-  // SRAM (slave 2)
+  // SRAM (slave 2) — real macro wrapper (Phase 5.3A)
   //--------------------------------------------------------------------------
-  // ADDR_WIDTH 17 == 128 KB, exactly the SRAM aperture decoded above
-  // (FR-MEM-001).  It was 18 (256 KB): 128 KB of the array was unreachable (F5).
-  sram #(.ADDR_WIDTH(17), .MEM_FILE(SRAM_INIT_FILE)) sram_inst (
+  // ADDR_WIDTH 17 == 128 KB, exactly the SRAM aperture decoded above (FR-MEM-001).
+  // Replaces the behavioural `sram` blackbox with the macro wrapper; external interface
+  // (ports, widths, [16:0] address) is preserved exactly.
+  //
+  // MACRO: default 2 KiB macro (sky130_sram_2kbyte_1rw1r_32x512_8), 64 macros for 128 KiB.
+  // (The earlier plan used a 32-macro bank based on a non-existent 4 KiB macro; corrected
+  // here to 64 macros against the real 2 KiB macro. See sram_macro_wrap.sv header and the
+  // Phase 5.3A spec for the macro inventory on this machine.)
+  sram_macro_wrap #(
+    .ADDR_WIDTH (17),
+    .DATA_WIDTH (32),
+    .MACRO_DW   (32),    // sky130_sram_2kbyte_1rw1r_32x512_8 — 32-bit word, 2 KiB
+    .MACRO_AW   (9),     // 512 words/macro
+    .NUM_MACROS (64)     // 128 KiB / 2 KiB = 64 macros
+  ) sram_inst (
     .clk      (core_clk),
     .reset_n  (rst_sys_n),
     .awvalid  (s_awvalid[2]), .awaddr(s_awaddr[2][16:0]), .awready(s_awready[2]),
@@ -429,7 +455,8 @@ module has_soc #(
     .arvalid  (s_arvalid[5]), .araddr(s_araddr[5]), .arready(s_arready[5]),
     .rvalid   (s_rvalid[5]),  .rdata (s_rdata[5]),  .rresp(s_rresp[5]),
     .rready   (s_rready[5]),
-    .ext_irq  (periph_irq),
+    // ext_irq removed (BLK-019); periph_irq now driven solely by peripheral IRQs
+  .ext_irq  (),
     .irq_ext  (irq_ext),
     .irq_timer(irq_timer),
     .irq_soft (irq_soft),
@@ -575,7 +602,8 @@ module has_soc #(
 
   // Optional board-level interrupt lines are OR-ed into the UART source slot
   // only for software-visible diagnostics; they do not bypass the PLIC.
-  wire unused_ext_irq = ^ext_irq;
+  // ext_irq removed (BLK-019); no longer drives unused-driven warning
+
 
   //--------------------------------------------------------------------------
   // Power manager + JTAG TAP
