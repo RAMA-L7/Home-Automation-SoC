@@ -278,6 +278,13 @@ alias and byte-write checks in `sim/sim_top/tb_mem_contract.v`.
 | **$pmux mapping test** | 7/7 steps, 393,608 vectors, 0 mismatches | `scripts/eda/run_pmux_map_test.js` |
 | **dfrbp model test** | 11/11 directed checks, exit 0 | `scripts/eda/run_dfrbp_model_test.js` |
 
+**Run provenance:** the four rows marked with a `RUN-0025` log were re-run at
+`3a71175` from a tracked-files-only worktree. The rows citing `RUN-0011` /
+`RUN-0012` were produced at `025ef24`/`eff293d` and have **not** been re-run
+since; they are historical results, not evidence for the current commit
+(tracked as F9 in `research/findings.csv`).
+
+
 **Flow:** `node scripts/closure.js` is the single entry point: environment and
 resolved tool versions → publication completeness (Git index) →
 `scripts/verify.js`. The gate runs: tools → Verible syntax → Verible lint →
