@@ -802,3 +802,39 @@ created after the work. Each says so; the runs are the authoritative record.
 - **Commands / results:** `python -m pytest ../PHASE6/attack_tests/test_cross_phase_chains.py -q` → 24 passed, 3 xfailed in 2.91s; `python -m pytest ../PHASE5/attack_tests/test_consumption_integrity.py -q` → 30 passed in 2.71s; bounded batch regressions all green (see `regression/results.md`).
 - **Blockers:** None; all objectives completed within audit constraints (no production code changes, no new dependencies, preserved commit `d8f2117e0e09df03e633ff2789faa699e09e748d`).
 - **Unfinished at stop:** Audit complete; final adjudication delivered. No remediation or Workstream G initiated.
+
+## W-2026-11-26 — External review intervention (repository fixes)
+
+- **Agent:** `Agent: Buffy (model: DeepSeek V4.1 Flash)`
+- **Trigger:** external review of baseline `8acc1a4cf0d0139f33fea3ed3eb5edb63bf2767c`.
+- **Objective:** fix the six review findings in dependency order, verify from a
+  clean checkout, publish permitted evidence, keep deadlines (no restart).
+- **Findings fixed:** F15 (untracked macro wrappers / missing include path /
+  stale `ext_irq` in testbenches), F12 (peripheral-interrupt bus left open after
+  BLK-019 — every peripheral IRQ was dead), F13 (TCM/SRAM preload parameters
+  silently dropped), F14 (read+write deadlock in `sram.sv` and the wrapper),
+  F16 (SDC was not valid Tcl and blanketed every I/O path). F7 partially
+  advanced: the boot ROM is now synthesizable and verified, memory macros remain
+  PDK-only.
+- **Verification:**
+  - `node scripts/eda/run_macro_wrapper.js` → 81 checks / 0 errors at production
+    geometry; `NEG_BANK` (3 failures) and `NEG_STROBE` (30 failures) both
+    rejected.
+  - `node scripts/eda/run_rom_check.js` → behavioural and generated ROM each
+    1059 checks / 0 errors; CPU boot 7/7 from the generated ROM; Yosys maps
+    32,840 `$_MUX_` with no `$mem` cell.
+  - `node scripts/eda/run_sdc_lint.js` → 49/49 ports constrained, 0 errors.
+  - Full regression re-run in a detached worktree at `3a71175` containing only
+    tracked files.
+- **Files changed:** `rtl/{filelist.f,rtl_top/{has_soc.sv,sram.sv,sram_macro_wrap.sv,tcm_macro_wrap.sv}}`,
+  `rtl/blackbox/sky130_sram_macro_blackbox.v`, `sim/models/sky130_sram_sim_model.v`,
+  `sim/sim_top/{tb_sram_macro_wrap.v,tb_macro_wrap_negctl.v,tb_boot_rom.v,tb_boot.v,tb_firmware.v,tb_has_soc.v,tb_apb_cpu.v,tb_apb_integrated.v,tb_reset_recovery.v}`,
+  `scripts/eda/{run_regression.js,run_macro_wrapper.js,run_rom_check.js,run_sdc_lint.js,verilator_build_soc.bat}`,
+  `scripts/sta/sdc_check.tcl`, `scripts/fw_build/gen_rom_rtl.py`,
+  `constraints/timing_constraints/has_soc.sdc`, `asic/synthesis/{fullsoc_map.ys,memory_audit.ys}`,
+  `docs/EXTERNAL_DEPENDENCIES.md`, `reports/REVIEW_INTERVENTION_2026-11-26.md`,
+  `research/findings.csv`, `README.md`, `research/runs/RUN-0025-external-review-2026-11-26/`.
+- **Blockers (unchanged, now recorded precisely):** path-based STA (no runnable
+  OpenSTA; WSL1 unsupported), real-macro simulation (vendor models do not
+  elaborate in Icarus 14), TCM/SRAM silicon init, ASIC physical signoff.
+- **Stop:** all actionable review items closed; nothing left half-done.

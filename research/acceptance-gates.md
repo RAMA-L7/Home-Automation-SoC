@@ -4,6 +4,14 @@ Status vocabulary: `PASS` (checked in this study with linked evidence),
 `PARTIAL`, `OPEN` (not attempted or blocked), `FAIL`. A gate is `PASS` only
 when **every** applicable criterion below it is `PASS`.
 
+> **2026-11-26 external review intervention.** The gate statuses below were
+> assessed before `3a71175`. That commit fixed three functional defects
+> (F12 peripheral interrupts, F13 TCM/SRAM preload, F14 read+write deadlock),
+> published the missing macro wrappers (F15) and rewrote the SDC (F16). Where
+> a gate row cites an older regression total, the current result is **28/28**
+> (`research/runs/RUN-0025-external-review-2026-11-26/`). No gate is upgraded
+> by the intervention: G3/G4 and ASIC readiness stay BLOCKED.
+
 Independent evaluation: **NOT AVAILABLE** in this environment. Everything here
 is therefore SELF-EVALUATED, and G4 cannot be satisfied regardless of local
 results.
@@ -25,7 +33,7 @@ results.
 | # | Criterion | Status | Evidence |
 |---|---|---|---|
 | G1.1 | Required behaviour traced to executable checks | PARTIAL | per-peripheral testbenches + `scripts/verify.js`; traceability table not complete |
-| G1.2 | CPU, memory, bus, interrupt, reset, peripheral tests pass | PASS | regression 27/27, `runs/RUN-0001-baseline-025ef24/logs/regression.log` |
+| G1.2 | CPU, memory, bus, interrupt, reset, peripheral tests pass | PASS | regression **28/28** at `3a71175` from a tracked-files-only worktree, `research/runs/RUN-0025-external-review-2026-11-26/logs/clean_worktree_regression.log` (interrupt path repaired there: F12) |
 | G1.3 | Formal properties have reviewed assumptions and reachability | PARTIAL | 6/6 properties run; assumptions not externally reviewed |
 | G1.4 | Sensor input → firmware decision → GPIO output → UART report through the real SoC | PARTIAL | C demo exercises UART, GPIO, watchdog reset; no sensor model exists |
 | G1.5 | Watchdog reset/recovery during defined active-transaction cases | PARTIAL | idle-path reset demonstrated; reset during an active APB/AXI transaction not yet tested |

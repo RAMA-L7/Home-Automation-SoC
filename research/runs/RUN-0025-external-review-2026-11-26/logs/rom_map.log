@@ -1,0 +1,207 @@
+
+ /----------------------------------------------------------------------------\
+ |  yosys -- Yosys Open SYnthesis Suite                                       |
+ |  Copyright (C) 2012 - 2026  Claire Xenia Wolf <claire@yosyshq.com>         |
+ |  Distributed under an ISC-like license, type "license" to see terms        |
+ \----------------------------------------------------------------------------/
+ Yosys 0.69+154 (git sha1 30d62572e-dirty, Release, GNU /usr/bin/x86_64-w64-mingw32-g++ 15.2.1)
+
+-- Executing script file `build/rom/rom_map.ys' --
+
+1. Executing Verilog-2005 frontend: build/rom/boot_rom.v
+Parsing SystemVerilog input from `build/rom/boot_rom.v' to AST representation.
+Generating RTLIL representation for module `\boot_rom'.
+Successfully finished Verilog frontend.
+
+2. Executing HIERARCHY pass (managing design hierarchy).
+
+2.1. Analyzing design hierarchy..
+Top module:  \boot_rom
+
+2.2. Analyzing design hierarchy..
+Top module:  \boot_rom
+Removed 0 unused modules.
+
+3. Executing PROC pass (convert processes to netlists).
+
+3.1. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Cleaned up 0 empty switches.
+
+3.2. Executing PROC_RMDEAD pass (remove dead branches from decision trees).
+Marked 1 switch rules as full_case in process $proc$build/rom/boot_rom.v:467$30 in module boot_rom.
+Marked 1 switch rules as full_case in process $proc$build/rom/boot_rom.v:415$24 in module boot_rom.
+Marked 2 switch rules as full_case in process $proc$build/rom/boot_rom.v:444$19 in module boot_rom.
+Marked 2 switch rules as full_case in process $proc$build/rom/boot_rom.v:417$8 in module boot_rom.
+Removed a total of 0 dead cases.
+
+3.3. Executing PROC_PRUNE pass (remove redundant assignments in processes).
+Removed 0 redundant assignments.
+Promoted 8 assignments to connections.
+
+3.4. Executing PROC_INIT pass (extract init attributes).
+
+3.5. Executing PROC_ARST pass (detect async resets in processes).
+Found async reset \reset_n in `\boot_rom.$proc$build/rom/boot_rom.v:444$19'.
+Found async reset \reset_n in `\boot_rom.$proc$build/rom/boot_rom.v:417$8'.
+
+3.6. Executing PROC_ROM pass (convert switches to ROMs).
+Converted 2 switches.
+<suppressed ~7 debug messages>
+
+3.7. Executing PROC_MUX pass (convert decision trees to multiplexers).
+Creating decoders for process `\boot_rom.$proc$build/rom/boot_rom.v:467$30'.
+     1/1: $1\rom_decode$func$build/rom/boot_rom.v:467$4.$result[31:0]$35
+Creating decoders for process `\boot_rom.$proc$build/rom/boot_rom.v:415$24'.
+     1/1: $1\rom_decode$func$build/rom/boot_rom.v:415$3.$result[31:0]$29
+Creating decoders for process `\boot_rom.$proc$build/rom/boot_rom.v:444$19'.
+     1/2: $0\ax_raddr_q[13:0]
+     2/2: $0\ax_state[1:0]
+Creating decoders for process `\boot_rom.$proc$build/rom/boot_rom.v:417$8'.
+     1/2: $0\if_addr_q[13:0]
+     2/2: $0\if_state[0:0]
+
+3.8. Executing PROC_DLATCH pass (convert process syncs to latches).
+No latch inferred for signal `\boot_rom.\rom_decode$func$build/rom/boot_rom.v:467$2.$result' from process `\boot_rom.$proc$build/rom/boot_rom.v:467$30'.
+No latch inferred for signal `\boot_rom.\rom_decode$func$build/rom/boot_rom.v:415$1.$result' from process `\boot_rom.$proc$build/rom/boot_rom.v:415$24'.
+
+3.9. Executing PROC_DFF pass (convert process syncs to FFs).
+Creating register for signal `\boot_rom.\ax_state' using process `\boot_rom.$proc$build/rom/boot_rom.v:444$19'.
+  created $adff cell `$procdff$86' with positive edge clock and positive level reset.
+Creating register for signal `\boot_rom.\ax_raddr_q' using process `\boot_rom.$proc$build/rom/boot_rom.v:444$19'.
+  created $adff cell `$procdff$91' with positive edge clock and positive level reset.
+Creating register for signal `\boot_rom.\if_state' using process `\boot_rom.$proc$build/rom/boot_rom.v:417$8'.
+  created $adff cell `$procdff$96' with positive edge clock and positive level reset.
+Creating register for signal `\boot_rom.\if_addr_q' using process `\boot_rom.$proc$build/rom/boot_rom.v:417$8'.
+  created $adff cell `$procdff$101' with positive edge clock and positive level reset.
+
+3.10. Executing PROC_MEMWR pass (convert process memory writes to cells).
+
+3.11. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Found and cleaned up 1 empty switch in `\boot_rom.$proc$build/rom/boot_rom.v:467$30'.
+Removing empty process `boot_rom.$proc$build/rom/boot_rom.v:467$30'.
+Found and cleaned up 1 empty switch in `\boot_rom.$proc$build/rom/boot_rom.v:415$24'.
+Removing empty process `boot_rom.$proc$build/rom/boot_rom.v:415$24'.
+Found and cleaned up 5 empty switches in `\boot_rom.$proc$build/rom/boot_rom.v:444$19'.
+Removing empty process `boot_rom.$proc$build/rom/boot_rom.v:444$19'.
+Found and cleaned up 2 empty switches in `\boot_rom.$proc$build/rom/boot_rom.v:417$8'.
+Removing empty process `boot_rom.$proc$build/rom/boot_rom.v:417$8'.
+Cleaned up 9 empty switches.
+
+3.12. Executing OPT_EXPR pass (perform const folding).
+Optimizing module boot_rom.
+<suppressed ~21 debug messages>
+
+4. Executing MEMORY_COLLECT pass (generating $mem cells).
+
+5. Executing MEMORY_MAP pass (converting memories to logic and flip-flops).
+Mapping memory $auto$proc_rom.cc:155:do_switch$41 in module \boot_rom:
+  created 512 $dff cells and 0 static cells of width 32.
+  read interface: 0 $dff and 511 $mux cells.
+  write interface: 0 write mux blocks.
+Mapping memory $auto$proc_rom.cc:155:do_switch$37 in module \boot_rom:
+  created 512 $dff cells and 0 static cells of width 32.
+  read interface: 0 $dff and 511 $mux cells.
+  write interface: 0 write mux blocks.
+
+6. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \boot_rom..
+Removed 7 unused cells and 1071 unused wires.
+<suppressed ~8 debug messages>
+
+7. Printing statistics.
+
+=== boot_rom ===
+
+        +----------Local Count, excluding submodules.
+        | 
+     1081 wires
+    33081 wire bits
+       32 public wires
+      280 public wire bits
+       24 ports
+      197 port bits
+     1061 cells
+        4   $adff
+        3   $and
+        4   $eq
+        2   $logic_and
+        7   $logic_not
+     1034   $mux
+        5   $not
+        2   $pmux
+
+8. Executing CHECK pass (checking for obvious problems).
+Checking module boot_rom...
+Found and reported 0 problems.
+
+9. Executing TECHMAP pass (map to technology primitives).
+
+9.1. Executing Verilog-2005 frontend: D:\tools\oss-cad-suite\bin\../share/yosys/techmap.v
+Parsing Verilog input from `D:\tools\oss-cad-suite\bin\../share/yosys/techmap.v' to AST representation.
+Generating RTLIL representation for module `\_90_simplemap_bool_ops'.
+Generating RTLIL representation for module `\_90_simplemap_reduce_ops'.
+Generating RTLIL representation for module `\_90_simplemap_logic_ops'.
+Generating RTLIL representation for module `\_90_simplemap_compare_ops'.
+Generating RTLIL representation for module `\_90_simplemap_various'.
+Generating RTLIL representation for module `\_90_simplemap_registers'.
+Generating RTLIL representation for module `\_90_shift_ops_shr_shl_sshl_sshr'.
+Generating RTLIL representation for module `\_90_shift_shiftx'.
+Generating RTLIL representation for module `\_90_fa'.
+Generating RTLIL representation for module `\_90_lcu_brent_kung'.
+Generating RTLIL representation for module `\_90_alu'.
+Generating RTLIL representation for module `\_90_macc'.
+Generating RTLIL representation for module `\_90_alumacc'.
+Generating RTLIL representation for module `$__div_mod_u'.
+Generating RTLIL representation for module `$__div_mod_trunc'.
+Generating RTLIL representation for module `\_90_div'.
+Generating RTLIL representation for module `\_90_mod'.
+Generating RTLIL representation for module `$__div_mod_floor'.
+Generating RTLIL representation for module `\_90_divfloor'.
+Generating RTLIL representation for module `\_90_modfloor'.
+Generating RTLIL representation for module `\_90_pow'.
+Generating RTLIL representation for module `\_90_demux'.
+Generating RTLIL representation for module `\_90_lut'.
+Generating RTLIL representation for module `$connect'.
+Generating RTLIL representation for module `$input_port'.
+Successfully finished Verilog frontend.
+
+9.2. Continuing TECHMAP pass.
+Using extmapper simplemap for cells of type $not.
+Using extmapper simplemap for cells of type $logic_and.
+Using extmapper simplemap for cells of type $logic_not.
+Using extmapper simplemap for cells of type $and.
+Using extmapper simplemap for cells of type $eq.
+Using extmapper simplemap for cells of type $mux.
+Using extmapper simplemap for cells of type $pmux.
+Using extmapper simplemap for cells of type $adff.
+No more expansions possible.
+<suppressed ~1138 debug messages>
+
+10. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \boot_rom..
+Removed 14 unused cells and 4 unused wires.
+<suppressed ~15 debug messages>
+
+11. Printing statistics.
+
+=== boot_rom ===
+
+        +----------Local Count, excluding submodules.
+        | 
+     1114 wires
+    33118 wire bits
+       32 public wires
+      280 public wire bits
+       24 ports
+      197 port bits
+    32925 cells
+       13   $_AND_
+       27   $_DFF_PN0_
+    32840   $_MUX_
+       16   $_NOT_
+       21   $_OR_
+        8   $_XOR_
+
+End of script. Logfile hash: 460f73e4f4
+Yosys 0.69+154 (git sha1 30d62572e-dirty, Release, GNU /usr/bin/x86_64-w64-mingw32-g++ 15.2.1)
+Time spent: 4% 3x read_verilog (0 sec), 4% 2x stat (0 sec), ...

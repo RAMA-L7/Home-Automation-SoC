@@ -635,3 +635,39 @@ negative-control run are disclosed in the matrix rather than quietly replaced.
 - **Recommendation:** Record the 3 violations (F-01, F-02, F-03) for attention in the next workstream; the audit stops here per the stop condition. Do not begin remediation or Workstream G automatically.
 - **Evidence:** `third_remediation_round6_20261120/PHASE6/` — all deliverables listed in `final_adjudication.md` and `changed_files.md`.
 
+
+## R-2026-11-26-30 — External review intervention (repository review)
+
+- **Reviewer:** external (independent of the project), recorded here as an
+  intervention; adjudication and fixes by `Agent: Buffy (model: DeepSeek V4.1 Flash)`
+  — self-assessed, labelled as such.
+- **Reviewed baseline:** `8acc1a4cf0d0139f33fea3ed3eb5edb63bf2767c`.
+- **Findings adjudicated:**
+  - *Published implementation incomplete* — CONFIRMED. `sram_macro_wrap.sv` and
+    `tcm_macro_wrap.sv` were untracked while `has_soc.sv` instantiated them, so
+    a clean checkout could not elaborate. **FIXED** (F15).
+  - *Wrapper verification too weak* — CONFIRMED. N=2 toy geometry, 5/16 strobes,
+    `check(1, ...)`, no alias/boundary coverage, proxy model presented without
+    distinguishing it. **FIXED** (rewritten, two negative controls).
+  - *ROM presented as resolved* — PARTIALLY CONFIRMED. It was a behavioural
+    blackbox. **PARTIALLY FIXED**: a synthesizable ROM now exists and is
+    verified, but it maps to a ~33 k-cell mux tree, so ASIC ROM readiness stays
+    BLOCKED (F7).
+  - *Timing constraints invalid* — CONFIRMED. HDL syntax, `-comment`, mixed
+    clock-group modes, a port where a clock belongs, no units, and a blanket
+    `set_max_delay -datapath_only` across all I/O. **FIXED** as a file (F16);
+    path-based STA remains BLOCKED.
+  - *No clean-checkout reproduction* — CONFIRMED. **FIXED for simulation**
+    (detached worktree at `3a71175`), BLOCKED for physical.
+- **Defects the review did not name, found while fixing the above:**
+  peripheral interrupts disconnected after BLK-019 (F12), TCM/SRAM preload
+  silently dropped (F13), read+write deadlock in the memory slave (F14). All
+  three are functional and were invisible from documentation review.
+- **Constraints verified:** no acceptance criterion weakened; no test skipped;
+  no suppression added; no force-push; no unrelated work merged; PDK/IP not
+  published; `TCM_INIT_FILE` semantics not silently re-interpreted (the silicon
+  gap is documented instead).
+- **Verdict:** review findings addressed; ASIC readiness, path-based STA,
+  real-macro simulation and physical signoff remain BLOCKED.
+- **Evidence:** `reports/REVIEW_INTERVENTION_2026-11-26.md`;
+  `research/runs/RUN-0025-external-review-2026-11-26/`.

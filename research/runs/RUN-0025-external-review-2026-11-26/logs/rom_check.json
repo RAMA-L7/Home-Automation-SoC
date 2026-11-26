@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-11-26T13:42:42.133Z",
+  "image": "build/fw/boot.hex",
+  "results": [
+    {
+      "name": "generate synthesizable ROM",
+      "ok": true,
+      "detail": "gen_rom_rtl: build\\rom\\boot_rom.v words=339 image_sha256=d9a6be2a3e06484575501042786f90af4978658fad076b802f36053796aeb096"
+    },
+    {
+      "name": "ROM contents/latency/write (behavioural)",
+      "ok": true,
+      "detail": "checks=1059 errors=0"
+    },
+    {
+      "name": "ROM contents/latency/write (generated)",
+      "ok": true,
+      "detail": "checks=1059 errors=0"
+    },
+    {
+      "name": "CPU boot from synthesizable ROM",
+      "ok": true,
+      "detail": "7/7 subtests"
+    },
+    {
+      "name": "Yosys mapping (no $mem)",
+      "ok": true,
+      "detail": "decode logic mapped (32840 $_MUX_, no memory cell)"
+    }
+  ]
+}

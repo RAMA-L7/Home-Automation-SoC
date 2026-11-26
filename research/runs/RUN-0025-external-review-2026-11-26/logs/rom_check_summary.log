@@ -1,0 +1,6 @@
+rom: generate synthesizable ROM             ok   gen_rom_rtl: build\rom\boot_rom.v words=339 image_sha256=d9a6be2a3e06484575501042786f90af4978658fad076b802f36053796aeb096
+rom: ROM contents/latency/write (behavioural) ok   checks=1059 errors=0
+rom: ROM contents/latency/write (generated) ok   checks=1059 errors=0
+rom: CPU boot from synthesizable ROM        ok   7/7 subtests
+rom: Yosys mapping (no $mem)                ok   decode logic mapped (32840 $_MUX_, no memory cell)
+rom: RESULT PASS (synthesizable ROM verified against the behavioural model and CPU boot)

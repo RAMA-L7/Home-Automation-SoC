@@ -12,6 +12,24 @@ history; this file is the one document rewritten at session boundaries.
 ---
 
 ## STATUS (current)
+### Current override — 2026-11-26 (external review intervention)
+
+The table below describes the tree as of `67132f5` / RUN-0022 and is kept as
+history. **These are the fields to trust today:**
+
+| Field | Value |
+|---|---|
+| Tested commit | `3a71175` on `main` (fixes) + the evidence commit that publishes RUN-0025 |
+| Regression | **PASS 28 / 28**, exit 0, from a detached worktree containing only tracked files (`research/runs/RUN-0025-external-review-2026-11-26/logs/clean_worktree_regression.log`) |
+| Macro wrapper | **81 checks / 0 errors** at production geometry (64-bank SRAM + 16-bank TCM); 2 negative controls rejected (3 and 30 errors) |
+| ROM | synthesizable, 1059 checks against the behavioural model on both modules, CPU boot 7/7, Yosys maps 32,840 `$_MUX_` with no `$mem` cell — still **BLOCKED** as an ASIC memory decision (mux tree, no characterised array) |
+| Timing constraints | SDC executes as Tcl, 49/49 ports constrained, 0 object errors; **path-based STA BLOCKED** (no runnable OpenSTA) |
+| Functional defects found and fixed | peripheral-interrupt bus left unconnected after BLK-019 (F12); TCM/SRAM preload silently dropped (F13); read+write deadlock in the memory slave (F14); untracked wrappers/missing include path (F15) |
+| Highest verified stage | RTL functionally verified in simulation + synthesizable ROM + validated constraints; **ASIC readiness, physical implementation and signoff BLOCKED** |
+| Report / evidence | `reports/REVIEW_INTERVENTION_2026-11-26.md`; `research/runs/RUN-0025-external-review-2026-11-26/` (manifest pins the source commit, tools, commands and file hashes) |
+
+Hard deadline unchanged: **2026-11-28T12:17:36Z**.
+
 
 | Field | Value |
 |---|---|

@@ -1,0 +1,119 @@
+{
+  "run": "RUN-0025-external-review-2026-11-26",
+  "created_utc": "2026-11-26T13:44:06Z",
+  "source_commit": "3a7117572cd1a84635af86f05f0521ffb408d506",
+  "head_at_manifest": "3a7117572cd1a84635af86f05f0521ffb408d506",
+  "worktree_dirty": true,
+  "notes": "All results produced in a detached git worktree at 3a71175 (tracked files only). Memory cell is the simulation proxy model; path-based STA, real-macro simulation and physical signoff remain BLOCKED.",
+  "commands": [
+    "node scripts/eda/run_regression.js (worktree) => exit 0, PASS 28/28",
+    "node scripts/eda/run_macro_wrapper.js (worktree) => exit 0, PROD 81/81, 3 and 30 errors in the two negative controls",
+    "node scripts/eda/run_rom_check.js (worktree) => exit 0, 1059 checks x2, boot 7/7, no memory cell",
+    "node scripts/eda/run_sdc_lint.js (worktree) => exit 0, ports=49"
+  ],
+  "tools": {
+    "iverilog": "Icarus Verilog version 14.0 (devel) (s20260301-500-g2e81fcccb-dirty)",
+    "yosys": "Yosys 0.69+154 (git sha1 30d62572e-dirty, Release, GNU /usr/bin/x86_64-w64-mingw32-g++ 15.2.1)",
+    "node": "v26.7.0",
+    "python": "Python 3.11.6 (python3)",
+    "tclsh": "8.6.17",
+    "opensta": "BLOCKED \u2014 no runnable binary (Linux build; WSL1 unsupported)"
+  },
+  "paths": {
+    "PATH_head": [
+      "D:\\tools\\oss-cad-suite\\bin",
+      "D:\\tools\\oss-cad-suite\\lib",
+      "C:\\Program Files\\Git\\mingw64\\bin",
+      "C:\\Program Files\\Git\\usr\\bin",
+      "C:\\Users\\91846\\bin",
+      "C:\\WINDOWS\\system32"
+    ]
+  },
+  "files": [
+    {
+      "path": "artifacts/boot_rom_generated.v",
+      "bytes": 19752,
+      "sha256": "c31c3040156a0fe2bf8d0186d12318f83cebd448bd8f92bdeb6fbf3b14561ed1"
+    },
+    {
+      "path": "commands.jsonl",
+      "bytes": 1830,
+      "sha256": "4bff7e9dd0deff9337e70f496a73b3879e9ae37efec96246b4ea240273fc3f2e"
+    },
+    {
+      "path": "logs/clean_worktree_regression.log",
+      "bytes": 2170,
+      "sha256": "7261521d6d8ed16ebb89d85abc5d76b682518f92b7fa553ea95eec1f6ce65806"
+    },
+    {
+      "path": "logs/macro_wrapper_NEG_BANK.log",
+      "bytes": 6796,
+      "sha256": "155a82a1d52c3c3076937ecf939f4714b7b36613b0358d67a979e49dc61d7b61"
+    },
+    {
+      "path": "logs/macro_wrapper_NEG_STROBE.log",
+      "bytes": 7420,
+      "sha256": "2209f9ab9ab4e0d611c89c5983ff7dc2908d01a17d7af287c185bef5274570b6"
+    },
+    {
+      "path": "logs/macro_wrapper_PROD.log",
+      "bytes": 6650,
+      "sha256": "98cd110c825388561d52b2a0eddaa97f9081e2893be4c83faab0f71a2baa5cbb"
+    },
+    {
+      "path": "logs/macro_wrapper_summary.log",
+      "bytes": 306,
+      "sha256": "c15fc259f538f3132634f9f2b8037611ac172db472bf81e5e017d816de5354ab"
+    },
+    {
+      "path": "logs/rom_behavioural.log",
+      "bytes": 454,
+      "sha256": "868ac6c50a036e698ad7517795981d38054c7b4b7227e1662338cb10aceea877"
+    },
+    {
+      "path": "logs/rom_boot_from_generated.log",
+      "bytes": 927,
+      "sha256": "f9e4659689c4703b4c7cf977e4cccd3a8ea523bdc3528d9a458c571bcda401eb"
+    },
+    {
+      "path": "logs/rom_check.json",
+      "bytes": 822,
+      "sha256": "4da8a2328ad9395a5d08b433e0905c921ca6f181e5de153964fa08c65283923d"
+    },
+    {
+      "path": "logs/rom_check_summary.log",
+      "bytes": 564,
+      "sha256": "12b53fedcfd2a681f00b5a32bb40ce42fb42ab9b75c18308319c53b23c52f85d"
+    },
+    {
+      "path": "logs/rom_generate.log",
+      "bytes": 123,
+      "sha256": "7128e6cd02b65466b6524488bb51dab43328a889a7b9da8f7c2dec8a8de3aca1"
+    },
+    {
+      "path": "logs/rom_generated.log",
+      "bytes": 322,
+      "sha256": "4182ed2c8729563bd0b13ccb7f1b0ffd0958d4b193c7fb532da066e417c99cab"
+    },
+    {
+      "path": "logs/rom_map.log",
+      "bytes": 9563,
+      "sha256": "f9afd2cf3e7c31da9ccbe02ea70933049c941f230d1449109ece423691c38519"
+    },
+    {
+      "path": "logs/sdc_lint.log",
+      "bytes": 128,
+      "sha256": "42710717f5279ab02ec763b09dd50178d88a3d5aedf4f4cf88fe3392ae642f05"
+    },
+    {
+      "path": "logs/sdc_negative_control.log",
+      "bytes": 164,
+      "sha256": "221e1a004d548a0059d006d981cb5067c053f2d0b275af80a8c148a59a9a8ff1"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2397,
+      "sha256": "11fa705c1fc2bee25d13c254161182261796586c0306154dfaa2086285b43b14"
+    }
+  ]
+}

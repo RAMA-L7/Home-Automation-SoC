@@ -11,6 +11,16 @@
 
 ## 📋 Project Overview
 
+> **External review intervention, 2026-11-26.** Baseline `8acc1a4` could not be
+> elaborated from a clean checkout: `has_soc.sv` instantiated memory macro wrappers
+> that were not in Git. Fixing that surfaced three functional defects (peripheral
+> interrupts disconnected after BLK-019, TCM/SRAM preload silently dropped, and a
+> read+write deadlock in the memory slave) plus an invalid SDC. All are fixed in
+> `3a71175`; the report is [`reports/REVIEW_INTERVENTION_2026-11-26.md`](reports/REVIEW_INTERVENTION_2026-11-26.md)
+> and the evidence is in `research/runs/RUN-0025-external-review-2026-11-26/`.
+> ASIC readiness, path-based STA and real-macro simulation remain **BLOCKED**;
+> see [`docs/EXTERNAL_DEPENDENCIES.md`](docs/EXTERNAL_DEPENDENCIES.md).
+
 **Home-Automation-SoC** is a semiconductor engineering research project delivering a low-power residential home automation System-on-Chip (SoC) in SystemVerilog RTL with bare-metal firmware, verification testbenches, and comprehensive EDA flow scripts. The project investigates RISC-V RV32IM core design, peripheral interconnect, and verification infrastructure on the SkyWater 130nm (sky130A) process node.
 
 **Target Applications:** Smart home hubs, sensor nodes, actuator controllers, IoT gateways  
@@ -249,7 +259,10 @@ alias and byte-write checks in `sim/sim_top/tb_mem_contract.v`.
 
 | Verification Domain | Result | Evidence |
 |---|---|---|
-| **Regression (Icarus)** | 27/27 PASS + 22/22 macro-wrapper (exit 0) | `runs/RUN-0011-evidence-provenance/logs/regression.log`; `build/sim/tb_sram_macro_wrap_out.txt` (22/22, clean canonical run) |
+| **Regression (Icarus)** | 28 targets from a clean worktree (27 functional PASS, 1 design stage BLOCKED) | `research/runs/RUN-0025-external-review-2026-11-26/logs/clean_worktree_regression.log` |
+| **Macro wrapper (production geometry)** | 81 checks, 0 errors; 64-bank 128 KiB SRAM + 16-bank 32 KiB TCM; **2 negative controls rejected** (3 and 30 failures) | `node scripts/eda/run_macro_wrapper.js`; `research/runs/RUN-0025-external-review-2026-11-26/logs/macro_wrapper_*.log` |
+| **Boot ROM (synthesizable)** | 1059 checks against the behavioural model on both modules; CPU boot 7/7 from the generated ROM; Yosys maps 32,840 `$_MUX_` with no `$mem` cell | `node scripts/eda/run_rom_check.js`; `research/runs/RUN-0025-external-review-2026-11-26/logs/rom_*.log` |
+| **Timing constraints** | SDC executes as Tcl; 49/49 ports constrained; 0 object errors. **Path-based STA BLOCKED** (no runnable OpenSTA) | `node scripts/eda/run_sdc_lint.js`; `research/runs/RUN-0025-external-review-2026-11-26/logs/sdc_lint.log` |
 | **Unified gate** | functional stages PASS; **ASIC readiness BLOCKED** (2 design stages) | `runs/RUN-0012-closure-publication/logs/gate.log` |
 | **Firmware build** | exit 0; `.text` 3,684 B; rom 26 words; TCM 895 words | `scripts/fw_build/build_fw.js`; discovery via `toolchain.js` |
 | **Firmware E2E** | 7/7 steps, corruption control detected | `scripts/firmware/run_e2e.js` |

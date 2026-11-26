@@ -1,0 +1,1 @@
+gen_rom_rtl: build\rom\boot_rom.v words=339 image_sha256=d9a6be2a3e06484575501042786f90af4978658fad076b802f36053796aeb096

@@ -1,0 +1,6 @@
+SDC-ERROR: get_ports: "ext_irq" is not a port of has_soc
+SDC-PORTS total=49
+SDC-CLOCKS sys_clk,jtag_tck
+SDC-MISSING-COUNT 0
+SDC-ERROR-COUNT 1
+SDC-RESULT=FAIL

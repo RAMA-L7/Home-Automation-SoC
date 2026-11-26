@@ -1,0 +1,101 @@
+COMPILE OK
+sim/sim_top/tb_sram_macro_wrap.v:578: warning: Extra digits given for sized hex constant.
+sim/sim_top/tb_sram_macro_wrap.v:579: warning: Extra digits given for sized hex constant.
+sim/sim_top/tb_sram_macro_wrap.v:580: warning: Extra digits given for sized hex constant.
+sim/sim_top/tb_sram_macro_wrap.v:595: warning: Extra digits given for sized hex constant.
+sim/sim_top/tb_sram_macro_wrap.v:597: warning: Extra digits given for sized hex constant.
+rtl/rtl_top/sram_macro_wrap.sv:397: sorry: constant selects in always_* processes are not fully supported (the process will be sensitive to all bits in '+k[31:0]').
+rtl/rtl_top/sram_macro_wrap.sv:398: sorry: constant selects in always_* processes are not fully supported (the process will be sensitive to all bits in '+k[31:0]').
+rtl/rtl_top/sram_macro_wrap.sv:397: sorry: constant selects in always_* processes are not fully supported (the process will be sensitive to all bits in '+k[31:0]').
+rtl/rtl_top/sram_macro_wrap.sv:398: sorry: constant selects in always_* processes are not fully supported (the process will be sensitive to all bits in '+k[31:0]').
+rtl/rtl_top/sram_macro_wrap.sv:221: vvp.tgt sorry: Case unique/unique0 qualities are ignored.
+rtl/rtl_top/sram_macro_wrap.sv:221: vvp.tgt sorry: Case unique/unique0 qualities are ignored.
+
+--- SIMULATION (exit 0) ---
+[macro_wrap] pass S1 SRAM all channels ready after reset
+[macro_wrap] pass S1 SRAM no response pending after reset
+[macro_wrap] pass S1 SRAM i-port idle after reset
+[macro_wrap] pass S1 SRAM OKAY response codes
+[macro_wrap] pass S1 TCM all channels ready after reset
+[macro_wrap] pass S2 SRAM full-word write/read[0] = a1b2c3d4
+[macro_wrap] pass S3 SRAM strobe combination[0] = 00000000
+[macro_wrap] pass S3 SRAM strobe combination[1] = 000000dd
+[macro_wrap] pass S3 SRAM strobe combination[2] = 0000cc00
+[macro_wrap] pass S3 SRAM strobe combination[3] = 0000ccdd
+[macro_wrap] pass S3 SRAM strobe combination[4] = 00bb0000
+[macro_wrap] pass S3 SRAM strobe combination[5] = 00bb00dd
+[macro_wrap] pass S3 SRAM strobe combination[6] = 00bbcc00
+[macro_wrap] pass S3 SRAM strobe combination[7] = 00bbccdd
+[macro_wrap] pass S3 SRAM strobe combination[8] = aa000000
+[macro_wrap] pass S3 SRAM strobe combination[9] = aa0000dd
+[macro_wrap] pass S3 SRAM strobe combination[10] = aa00cc00
+[macro_wrap] pass S3 SRAM strobe combination[11] = aa00ccdd
+[macro_wrap] pass S3 SRAM strobe combination[12] = aabb0000
+[macro_wrap] pass S3 SRAM strobe combination[13] = aabb00dd
+[macro_wrap] pass S3 SRAM strobe combination[14] = aabbcc00
+[macro_wrap] pass S3 SRAM strobe combination[15] = aabbccdd
+[macro_wrap] pass S4 SRAM read-after-write[0] = 01234567
+[macro_wrap] pass S5 SRAM last word before bank 1 boundary[0] = aaaabbbb
+[macro_wrap] pass S5 SRAM first word of bank 1[0] = ccccdeee
+[macro_wrap] pass S5 SRAM bank 1 does not alias bank 0 word 0[0] = a5a51111
+[macro_wrap] pass S5 SRAM last bank does not alias bank 0 word 0[0] = a5a51111
+[macro_wrap] pass S6 SRAM first word of last bank[0] = 5a5a1234
+[macro_wrap] pass S6 SRAM final word of address space[0] = 13579bdf
+[macro_wrap] pass SRAM i-port grant in request cycle
+[macro_wrap] pass SRAM i-port rvalid one cycle after request
+[macro_wrap] pass S7 SRAM i-fetch last word before boundary[0] = 0badf00d
+[macro_wrap] pass SRAM i-port grant in request cycle
+[macro_wrap] pass SRAM i-port rvalid one cycle after request
+[macro_wrap] pass S7 SRAM i-fetch first word of bank 1[0] = feed1234
+[macro_wrap] pass S8 SRAM BVALID outstanding before reset
+[macro_wrap] pass S8 SRAM BVALID cleared by reset mid-response
+[macro_wrap] pass S8 SRAM channels ready again after mid-response reset
+[macro_wrap] pass S8 SRAM committed write persists across reset[0] = deadbeef
+[macro_wrap] pass S9 SRAM RVALID outstanding before reset
+[macro_wrap] pass S9 SRAM RVALID cleared by reset mid-response
+[macro_wrap] pass S10 SRAM read held off while write presented
+[macro_wrap] pass S10 SRAM write accepted
+[macro_wrap] pass S10 SRAM simultaneous write completes
+[macro_wrap] pass S10 SRAM deferred read returns its response
+[macro_wrap] pass S10 SRAM deferred read data unchanged[0] = 11112222
+[macro_wrap] pass S10 SRAM simultaneous write data landed[0] = 33334444
+[macro_wrap] pass S11 SRAM i-fetch rvalid during concurrent write
+[macro_wrap] pass S11 SRAM i-fetch unaffected by concurrent write to another bank[0] = 0f0f0f0f
+[macro_wrap] pass S11 SRAM concurrent write data landed[0] = 77778888
+[sram_sim_model] WARNING: simultaneous write+read addr=020
+[macro_wrap] pass S12 SRAM i-fetch granted in the write cycle
+[macro_wrap] pass S12 SRAM i-fetch rvalid after same-cycle write
+[macro_wrap] pass S12 SRAM same-word write->i-read forward[0] = 12345678
+[macro_wrap] pass T1 TCM no response pending after reset
+[macro_wrap] pass T1 TCM OKAY response codes
+[macro_wrap] pass T2 TCM strobe combination[0] = 00000000
+[macro_wrap] pass T2 TCM strobe combination[1] = 000000dd
+[macro_wrap] pass T2 TCM strobe combination[2] = 0000cc00
+[macro_wrap] pass T2 TCM strobe combination[3] = 0000ccdd
+[macro_wrap] pass T2 TCM strobe combination[4] = 00bb0000
+[macro_wrap] pass T2 TCM strobe combination[5] = 00bb00dd
+[macro_wrap] pass T2 TCM strobe combination[6] = 00bbcc00
+[macro_wrap] pass T2 TCM strobe combination[7] = 00bbccdd
+[macro_wrap] pass T2 TCM strobe combination[8] = aa000000
+[macro_wrap] pass T2 TCM strobe combination[9] = aa0000dd
+[macro_wrap] pass T2 TCM strobe combination[10] = aa00cc00
+[macro_wrap] pass T2 TCM strobe combination[11] = aa00ccdd
+[macro_wrap] pass T2 TCM strobe combination[12] = aabb0000
+[macro_wrap] pass T2 TCM strobe combination[13] = aabb00dd
+[macro_wrap] pass T2 TCM strobe combination[14] = aabbcc00
+[macro_wrap] pass T2 TCM strobe combination[15] = aabbccdd
+[macro_wrap] pass T3 TCM last word before bank 1 boundary[0] = 1234aaaa
+[macro_wrap] pass T3 TCM first word of bank 1[0] = 5678bbbb
+[macro_wrap] pass T3 TCM bank 1 does not alias bank 0 word 0[0] = 0a0a1111
+[macro_wrap] pass T4 TCM first word of last bank[0] = 9abcdef0
+[macro_wrap] pass T4 TCM final word of address space[0] = 0fedcba9
+[macro_wrap] pass TCM i-port grant in request cycle
+[macro_wrap] pass TCM i-port rvalid one cycle after request
+[macro_wrap] pass T5 TCM i-fetch first word of bank 1[0] = cafe0001
+[macro_wrap] pass T6 TCM RVALID outstanding before reset
+[macro_wrap] pass T6 TCM RVALID cleared by reset mid-response
+[macro_wrap] MODE=PRODUCTION
+[macro_wrap] checks=81 errors=0 timeouts=0
+[macro_wrap] RESULT=PASS
+sim/sim_top/tb_sram_macro_wrap.v:644: $finish called at 4485000 (1ps)
+

@@ -1,0 +1,1 @@
+sdc-lint: RESULT PASS  ports=49 clocks=sys_clk,jtag_tck (constraint-file check; path-based STA BLOCKED — no runnable OpenSTA)

@@ -1,0 +1,6 @@
+WARNING: rtl/rtl_top/boot_rom.sv:125: $readmemh(build/fw/boot.hex): Not enough words in the file for the requested range [0:4095].
+WARNING: sim/sim_top/tb_boot_rom.v:148: $readmemh(build/fw/boot.hex): Not enough words in the file for the requested range [0:4095].
+ROM-TEST: image=build/fw/boot.hex words=4096 distinct_from_fill=339
+ROM-TEST: checks=1059 errors=0
+ROM-TEST: RESULT=PASS
+sim/sim_top/tb_boot_rom.v:199: $finish called at 7145000 (1ps)
