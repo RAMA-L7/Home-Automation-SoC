@@ -342,7 +342,8 @@ module has_soc #(
     .DATA_WIDTH (32),
     .MACRO_DW   (32),    // sky130_sram_2kbyte_1rw1r_32x512_8 — 32-bit word, 2 KiB
     .MACRO_AW   (9),     // 512 words/macro
-    .NUM_MACROS (16)     // 32 KiB / 2 KiB = 16 macros
+    .NUM_MACROS (16),    // 32 KiB / 2 KiB = 16 macros
+    .INIT_FILE  (TCM_INIT_FILE)   // simulation only (SIM_MEM_PRELOAD)
   ) tcm_inst (
     .clk      (core_clk),
     .reset_n  (rst_sys_n),
@@ -373,7 +374,8 @@ module has_soc #(
     .DATA_WIDTH (32),
     .MACRO_DW   (32),    // sky130_sram_2kbyte_1rw1r_32x512_8 — 32-bit word, 2 KiB
     .MACRO_AW   (9),     // 512 words/macro
-    .NUM_MACROS (64)     // 128 KiB / 2 KiB = 64 macros
+    .NUM_MACROS (64),    // 128 KiB / 2 KiB = 64 macros
+    .INIT_FILE  (SRAM_INIT_FILE)  // simulation only (SIM_MEM_PRELOAD)
   ) sram_inst (
     .clk      (core_clk),
     .reset_n  (rst_sys_n),
@@ -455,8 +457,11 @@ module has_soc #(
     .arvalid  (s_arvalid[5]), .araddr(s_araddr[5]), .arready(s_arready[5]),
     .rvalid   (s_rvalid[5]),  .rdata (s_rdata[5]),  .rresp(s_rresp[5]),
     .rready   (s_rready[5]),
-    // ext_irq removed (BLK-019); periph_irq now driven solely by peripheral IRQs
-  .ext_irq  (),
+    // The 32-bit external interrupt PORT was removed (BLK-019), but intc_axi's
+    // 8-bit ext_irq input is the PLIC's peripheral-interrupt bus and must stay
+    // connected to periph_irq. Leaving it open kills every peripheral interrupt
+    // (UART, timer, GPIO, ...), which is what a bare `.ext_irq()` did.
+    .ext_irq  (periph_irq),
     .irq_ext  (irq_ext),
     .irq_timer(irq_timer),
     .irq_soft (irq_soft),

@@ -61,7 +61,6 @@ module tb_firmware;
     .jtag_tdi        (1'b0),
     .jtag_tdo        (jtag_tdo),
     .jtag_trst_n     (1'b1),
-    .ext_irq         (32'd0),
     .uart_tx         (uart_tx),
     .uart_rx         (uart_rx),
     .spi_sck         (spi_sck),

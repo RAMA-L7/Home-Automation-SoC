@@ -63,7 +63,6 @@ module tb_reset_recovery;
     .clk(clk), .reset_n(reset_n),
     .jtag_tck(1'b0), .jtag_tms(1'b0), .jtag_tdi(1'b0), .jtag_tdo(jtag_tdo),
     .jtag_trst_n(1'b1),
-    .ext_irq(32'd0),
     .uart_tx(uart_tx), .uart_rx(1'b1),
     .spi_sck(spi_sck), .spi_mosi(spi_mosi), .spi_miso(1'b1), .spi_cs_n(spi_cs_n),
     .i2c_scl(i2c_scl), .i2c_sda(i2c_sda),
@@ -74,6 +73,31 @@ module tb_reset_recovery;
     .wdog_reset_n_out(wdog_reset_n_out), .core_clk_en_o(core_clk_en_o),
     .wake_req(wake_req), .wake_ack(1'b0)
   );
+  // TCM is a macro wrapper now: word idx lives in bank idx/512, row idx%512.
+  // Constant generate-scope indices only (Icarus cannot index a generate
+  // block with a variable).
+  function [31:0] tcm_word(input integer idx);
+    case (idx / 512)
+      0: tcm_word = dut.tcm_inst.u_tcm.g_bank[0].u_macro.mem[idx % 512];
+      1: tcm_word = dut.tcm_inst.u_tcm.g_bank[1].u_macro.mem[idx % 512];
+      2: tcm_word = dut.tcm_inst.u_tcm.g_bank[2].u_macro.mem[idx % 512];
+      3: tcm_word = dut.tcm_inst.u_tcm.g_bank[3].u_macro.mem[idx % 512];
+      4: tcm_word = dut.tcm_inst.u_tcm.g_bank[4].u_macro.mem[idx % 512];
+      5: tcm_word = dut.tcm_inst.u_tcm.g_bank[5].u_macro.mem[idx % 512];
+      6: tcm_word = dut.tcm_inst.u_tcm.g_bank[6].u_macro.mem[idx % 512];
+      7: tcm_word = dut.tcm_inst.u_tcm.g_bank[7].u_macro.mem[idx % 512];
+      8: tcm_word = dut.tcm_inst.u_tcm.g_bank[8].u_macro.mem[idx % 512];
+      9: tcm_word = dut.tcm_inst.u_tcm.g_bank[9].u_macro.mem[idx % 512];
+      10: tcm_word = dut.tcm_inst.u_tcm.g_bank[10].u_macro.mem[idx % 512];
+      11: tcm_word = dut.tcm_inst.u_tcm.g_bank[11].u_macro.mem[idx % 512];
+      12: tcm_word = dut.tcm_inst.u_tcm.g_bank[12].u_macro.mem[idx % 512];
+      13: tcm_word = dut.tcm_inst.u_tcm.g_bank[13].u_macro.mem[idx % 512];
+      14: tcm_word = dut.tcm_inst.u_tcm.g_bank[14].u_macro.mem[idx % 512];
+      15: tcm_word = dut.tcm_inst.u_tcm.g_bank[15].u_macro.mem[idx % 512];
+      default: tcm_word = 32'hx;
+    endcase
+  endfunction
+
 
   integer errors = 0;
   integer checks = 0;
@@ -229,7 +253,7 @@ module tb_reset_recovery;
     reset_n = 1'b1;
 
     wait_halted("initial run");
-    n1 = dut.tcm_inst.mem[128];
+    n1 = tcm_word(128);
     $display("[reset] initial run produced %0d traps", n1);
     chk("initial run completed the program", n1 >= 4);
 
@@ -242,21 +266,21 @@ module tb_reset_recovery;
     // ---- recovery: every reset must end with a working SoC -------------
     wait_halted("after four resets");
     chk("SoC recovered after four watchdog resets",
-        dut.tcm_inst.mem[128] >= 4);
+        tcm_word(128) >= 4);
     chk("GPIO result survived the resets (program reran correctly)",
-        dut.tcm_inst.mem[68] === 32'h0000_5678);
+        tcm_word(68) === 32'h0000_5678);
 
     // ---- persistence contract ------------------------------------------
     // Reset while the firmware is parked in its halt loop, then let the whole
     // program run again.  The TCM is initialised only by $readmemh, so its
     // contents must persist: the trap counter must accumulate rather than
     // restart from zero.
-    n1 = dut.tcm_inst.mem[128];
+    n1 = tcm_word(128);
     inject_timeout;
     @(negedge dut.rst_sys_n);
     @(posedge dut.rst_sys_n);
     wait_halted("after the persistence reset");
-    n2 = dut.tcm_inst.mem[128];
+    n2 = tcm_word(128);
     $display("[reset] trap counter %0d -> %0d across a system reset", n1, n2);
     chk("memory contents persist across a system reset", n2 > n1);
     chk("one complete extra run added exactly its traps", (n2 - n1) === 4);

@@ -16,9 +16,6 @@ module tb_has_soc;
   wire        jtag_tdo;
   reg         jtag_trst_n;
 
-  // External interrupts
-  reg  [31:0] ext_irq;
-
   // UART
   wire        uart_tx;
   reg         uart_rx;
@@ -66,7 +63,6 @@ module tb_has_soc;
     .jtag_tdi   (jtag_tdi),
     .jtag_tdo   (jtag_tdo),
     .jtag_trst_n(jtag_trst_n),
-    .ext_irq    (ext_irq),
     .uart_tx    (uart_tx),
     .uart_rx    (uart_rx),
     .spi_sck    (spi_sck),
@@ -116,7 +112,6 @@ module tb_has_soc;
     jtag_tms   = 0;
     jtag_tdi   = 0;
     jtag_trst_n= 0;
-    ext_irq    = 32'd0;
     uart_rx    = 1'b1;
     spi_miso   = 1'b1;
     i2s_din    = 1'b0;
@@ -150,15 +145,16 @@ module tb_has_soc;
       $display("TB_HAS_SOC: PASS - GPIO[0] is driven");
     end
 
-    // Test 3: Assert external interrupt and check PLIC output propagates
-    ext_irq = 32'h00000001;  // Assert IRQ source 0
+    // Test 3: external interrupt ports removed (BLK-019).  The SoC no longer
+    // exposes any ext_irq pin, so the check is that the power manager keeps the
+    // core clock enabled after reset -- an observable top-level output that the
+    // old external-interrupt path used to influence.
     repeat (30) @(posedge clk);
-    $display("TB_HAS_SOC: ext_irq[0] asserted, checking PLIC response...");
-    // PLIC + core interrupt path requires core execution - just verify no X
-    if (ext_irq[0] === 1'b1) begin
-      $display("TB_HAS_SOC: PASS - ext_irq[0] driven correctly");
+    $display("TB_HAS_SOC: core_clk_en_o = %b (expect 1 after reset)", core_clk_en_o);
+    if (core_clk_en_o === 1'b1) begin
+      $display("TB_HAS_SOC: PASS - core clock enabled (no ext_irq port, BLK-019)");
     end else begin
-      $display("TB_HAS_SOC: FAIL - ext_irq[0] not driven");
+      $display("TB_HAS_SOC: FAIL - core_clk_en_o should be 1 after reset");
       errors = errors + 1;
     end
 

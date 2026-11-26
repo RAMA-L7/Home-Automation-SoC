@@ -16,6 +16,10 @@ rtl/rtl_peripherals/debug_jtag.sv
 rtl/rtl_peripherals/qspi_flash_ctrl.sv
 rtl/rtl_top/boot_rom.sv
 rtl/rtl_top/sram.sv
+// Memory macro wrappers (real Sky130 SRAM macros behind the sram.sv interface).
+// tcm_macro_wrap delegates to sram_macro_wrap, so sram_macro_wrap must come first.
+rtl/rtl_top/sram_macro_wrap.sv
+rtl/rtl_top/tcm_macro_wrap.sv
 rtl/rtl_top/intc_axi.sv
 rtl/rtl_top/axi_lite_interconnect.sv
 rtl/rtl_top/axi_lite_to_apb.sv

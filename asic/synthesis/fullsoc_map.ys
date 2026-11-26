@@ -38,7 +38,14 @@ read_verilog -sv rtl/rtl_peripherals/uart.sv
 read_verilog -sv rtl/rtl_peripherals/qspi_flash_ctrl.sv
 read_verilog -sv rtl/rtl_top/riscv_core.sv
 read_verilog -sv rtl/rtl_top/sram.sv
-read_verilog -sv rtl/rtl_top/has_soc.sv
+# Memory macro wrappers (real Sky130 SRAM macros behind the sram.sv interface).
+# The macro cells themselves are PDK assets, so they enter as blackboxes here:
+# no PDK source is redistributed and the cell stays an unmapped leaf.
+read_verilog -sv rtl/rtl_top/sram_macro_wrap.sv
+read_verilog -sv rtl/rtl_top/tcm_macro_wrap.sv
+read_verilog -lib rtl/blackbox/sky130_sram_macro_blackbox.v
+# -I rtl/rtl_top: has_soc.sv `include`s has_addr_map.vh
+read_verilog -sv -I rtl/rtl_top rtl/rtl_top/has_soc.sv
 
 hierarchy -check -top has_soc
 

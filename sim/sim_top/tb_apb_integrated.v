@@ -51,7 +51,6 @@ module tb_apb_integrated;
     .clk(clk), .reset_n(reset_n),
     .jtag_tck(1'b0), .jtag_tms(1'b0), .jtag_tdi(1'b0), .jtag_tdo(jtag_tdo),
     .jtag_trst_n(1'b1),
-    .ext_irq(32'd0),
     .uart_tx(uart_tx), .uart_rx(1'b1),
     .spi_sck(spi_sck), .spi_mosi(spi_mosi), .spi_miso(1'b1), .spi_cs_n(spi_cs_n),
     .i2c_scl(i2c_scl), .i2c_sda(i2c_sda),
@@ -78,6 +77,34 @@ module tb_apb_integrated;
     end
   endtask
 
+  // TCM is a macro wrapper now, so a flat `mem[]` no longer exists. Word `idx`
+  // lives in bank idx/512 at local row idx%512 (128 KiB-style banking with the
+  // 2 KiB macro: 512 words per bank). Read it through the leaf model the
+  // SIM_MEM_PRELOAD hook writes into.
+  function [31:0] tcm_word(input integer idx);
+    // Constant generate-scope indices only: Icarus cannot index a generate
+    // block with a variable, so the bank is selected with a case.
+    case (idx / 512)
+      0: tcm_word = dut.tcm_inst.u_tcm.g_bank[0].u_macro.mem[idx % 512];
+      1: tcm_word = dut.tcm_inst.u_tcm.g_bank[1].u_macro.mem[idx % 512];
+      2: tcm_word = dut.tcm_inst.u_tcm.g_bank[2].u_macro.mem[idx % 512];
+      3: tcm_word = dut.tcm_inst.u_tcm.g_bank[3].u_macro.mem[idx % 512];
+      4: tcm_word = dut.tcm_inst.u_tcm.g_bank[4].u_macro.mem[idx % 512];
+      5: tcm_word = dut.tcm_inst.u_tcm.g_bank[5].u_macro.mem[idx % 512];
+      6: tcm_word = dut.tcm_inst.u_tcm.g_bank[6].u_macro.mem[idx % 512];
+      7: tcm_word = dut.tcm_inst.u_tcm.g_bank[7].u_macro.mem[idx % 512];
+      8: tcm_word = dut.tcm_inst.u_tcm.g_bank[8].u_macro.mem[idx % 512];
+      9: tcm_word = dut.tcm_inst.u_tcm.g_bank[9].u_macro.mem[idx % 512];
+      10: tcm_word = dut.tcm_inst.u_tcm.g_bank[10].u_macro.mem[idx % 512];
+      11: tcm_word = dut.tcm_inst.u_tcm.g_bank[11].u_macro.mem[idx % 512];
+      12: tcm_word = dut.tcm_inst.u_tcm.g_bank[12].u_macro.mem[idx % 512];
+      13: tcm_word = dut.tcm_inst.u_tcm.g_bank[13].u_macro.mem[idx % 512];
+      14: tcm_word = dut.tcm_inst.u_tcm.g_bank[14].u_macro.mem[idx % 512];
+      15: tcm_word = dut.tcm_inst.u_tcm.g_bank[15].u_macro.mem[idx % 512];
+      default: tcm_word = 32'hx;
+    endcase
+  endfunction
+
   integer i;
   initial begin
     reset_n = 1'b0;
@@ -88,22 +115,22 @@ module tb_apb_integrated;
     // 40,000 cycles is ~8,000 instructions of headroom.
     repeat (40000) @(posedge clk);
 
-    $display("[apbint] trap count = %0d", dut.tcm_inst.mem[128]);
+    $display("[apbint] trap count = %0d", tcm_word(128));
 
     chk("R1 supported word write reaches the register",
-        dut.tcm_inst.mem[64], 32'h0000_1234);
+        tcm_word(64), 32'h0000_1234);
     chk("R2 rejected byte write had no side effect",
-        dut.tcm_inst.mem[65], 32'h0000_1234);
+        tcm_word(65), 32'h0000_1234);
     chk("R3 rejected halfword write had no side effect",
-        dut.tcm_inst.mem[66], 32'h0000_1234);
+        tcm_word(66), 32'h0000_1234);
     chk("R5 1 MB aperture address did not alias GPIO",
-        dut.tcm_inst.mem[67], 32'h0000_1234);
+        tcm_word(67), 32'h0000_1234);
     chk("R6 supported word write still works after the faults",
-        dut.tcm_inst.mem[68], 32'h0000_5678);
+        tcm_word(68), 32'h0000_5678);
 
-    chk("R2/R3/R4/R5 all rejected accesses trapped", dut.tcm_inst.mem[128], 32'd4);
+    chk("R2/R3/R4/R5 all rejected accesses trapped", tcm_word(128), 32'd4);
     for (i = 0; i < 4; i = i + 1) begin
-      chk("trap cause is store access fault (7)", dut.tcm_inst.mem[136 + i], 32'd7);
+      chk("trap cause is store access fault (7)", tcm_word(136 + i), 32'd7);
     end
 
     // The faulting accesses must not have left the APB bridge busy: a further

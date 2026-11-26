@@ -34,6 +34,11 @@ function filelist() {
 }
 
 const RTL = filelist();
+// Simulation-only stand-ins for the Sky130 SRAM macro cells that
+// rtl/rtl_top/{sram,tcm}_macro_wrap.sv instantiate.  The vendor models are PDK
+// assets (not redistributed) and do not elaborate in Icarus, so every compile
+// gets the behavioural stand-in.  See docs/EXTERNAL_DEPENDENCIES.md.
+const SIM_MODELS = ['sim/models/sky130_sram_sim_model.v'];
 const CORE = ['rtl/rtl_top/riscv_core.sv'];
 const PWR = ['rtl/rtl_peripherals/power_mgr_regs.sv', 'rtl/rtl_peripherals/power_mgr.sv'];
 const UART = ['rtl/rtl_peripherals/uart.sv'];
@@ -67,9 +72,16 @@ const TESTS = [
   { name: 'watchdog',                      tb: 'sim/sim_top/tb_watchdog.v', src: null, marker: 'ALL TESTS PASSED' },
   { name: 'i2s',                           tb: 'sim/sim_top/tb_i2s.v',   src: null, marker: 'ALL TESTS PASSED' },
   { name: 'sram',                          tb: 'sim/sim_top/tb_sram_simple.v', src: null, marker: 'ALL TESTS PASSED' },
+  // Wrapper verification at the PRODUCTION geometry the SoC instantiates
+  // (64-bank SRAM + 16-bank TCM).  The two negative controls live in
+  // scripts/eda/run_macro_wrapper.js, which also requires them to fail.
+  { name: 'macro wrapper (production geometry)', tb: 'sim/sim_top/tb_sram_macro_wrap.v',
+    src: ['rtl/rtl_top/sram_macro_wrap.sv', 'rtl/rtl_top/tcm_macro_wrap.sv'], marker: 'RESULT=PASS' },
   { name: 'debug_jtag',                    tb: 'sim/sim_top/tb_debug_jtag.v', src: null, marker: 'ALL TESTS PASSED' },
+  // 90 ms of simulated time through 80 macro instances (~20 min measured on
+  // this machine, vs 50 s for the 4 ms boot test), hence the raised timeout.
   { name: 'firmware (C demo)',              tb: 'sim/sim_top/tb_firmware.v', src: null, marker: 'RESULT: PASS',
-    needs: ['build/fw/rom.hex', 'build/fw/tcm.hex'] },
+    needs: ['build/fw/rom.hex', 'build/fw/tcm.hex'], timeoutMs: 2400000 },
   // Phase-3 protocol and audit testbenches
   { name: 'plic protocol (sync + claim)',   tb: 'sim/sim_top/tb_plic_proto.v', src: PLIC, marker: 'PLIC PROTOCOL: ALL TESTS PASSED' },
   { name: 'spi device model (mode 0)',      tb: 'sim/sim_top/tb_spi_device.v', src: SPI, marker: 'SPI DEVICE: ALL TESTS PASSED' },
@@ -103,21 +115,27 @@ function runOne(t) {
   if (!t.tb) return { status: 'MISSING', detail: 'no testbench in tree' };
   if (!fs.existsSync(path.join(ROOT, t.tb))) return { status: 'MISSING', detail: 'source file not found' };
   const out = path.join(OUT, 'regress_' + path.basename(t.tb, path.extname(t.tb)) + '.vvp');
-  const srcs = t.src ? t.src : RTL;
+  const srcs = (t.src ? t.src : RTL).concat(SIM_MODELS);
   // Remove any stale binary: a failed compile must never leave a runnable
   // artefact behind that a later run could quietly execute.
   if (fs.existsSync(out)) fs.unlinkSync(out);
-  const build = spawnSync('iverilog', ['-g2012', '-o', out, '-s', path.basename(t.tb, path.extname(t.tb)), t.tb, ...srcs],
+  // -I rtl/rtl_top: has_soc.sv `include`s has_addr_map.vh, so the include
+  // directory must be supplied or elaboration fails with
+  // "Include file has_addr_map.vh not found".
+  // -DSIM_MEM_PRELOAD enables the wrapper's simulation-only TCM/SRAM preload
+  // (real macros have no init port; testbenches need it to run code from TCM).
+  const build = spawnSync('iverilog', ['-g2012', '-I', 'rtl/rtl_top', '-DSIM_MEM_PRELOAD', '-o', out, '-s', path.basename(t.tb, path.extname(t.tb)), t.tb, ...srcs],
                           { cwd: ROOT, encoding: 'utf8', timeout: 120000 });
   if (build.status !== 0 || !fs.existsSync(out)) {
     const err = (build.stderr || '').split('\n').find(l => l.includes('error')) ||
                 (build.stderr || '').split('\n')[0] || 'compile error';
     return { status: 'BUILD-FAIL', detail: err.trim() };
   }
-  const run = spawnSync('vvp', [out], { cwd: ROOT, encoding: 'utf8', timeout: 300000 });
+  const timeoutMs = t.timeoutMs || 300000;
+  const run = spawnSync('vvp', [out], { cwd: ROOT, encoding: 'utf8', timeout: timeoutMs });
   const text = (run.stdout || '') + (run.stderr || '');
   if (verbose) emit(text);
-  if (run.error && run.error.code === 'ETIMEDOUT') return { status: 'TIMEOUT', detail: 'exceeded 300 s' };
+  if (run.error && run.error.code === 'ETIMEDOUT') return { status: 'TIMEOUT', detail: `exceeded ${timeoutMs / 1000} s` };
   if (run.status !== 0) return { status: 'FAIL', detail: 'exit ' + run.status };
   if (!text.includes(t.marker)) return { status: 'FAIL', detail: 'missing marker "' + t.marker + '"' };
   if (FAIL_RE.test(text)) {

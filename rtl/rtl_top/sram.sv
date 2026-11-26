@@ -74,9 +74,14 @@ module sram #(
   wire wr_fire = reset_n & awvalid & wvalid & awready & wready;
   wire rd_fire = arvalid & arready;
 
-  // Writes take priority over reads when both are offered.
-  assign awready = (state == S_IDLE) & ~arvalid;
-  assign wready  = (state == S_IDLE) & ~arvalid;
+  // Writes take priority over reads when both are offered.  The
+  // `(awvalid & wvalid)` term is required for that to be true: with a plain
+  // `~arvalid` gate both channels stay low when a read and a write are offered
+  // together (awready needs ~arvalid, arready needs ~(awvalid&wvalid)), so a
+  // master holding both requests would deadlock.  sram_macro_wrap.sv carries
+  // the same expression.
+  assign awready = (state == S_IDLE) & (~arvalid | (awvalid & wvalid));
+  assign wready  = (state == S_IDLE) & (~arvalid | (awvalid & wvalid));
   assign arready = (state == S_IDLE) & ~(awvalid & wvalid);
 
   always_comb begin

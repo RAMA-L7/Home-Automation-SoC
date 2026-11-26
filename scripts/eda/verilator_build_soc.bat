@@ -50,8 +50,13 @@ for /f "usebackq tokens=*" %%F in ("%ROOT%\rtl\filelist.f") do (
 
 echo === [1/4] Generating C++ model for %TOP% ===
 cd /d %ROOT%
+rem +incdir: has_soc.sv `include`s has_addr_map.vh.
+rem sim\models: behavioural stand-in for the Sky130 SRAM macro cells (the base
+rem Verilog models are PDK assets and are not in the tree).
 %OSS%\bin\verilator_bin.exe --cc --exe --main --timing -Wno-fatal ^
-  --Mdir %MDIR% --top-module %TOP% %TB% !RTL!
+  --Mdir %MDIR% --top-module %TOP% ^
+  +incdir+%ROOT%/rtl/rtl_top +define+SIM_MEM_PRELOAD ^
+  %TB% %ROOT%\sim\models\sky130_sram_sim_model.v !RTL!
 if errorlevel 1 goto :fail
 
 echo === [2/4] Pointing VERILATOR_ROOT at the Windows kit shim ===

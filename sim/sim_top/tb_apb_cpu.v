@@ -7,7 +7,7 @@ module tb_apb_cpu;
   integer i; reg [31:0] marker, trap_count, last_mcause;
   has_soc #(.BOOT_ROM_FILE("build/sim/boot_jump.hex"), .TCM_INIT_FILE("build/sim/tb_apb_cpu.hex")) dut(
     .clk(clk), .reset_n(reset_n), .jtag_tck(1'b0), .jtag_tms(1'b0), .jtag_tdi(1'b0),
-    .jtag_tdo(), .jtag_trst_n(1'b1), .ext_irq(32'd0), .uart_tx(), .uart_rx(1'b1),
+    .jtag_tdo(), .jtag_trst_n(1'b1), .uart_tx(), .uart_rx(1'b1),
     .spi_sck(), .spi_mosi(), .spi_miso(1'b1), .spi_cs_n(), .i2c_scl(), .i2c_sda(),
     .gpio(), .pwm_out(), .i2s_bclk(), .i2s_lrclk(), .i2s_dout(), .i2s_din(1'b0),
     .qspi_sck(), .qspi_cs_n(), .qspi_io(), .wdog_reset_n_out(), .core_clk_en_o(),
