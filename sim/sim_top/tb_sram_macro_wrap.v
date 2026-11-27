@@ -452,10 +452,16 @@ module tb_sram_macro_wrap;
     reset_n = 1'b0;                        // reset mid-response
     repeat (2) @(posedge clk);
     chk(s_bvalid === 1'b0, "S8 SRAM BVALID cleared by reset mid-response");
-    chk(s_awready === 1'b1 && s_wready === 1'b1 && s_arready === 1'b1,
-        "S8 SRAM channels ready again after mid-response reset");
+    // AW/W/AR READY are now gated by reset_n so no transfer can be captured on
+    // a reset edge and then silently dropped; the channel state is therefore
+    // checked once reset is released, which is the only time a transfer can
+    // legally occur.
+    chk(s_awready === 1'b0 && s_wready === 1'b0 && s_arready === 1'b0,
+        "S8 SRAM channels not ready while reset is asserted");
     reset_n = 1'b1;
     repeat (2) @(posedge clk);
+    chk(s_awready === 1'b1 && s_wready === 1'b1 && s_arready === 1'b1,
+        "S8 SRAM channels ready again after mid-response reset");
     sram_read(17'h00200, d);               // macro has no reset: data persists
     chk_eq32(d, 32'hDEAD_BEEF, "S8 SRAM committed write persists across reset", 0);
 

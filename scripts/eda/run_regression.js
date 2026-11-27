@@ -82,12 +82,30 @@ const TESTS = [
   // this machine, vs 50 s for the 4 ms boot test), hence the raised timeout.
   { name: 'firmware (C demo)',              tb: 'sim/sim_top/tb_firmware.v', src: null, marker: 'RESULT: PASS',
     needs: ['build/fw/rom.hex', 'build/fw/tcm.hex'], timeoutMs: 2400000 },
+  // PRODUCTION BOOT PATH.  Compiled WITHOUT -DSIM_MEM_PRELOAD (see `defines`),
+  // so TCM and SRAM start undefined, exactly as a real macro does.  The loader
+  // in firmware/boot/loader.S must copy the TCM and .data images out of the
+  // boot ROM, zero .bss, set the stack and jump; the payload then runs from
+  // TCM, checks .data/.bss, and starves the watchdog so the bench also proves
+  // recovery re-enters the same path.  Preloaded memories cannot make this
+  // pass — that is the whole point of the separate test.
+  { name: 'production boot (no preload, loader -> TCM)', tb: 'sim/sim_top/tb_boot_loader.v',
+    src: null, marker: 'BOOT LOADER: ALL TESTS PASSED', defines: [],
+    needs: ['build/fw/boot_rom.hex'], timeoutMs: 900000 },
   // Phase-3 protocol and audit testbenches
   { name: 'plic protocol (sync + claim)',   tb: 'sim/sim_top/tb_plic_proto.v', src: PLIC, marker: 'PLIC PROTOCOL: ALL TESTS PASSED' },
   { name: 'spi device model (mode 0)',      tb: 'sim/sim_top/tb_spi_device.v', src: SPI, marker: 'SPI DEVICE: ALL TESTS PASSED' },
   { name: 'jtag protocol (TAP subset)',     tb: 'sim/sim_top/tb_jtag_proto.v', src: JTAG, marker: 'JTAG PROTOCOL: ALL TESTS PASSED' },
   { name: 'watchdog audit (reload)',        tb: 'sim/sim_top/tb_watchdog_audit.v', src: WDOG, marker: 'WATCHDOG AUDIT: ALL TESTS PASSED' },
   { name: 'sram audit (strobes/RAW)',       tb: 'sim/sim_top/tb_sram_audit.v', src: SRAM, marker: 'SRAM AUDIT: ALL TESTS PASSED' },
+  // AXI4-Lite defines AW and W as INDEPENDENT channels.  This bench drives
+  // address-first, data-first, simultaneous, backpressured, reset-with-an-aw-
+  // outstanding and read+write-together traffic into all three write slaves
+  // (behavioural sram, 64-bank macro wrapper, read-only boot ROM).  It fails
+  // 24/127 checks against the pre-fix RTL (see research/runs/RUN-0026).
+  { name: 'axi split channels (AW/W independent)', tb: 'sim/sim_top/tb_axi_split.v',
+    src: ['rtl/rtl_top/sram.sv', 'rtl/rtl_top/sram_macro_wrap.sv', 'rtl/rtl_top/boot_rom.sv'],
+    marker: 'AXI SPLIT: ALL TESTS PASSED' },
   // Correctness-closure regressions.  Each one reproduces a defect that was
   // confirmed in this tree and fails against the pre-fix source.
   { name: 'plic bounds (IDs 1-8)',          tb: 'sim/sim_top/tb_plic_bounds.v', src: PLIC, marker: 'PLIC BOUNDS: ALL TESTS PASSED' },
@@ -124,7 +142,11 @@ function runOne(t) {
   // "Include file has_addr_map.vh not found".
   // -DSIM_MEM_PRELOAD enables the wrapper's simulation-only TCM/SRAM preload
   // (real macros have no init port; testbenches need it to run code from TCM).
-  const build = spawnSync('iverilog', ['-g2012', '-I', 'rtl/rtl_top', '-DSIM_MEM_PRELOAD', '-o', out, '-s', path.basename(t.tb, path.extname(t.tb)), t.tb, ...srcs],
+  // A test may set `defines: []` to compile WITHOUT it: that is how the
+  // production boot path is exercised, so "preloaded TCM" can never be what
+  // makes a boot test pass.
+  const defines = t.defines !== undefined ? t.defines : ['-DSIM_MEM_PRELOAD'];
+  const build = spawnSync('iverilog', ['-g2012', '-I', 'rtl/rtl_top', ...defines, '-o', out, '-s', path.basename(t.tb, path.extname(t.tb)), t.tb, ...srcs],
                           { cwd: ROOT, encoding: 'utf8', timeout: 120000 });
   if (build.status !== 0 || !fs.existsSync(out)) {
     const err = (build.stderr || '').split('\n').find(l => l.includes('error')) ||
@@ -201,6 +223,14 @@ function prepareImages() {
       label: 'firmware.elf -> build/fw/rom.hex + tcm.hex',
       args: ['scripts/fw_build/gen_fw_mem.js', 'build/fw/firmware.elf'],
       outputs: ['build/fw/rom.hex', 'build/fw/tcm.hex'],
+    },
+    {
+      // The production boot ROM: loader.S + payload.S + the header the loader
+      // reads.  Rebuilt every run so tb_boot_loader can never pass against a
+      // leftover image from an earlier source revision.
+      label: 'loader.S + payload.S -> build/fw/boot_rom.hex',
+      args: ['scripts/fw_build/gen_boot_image.js'],
+      outputs: ['build/fw/boot_rom.hex', 'build/fw/boot_rom.json'],
     },
     // Assembly images for the integrated-bus regressions.  Both are assembled
     // here from sim/asm/ so the bus tests can never run against a hand-edited

@@ -38,7 +38,15 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..', '..');
 const OUT = path.join(ROOT, 'build', 'asic_evidence', 'structural_check');
 const LOGS = path.join(OUT, 'logs');
-const POLICY = path.join(ROOT, 'asic', 'synthesis', 'structural_policy.json');
+// The policy is a file because the declared-gap set differs per flow: the
+// canonical flow maps the BEHAVIOURAL boot ROM (one inferred $mem_v2), while
+// asic/synthesis/fullsoc_map_rom.ys maps the GENERATED standard-cell ROM, which
+// removes that memory.  A single hard-coded policy would force one of the two
+// flows to declare a gap it does not have.
+const POLICY = path.resolve(ROOT, (function () {
+  const i = process.argv.indexOf('--policy');
+  return i >= 0 && process.argv[i + 1] ? process.argv[i + 1] : 'asic/synthesis/structural_policy.json';
+})());
 const MAP = 'build/asic_evidence/sky130_map.v';
 const LIB = 'build/asic_evidence/sky130_full_subset.lib';
 const CASES = 'asic/synthesis/structural_cases';

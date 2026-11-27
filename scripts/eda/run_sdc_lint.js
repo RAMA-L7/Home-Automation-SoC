@@ -8,10 +8,11 @@
  *    SDC commands stubbed (scripts/sta/sdc_check.tcl), which validates Tcl
  *    syntax, object resolution and per-port coverage.
  *
- * This is a CONSTRAINT-FILE check. It does not compute slack: path-based STA
- * needs OpenSTA + a liberty-mapped netlist + SPEF, and no Windows OpenSTA build
- * exists here (the Linux binary cannot run: WSL1 is unsupported on this
- * machine). That limitation is reported as BLOCKED, never as a pass.
+ * This is a CONSTRAINT-FILE check and never computes slack.  Path-based STA is
+ * a SEPARATE target: `node scripts/eda/run_sta.js` maps has_soc with Yosys and
+ * runs OpenSTA 3.1.0 (Linux build, WSL2) against the sky130 liberty files.  Do
+ * not cite a PASS from this script as timing evidence; it only says the
+ * constraint file parses, resolves every object and covers every port.
  *
  * Usage: node scripts/eda/run_sdc_lint.js [--verbose]
  * Logs:  build/sta/sdc_lint.log
@@ -93,7 +94,7 @@ function main() {
   const errors = /SDC-ERROR-COUNT (\d+)/.exec(text);
 
   console.log(ok
-    ? `sdc-lint: RESULT PASS  ports=${ports.length} clocks=${(/SDC-CLOCKS (.*)/.exec(text) || [, '?'])[1]} (constraint-file check; path-based STA BLOCKED — no runnable OpenSTA)`
+    ? `sdc-lint: RESULT PASS  ports=${ports.length} clocks=${(/SDC-CLOCKS (.*)/.exec(text) || [, '?'])[1]} (constraint file only — this is NOT a timing result; run scripts/eda/run_sta.js for slack)`
     : `sdc-lint: RESULT FAIL  ports=${ports.length} missing=${missing ? missing[1] : '?'} errors=${errors ? errors[1] : '?'}  see build/sta/sdc_lint.log`);
   process.exit(ok ? 0 : 1);
 }

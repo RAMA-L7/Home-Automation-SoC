@@ -147,19 +147,38 @@ module boot_rom #(
   ax_state_e ax_state;
   logic [ADDR_WIDTH-1:0] ax_raddr_q;
 
-  assign awready = (ax_state == AX_IDLE) & ~arvalid;
-  assign wready  = (ax_state == AX_IDLE) & ~arvalid;
-  assign arready = (ax_state == AX_IDLE) & ~awvalid;
+  // AW and W are INDEPENDENT AXI4-Lite channels: the ROM must accept either in
+  // any order and answer once with SLVERR.  Requiring `awvalid && wvalid` in
+  // one cycle acknowledges an address-first master and then never responds —
+  // a bus hang.  Same fix as rtl/rtl_top/boot_rom.sv.
+  logic aw_have_q, w_have_q;
+
+  wire aw_accept = awvalid & awready;
+  wire w_accept  = wvalid  & wready;
+  wire have_aw_c = aw_have_q | awvalid;
+  wire have_w_c  = w_have_q  | wvalid;
+  wire wr_pair   = (ax_state == AX_IDLE) & have_aw_c & have_w_c;
+
+  assign arready = reset_n & (ax_state == AX_IDLE) & ~wr_pair;
+  assign awready = reset_n & (ax_state == AX_IDLE) & ~aw_have_q & ~(arvalid & ~wr_pair);
+  assign wready  = reset_n & (ax_state == AX_IDLE) & ~w_have_q  & ~(arvalid & ~wr_pair);
 
   always_ff @(posedge clk or negedge reset_n) begin
     if (!reset_n) begin
       ax_state   <= AX_IDLE;
       ax_raddr_q <= '0;
+      aw_have_q  <= 1'b0;
+      w_have_q   <= 1'b0;
     end else begin
       case (ax_state)
         AX_IDLE: begin
-          if (awvalid && wvalid) ax_state <= AX_BRESP;
-          else if (arvalid) begin
+          if (aw_accept) aw_have_q <= 1'b1;
+          if (w_accept)  w_have_q  <= 1'b1;
+          if (wr_pair) begin
+            aw_have_q <= 1'b0;
+            w_have_q  <= 1'b0;
+            ax_state  <= AX_BRESP;
+          end else if (arvalid && arready) begin
             ax_raddr_q <= araddr[ADDR_WIDTH-1:0];
             ax_state   <= AX_RRESP;
           end

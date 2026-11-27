@@ -1,0 +1,71 @@
+# Full-SoC mapping with the GENERATED standard-cell boot ROM.
+#
+#   python3 scripts/fw_build/gen_rom_rtl.py build/fw/boot_rom.hex build/rom/boot_rom_soc.v
+#   yosys -s asic/synthesis/fullsoc_map_rom.ys
+#
+# Why this file exists
+# --------------------
+# rtl/rtl_top/boot_rom.sv keeps its contents in a `mem` array filled by
+# $readmemh, so Yosys infers a `$mem_v2` that no standard-cell library can
+# implement. The SoC could therefore be mapped but never closed: the ROM was
+# always an unmapped leaf.
+#
+# scripts/fw_build/gen_rom_rtl.py bakes the same image into a case statement,
+# i.e. ordinary combinational logic after synthesis. This script is the
+# canonical flow with that module substituted for the behavioural one, so the
+# ROM is part of the mapped netlist instead of a declared gap. The only
+# remaining inferred memories must be the TCM and SRAM macro boundaries, which
+# is what asic/synthesis/structural_policy_rom.json asserts (3, not 4).
+#
+# Everything else is identical to fullsoc_map.ys on purpose: same library, same
+# techmap order, same fail-closed `check -assert`, same non-flattened stats.
+#
+# Evidence of what was checked is written BEFORE the assertion, so a failing
+# check still leaves the inventory behind.
+
+read_verilog -sv rtl/rtl_top/reset_ctrl.sv
+read_verilog -sv rtl/rtl_top/axi_lite_interconnect.sv
+read_verilog -sv rtl/rtl_top/axi_lite_to_apb.sv
+# GENERATED ROM (module `boot_rom`, same ports/parameters as the behavioural
+# file). Contents are compiled in; MEM_FILE/INIT_FILE are ignored.
+read_verilog -sv build/rom/boot_rom_soc.v
+read_verilog -sv rtl/rtl_top/has_addr_map.sv
+read_verilog -sv rtl/rtl_top/intc_axi.sv
+read_verilog -sv rtl/rtl_top/req_gnt_to_axi_lite.sv
+read_verilog -sv rtl/rtl_peripherals/watchdog.sv
+read_verilog -sv rtl/rtl_peripherals/plic.sv
+read_verilog -sv rtl/rtl_peripherals/clint.sv
+read_verilog -sv rtl/rtl_peripherals/debug_jtag.sv
+read_verilog -sv rtl/rtl_peripherals/power_mgr.sv
+read_verilog -sv rtl/rtl_peripherals/i2c_ctrl.sv
+read_verilog -sv rtl/rtl_peripherals/spi_ctrl.sv
+read_verilog -sv rtl/rtl_peripherals/power_mgr_regs.sv
+read_verilog -sv rtl/rtl_peripherals/i2s.sv
+read_verilog -sv rtl/rtl_peripherals/gpio.sv
+read_verilog -sv rtl/rtl_peripherals/timer.sv
+read_verilog -sv rtl/rtl_peripherals/pwm.sv
+read_verilog -sv rtl/rtl_peripherals/uart.sv
+read_verilog -sv rtl/rtl_peripherals/qspi_flash_ctrl.sv
+read_verilog -sv rtl/rtl_top/riscv_core.sv
+read_verilog -sv rtl/rtl_top/sram.sv
+# Memory macro wrappers — the macro cells stay blackbox leaves (PDK assets).
+read_verilog -sv rtl/rtl_top/sram_macro_wrap.sv
+read_verilog -sv rtl/rtl_top/tcm_macro_wrap.sv
+read_verilog -lib rtl/blackbox/sky130_sram_macro_blackbox.v
+read_verilog -sv -I rtl/rtl_top rtl/rtl_top/has_soc.sv
+
+hierarchy -check -top has_soc
+
+proc
+memory_collect
+opt_clean
+
+read_liberty -lib build/asic_evidence/sky130_full_subset.lib
+techmap -map +/techmap.v
+techmap -map build/asic_evidence/sky130_map.v
+techmap -map build/asic_evidence/sky130_map.v
+hierarchy -check
+opt_clean
+
+tee -o build/asic_evidence/structural_check/has_soc_rom_cells.json stat -top has_soc -json
+check -assert

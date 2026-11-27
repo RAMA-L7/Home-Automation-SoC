@@ -204,17 +204,40 @@ module sram_macro_wrap #(
 
   logic [ADDR_WIDTH-1:0] raddr_q;
 
-  wire wr_fire = reset_n & awvalid & wvalid & awready & wready;
-  wire rd_fire = arvalid & arready;
+  //--------------------------------------------------------------------------
+  // AXI4-Lite write channels are INDEPENDENT — see sram.sv for the full
+  // rationale.  AW and W are captured into their own holding registers and the
+  // write commits when both halves are present, in whichever order they came.
+  // The previous expression required `awvalid & wvalid` on the same cycle, so
+  // an address-first master was acknowledged and then silently dropped.
+  //--------------------------------------------------------------------------
+  logic                  aw_have_q;
+  logic [ADDR_WIDTH-1:0] aw_addr_q;
+  logic                  w_have_q;
+  logic [DATA_WIDTH-1:0] wdata_q;
+  logic [3:0]            wstrb_q;
 
-  // Write priority is explicit: a write is accepted even when a read address is
-  // presented in the same cycle, so simultaneous READ+WRITE always makes
-  // progress. Without the `(awvalid & wvalid)` term both channels stall
-  // (awready needs ~arvalid, arready needs ~(awvalid&wvalid)) and a master that
-  // holds both requests deadlocks. sram.sv carries the same expression.
-  assign awready = (state == S_IDLE) & (~arvalid | (awvalid & wvalid));
-  assign wready  = (state == S_IDLE) & (~arvalid | (awvalid & wvalid));
-  assign arready = (state == S_IDLE) & ~(awvalid & wvalid);
+  wire aw_accept = awvalid & awready;
+  wire w_accept  = wvalid  & wready;
+
+  wire have_aw_c = aw_have_q | awvalid;
+  wire have_w_c  = w_have_q  | wvalid;
+
+  wire wr_commit = (state == S_IDLE) & have_aw_c & have_w_c;
+
+  // Write priority is explicit and deadlock-free: a completable write wins the
+  // cycle, otherwise a presented read is served.  Ready signals never depend on
+  // one another, so a master holding AW+W+AR always makes progress.
+  assign arready = reset_n & (state == S_IDLE) & ~wr_commit;
+  assign awready = reset_n & (state == S_IDLE) & ~aw_have_q & ~(arvalid & ~wr_commit);
+  assign wready  = reset_n & (state == S_IDLE) & ~w_have_q  & ~(arvalid & ~wr_commit);
+
+  wire wr_fire = reset_n & wr_commit;
+  wire rd_fire = reset_n & (state == S_IDLE) & arvalid & ~wr_commit;
+
+  wire [ADDR_WIDTH-1:0] wr_addr = aw_have_q ? aw_addr_q : awaddr;
+  wire [DATA_WIDTH-1:0] wr_data = w_have_q  ? wdata_q  : wdata;
+  wire [3:0]            wr_strb = w_have_q  ? wstrb_q  : wstrb;
 
   always_comb begin
     state_n = state;
@@ -229,10 +252,28 @@ module sram_macro_wrap #(
 
   always_ff @(posedge clk or negedge reset_n) begin
     if (!reset_n) begin
-      state   <= S_IDLE;
-      raddr_q <= '0;
+      state     <= S_IDLE;
+      raddr_q   <= '0;
+      aw_have_q <= 1'b0;
+      aw_addr_q <= '0;
+      w_have_q  <= 1'b0;
+      wdata_q   <= '0;
+      wstrb_q   <= '0;
     end else begin
       state <= state_n;
+      if (aw_accept) begin
+        aw_addr_q <= awaddr;
+        aw_have_q <= 1'b1;
+      end
+      if (w_accept) begin
+        wdata_q  <= wdata;
+        wstrb_q  <= wstrb;
+        w_have_q <= 1'b1;
+      end
+      if (wr_fire) begin
+        aw_have_q <= 1'b0;
+        w_have_q  <= 1'b0;
+      end
       if (rd_fire) raddr_q <= araddr;
     end
   end
@@ -266,7 +307,7 @@ module sram_macro_wrap #(
   // 1 SoC word; bank select is the high BANK_AW bits of the word address, local is the
   // low LOCAL_AW bits, and the local bits ARE the macro row address).
   // -------------------------------------------------------------------------
-  wire [ADDR_WIDTH-3:0] wr_word = awaddr[ADDR_WIDTH-1:2];
+  wire [ADDR_WIDTH-3:0] wr_word = wr_addr[ADDR_WIDTH-1:2];
   wire [ADDR_WIDTH-3:0] rd_word = araddr[ADDR_WIDTH-1:2];
   wire [ADDR_WIDTH-3:0] ir_word = i_addr[ADDR_WIDTH-1:2];
 
@@ -329,9 +370,9 @@ module sram_macro_wrap #(
           .clk0  (clk),
           .csb0  (~port0_cs),
           .web0  (~wr_fire),
-          .wmask0(wr_fire ? wstrb : 4'hF),
+          .wmask0(wr_fire ? wr_strb : 4'hF),
           .addr0 (wr_fire ? wr_macro_row : rd_macro_row),
-          .din0  (wr_fire ? wdata : {32{1'b0}}),
+          .din0  (wr_fire ? wr_data : {32{1'b0}}),
           .dout0 (dout0_bank[b]),
           .clk1  (clk),
           .csb1  (~port1_cs),
@@ -348,9 +389,9 @@ module sram_macro_wrap #(
           .clk0  (clk),
           .csb0  (~port0_cs),
           .web0  (~wr_fire),
-          .wmask0(wr_fire ? wstrb : 4'hF),
+          .wmask0(wr_fire ? wr_strb : 4'hF),
           .addr0 (wr_fire ? wr_macro_row : rd_macro_row),
-          .din0  (wr_fire ? wdata : {32{1'b0}}),
+          .din0  (wr_fire ? wr_data : {32{1'b0}}),
           .dout0 (dout0_bank[b]),
           .clk1  (clk),
           .csb1  (~port1_cs),
@@ -453,8 +494,8 @@ module sram_macro_wrap #(
       wr_i_strb_q <= '0;
     end else begin
       wr_i_hit_q  <= wr_fire & (wr_word == ir_word);
-      wr_i_data_q <= wdata;
-      wr_i_strb_q <= wstrb;
+      wr_i_data_q <= wr_data;
+      wr_i_strb_q <= wr_strb;
     end
   end
 

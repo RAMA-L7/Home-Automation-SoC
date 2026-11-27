@@ -1,0 +1,39 @@
+# ROM-only mapping: the generated boot ROM expanded to sky130 standard cells.
+#
+#   python3 scripts/fw_build/gen_rom_rtl.py build/fw/boot_rom.hex build/rom/boot_rom_soc.v
+#   yosys -s asic/synthesis/rom_map.ys
+#
+# Why a separate flow
+# -------------------
+# scripts/fw_build/gen_rom_rtl.py bakes the image into a case statement. Yosys
+# infers that case as a memory, so it must be expanded with `memory_map` before
+# techmap, otherwise the "ROM" is still a $mem_v2 leaf with a case-shaped name
+# and nothing has actually been synthesised.
+#
+# Expanding it inside the full-SoC flow would also expand the TCM/SRAM arrays
+# that the macro wrappers deliberately keep as blackbox macros, which is neither
+# wanted nor affordable. Measuring the ROM on its own is therefore the honest
+# unit: this is the cell count and the mapping cost of the ROM decision, not of
+# the SoC.
+#
+# The result is a correctness demonstration and an AREA measurement. It is NOT
+# a characterised ASIC ROM: a mux tree has no bit-cell array, no precharge, no
+# sense amps and no ROM-specific timing/power model. See
+# reports/ROM_QUALIFICATION.md.
+
+read_verilog -sv build/rom/boot_rom_soc.v
+hierarchy -check -top boot_rom
+proc
+memory_collect
+memory_map
+opt_clean
+
+read_liberty -lib build/asic_evidence/sky130_full_subset.lib
+techmap -map +/techmap.v
+techmap -map build/asic_evidence/sky130_map.v
+techmap -map build/asic_evidence/sky130_map.v
+hierarchy -check
+opt_clean
+
+tee -o build/asic_evidence/structural_check/boot_rom_cells.json stat -top boot_rom -json
+check -assert

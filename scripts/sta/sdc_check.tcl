@@ -10,11 +10,11 @@
 #     that does not.
 #
 # WHAT THIS DOES NOT PROVE
-#   * that the timing numbers are met. That needs OpenSTA/PrimeTime with a
-#     linked, liberty-mapped netlist plus extracted parasitics. No Windows
-#     OpenSTA binary exists here and the Linux build cannot run (WSL1 is not
-#     supported on this machine), so path-based STA is a documented BLOCKER,
-#     not something this script pretends to do.
+#   * that the timing numbers are met. That needs a linked, liberty-mapped
+#     netlist and an STA engine; it is a separate target,
+#     `node scripts/eda/run_sta.js` (Yosys map + OpenSTA 3.1.0 under WSL2).
+#     This script only validates the constraint file, so a PASS here must never
+#     be quoted as a timing result.
 #
 # USAGE
 #   tclsh scripts/sta/sdc_check.tcl <sdc> <ports_file>
@@ -46,8 +46,18 @@ if {[llength $::ALL_PORTS] == 0} {
 
 # Ports that must be constrained by a clock or an exception, not by an
 # input/output delay.
-set ::CLOCK_PORTS {clk jtag_tck}
+#
+# jtag_tck is deliberately NOT in CLOCK_PORTS: debug_jtag.sv samples TCK through
+# a two-flop synchroniser on sys_clk, so TCK is not a clock in the design.  It
+# must instead be bounded as an asynchronous input, which is what ASYNC_PORTS
+# checks for.
+set ::CLOCK_PORTS {clk}
 set ::EXCEPTION_PORTS {reset_n}
+set ::ASYNC_PORTS {jtag_tck jtag_tms jtag_tdi}
+
+# Clocks that are created as VIRTUAL clocks (no source port) because they only
+# describe an external interface reference, e.g. the debugger's TCK.
+set ::VIRTUAL_CLOCKS {jtag_tck}
 
 # Records: port -> dict of flags
 array set ::CONSTRAINED {}
@@ -137,7 +147,9 @@ proc create_clock {args} {
   }
   if {$name eq ""}   { ::err "create_clock without -name" }
   if {$period eq ""} { ::err "create_clock -name $name without -period" }
-  if {[llength $ports] == 0} { ::err "create_clock -name $name has no port" }
+  if {[llength $ports] == 0 && [lsearch -exact $::VIRTUAL_CLOCKS $name] < 0} {
+    ::err "create_clock -name $name has no port (and is not declared virtual)"
+  }
   foreach p $ports {
     if {[lsearch -exact $::ALL_PORTS $p] < 0} { ::err "create_clock on unknown port $p" }
     ::record $p "clock"
@@ -168,7 +180,16 @@ proc set_false_path   {args} {
     incr i
   }
 }
-proc set_max_delay       {args} { }
+# set_max_delay -datapath_only is how an asynchronous input is bounded; record
+# it as the "async" constraint for the ports it names, so a file that quietly
+# stops constraining the JTAG CDC inputs fails the audit.
+proc set_max_delay       {args} {
+  set i 0
+  while {$i < [llength $args]} {
+    if {[lindex $args $i] eq "-from"} { ::record [lindex $args [expr {$i+1}]] "async" }
+    incr i
+  }
+}
 proc set_multicycle_path {args} { }
 proc set_driving_cell    {args} { }
 proc set_load            {args} { }
@@ -198,6 +219,10 @@ foreach p $::ALL_PORTS {
   }
   if {[lsearch -exact $::EXCEPTION_PORTS $p] >= 0} {
     if {[lsearch -exact $flags "exception"] < 0} { lappend missing "$p(no exception)" }
+    continue
+  }
+  if {[lsearch -exact $::ASYNC_PORTS $p] >= 0} {
+    if {[lsearch -exact $flags "async"] < 0} { lappend missing "$p(no async bound)" }
     continue
   }
   if {[lsearch -exact $flags "input"] < 0 && [lsearch -exact $flags "output"] < 0} {

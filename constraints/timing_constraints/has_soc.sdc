@@ -37,10 +37,38 @@ set_units -time ns -capacitance pF -resistance kOhm -voltage V -current mA
 # Core clock: 50 MHz (20 ns). The only synchronous clock in the SoC.
 create_clock -name sys_clk -period 20.0 [get_ports clk]
 
-# JTAG TCK is an independent asynchronous clock, not a data port. 100 ns
-# (10 MHz) is the JTAG test-clock assumption; the TAP only needs to meet its
-# own internal setup/hold at that rate.
-create_clock -name jtag_tck -period 100.0 [get_ports jtag_tck]
+#------------------------------------------------------------------------------
+# JTAG — constrained as IMPLEMENTED, not as a textbook TAP
+#
+# rtl/rtl_peripherals/debug_jtag.sv runs its whole TAP state machine on
+# `sys_clk`.  TCK, TMS and TDI are asynchronous debugger outputs that pass
+# through two flops before use and the TAP advances only on a detected TCK
+# rising edge.  TCK is therefore NOT a clock in this design: no register in the
+# SoC is clocked by it.  An earlier revision of this file created a clock on
+# the jtag_tck PORT, which told STA to time sys_clk registers against a TCK edge
+# that never clocks them — a constraint that does not describe the RTL.
+#
+# What is constrained instead:
+#   * a VIRTUAL jtag_tck clock, used only as the external interface reference
+#     for TDO's output delay (the debugger launches TMS/TDI and samples TDO on
+#     TCK edges), and
+#   * a datapath-only max delay on the three asynchronous debugger inputs, so
+#     the first synchroniser stage cannot see unbounded skew.  That is a bound
+#     on the CDC net, not a setup/hold check against sys_clk.
+#
+# Supported TCK rate: debug_jtag.sv documents clk >= 10 x TCK as the minimum
+# measured reliable ratio (4x was insufficient).  With sys_clk = 50 MHz that
+# means TCK <= 5 MHz, i.e. a 200 ns period floor.  The virtual clock uses that
+# 200 ns so the constraints and the RTL comment cannot disagree; advertising
+# 10 MHz (100 ns) would claim twice the rate the TAP was measured at.
+#------------------------------------------------------------------------------
+create_clock -name jtag_tck -period 200.0
+
+# Asynchronous debugger inputs: bounded, not timed against sys_clk.
+# -ignore_clock_latency is OpenSTA's spelling of a datapath-only bound (it does
+# not implement -datapath_only); ignoring the clock latency leaves the data path
+# itself bounded to 2 ns, which is what the synchroniser needs.
+set_max_delay 2.0 -from [get_ports {jtag_tck jtag_tms jtag_tdi}] -to [get_clocks sys_clk] -ignore_clock_latency
 
 # Clock uncertainty: 100 ps setup / 50 ps hold models PLL jitter and clock-tree
 # skew allowance before CTS.  Placeholder until a real clock tree exists.
@@ -53,14 +81,18 @@ set_clock_uncertainty -hold  0.050 [get_clocks sys_clk]
 #------------------------------------------------------------------------------
 # Clock-domain relationships
 #------------------------------------------------------------------------------
-# sys_clk and jtag_tck are asynchronous: the debug TAP is a separate clock
-# domain with its own protocol handshake. This is a real asynchronous
-# relationship between two created clocks, not a masqueraded data path cut.
-set_clock_groups -asynchronous -group [get_clocks sys_clk] -group [get_clocks jtag_tck]
+# NO set_clock_groups here on purpose.  jtag_tck is a virtual interface
+# reference with no phase relationship to sys_clk; declaring the two groups
+# asynchronous would remove the only two checks that mean anything on this
+# interface (the CDC max delay above and TDO's output delay below).  Leaving
+# them unrelated makes OpenSTA analyse TDO against every TCK edge, which is
+# conservative rather than optimistic.
 
-# JTAG pins other than TCK are synchronous to jtag_tck.
-set_input_delay  -clock jtag_tck -max 5.0 [get_ports {jtag_tms jtag_tdi jtag_trst_n}]
-set_input_delay  -clock jtag_tck -min 1.0 [get_ports {jtag_tms jtag_tdi jtag_trst_n}]
+# jtag_trst_n is an asynchronous reset input, not a TCK-synchronous signal.
+# It is asserted by the debugger at any time and reaches only reset logic.
+set_input_delay  -clock jtag_tck -max 5.0 [get_ports jtag_trst_n]
+set_input_delay  -clock jtag_tck -min 1.0 [get_ports jtag_trst_n]
+# TDO is launched from a sys_clk flop and sampled by the debugger on TCK.
 set_output_delay -clock jtag_tck -max 5.0 [get_ports jtag_tdo]
 set_output_delay -clock jtag_tck -min 1.0 [get_ports jtag_tdo]
 
@@ -136,11 +168,21 @@ set_input_delay  -clock sys_clk -min 1.0 [get_ports wake_ack]
 #------------------------------------------------------------------------------
 # Exceptions
 #------------------------------------------------------------------------------
-# reset_n is an asynchronous input by design: reset_ctrl synchronises it before
-# it reaches any register, so there is no meaningful setup/hold relationship
-# between the pin and the sys_clk registers. Declared as a false path against
-# sys_clk only; the synchroniser itself is timed normally.
+# EXCEPTION 1 of 2 — reset_n.
+# reset_n is asynchronous by design and drives only the async-reset pin of every
+# flop (and reset_ctrl).  There is no capture edge to check it against: the
+# reset RECOVERY/REMOVAL check a synchronous reset would need does not exist for
+# an asynchronous reset pin, and reset_ctrl releases rst_sys_n through a counter
+# on sys_clk.  A false path is the honest constraint; anything else would invent
+# a setup relationship the design does not have.
 set_false_path -from [get_ports reset_n] -to [get_clocks sys_clk]
+
+# EXCEPTION 2 of 2 — the JTAG CDC inputs (see the block above).
+# jtag_tck/jtag_tms/jtag_tdi enter only the two-flop synchroniser at the top of
+# debug_jtag.sv.  They are bounded by the datapath-only max delay above rather
+# than timed against sys_clk, because they are launched by an unrelated clock.
+# NOTE: this is a BOUND, so the paths are not removed from analysis; the
+# synchroniser's own sys_clk-to-sys_clk stage is timed normally.
 
 #------------------------------------------------------------------------------
 # Coverage note
