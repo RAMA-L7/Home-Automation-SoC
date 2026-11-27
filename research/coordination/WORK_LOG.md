@@ -904,3 +904,50 @@ unchanged (`2026-11-28T12:17:36Z`); this work did not restart it.
   models do not elaborate in Icarus 14), ASIC ROM array, physical
   implementation/signoff, independent evaluation.
 - **Stop:** committed and verified; nothing left half-done.
+
+## 2026-11-27 22:32 IST (2026-11-27T17:02Z) — Buffy (DeepSeek V4.1 Flash)
+
+**Task:** timing closure investigation. Deadline unchanged
+(`2026-11-28T12:17:36Z`). Published baseline `09e2eaa` was not modified,
+rewritten or force-pushed; this work is additive. No AXI, boot-loader,
+manifest or clean-checkout work was reopened.
+
+**Start state:** HEAD `09e2eaa`, no modified tracked files.
+
+- **Extraction and clustering.** New read-only
+  `scripts/sta/has_soc_path_analysis.tcl` enumerates violating paths on the same
+  netlist/SDC the gate uses. Baseline: 1,160 violating endpoints, negative-slack
+  sum −104736.5 ns (equals the gate's TNS, so the enumeration is complete);
+  **992 endpoints below −90 ns carry −103946.3 ns, 99.25% of TNS**.
+- **Cause.** The worst path (`_074266_` → `_075354_` and family, 469 cells,
+  arrival 126.2435 ns) is 114 `maj3` carry stages — the combinational
+  DIV/DIVU/REM/REMU in `riscv_core.sv`, whose result feeds every register-file
+  write port through `wb_data`.
+- **Change (one optimization).** DIV/REM now retire through a new `S_DIV` state,
+  one quotient bit per cycle (32 iteration cycles + fixup); MUL stays
+  combinational. Divide-by-zero and signed-overflow results bypass the loop.
+  `pc`/`minstret` advance once, at retirement. Both retirement paths share one
+  register-file write port.
+- **Negative result kept.** The first version used a separate S_DIV write
+  statement; synthesis produced a 909-load enable net (25.15 ns net delay) and
+  WNS −9.37 ns / TNS −9267 ns. Merging the write ports restored per-entry
+  selects: worst fanout 69 vs 67 in the baseline. Both runs are archived.
+- **Measured (same SDC, corner and tools):** WNS **−106.4775 → −8.4509 ns**,
+  TNS **−104736.49 → −848.81 ns** (123×), hold unchanged +0.2544 ns, registers
+  3,422 → 3,594, cells 52,549 → 46,696. Violating endpoints 1,160 → 632; the
+  `< −90 ns` cluster is empty. **50 MHz still FAILS** — this is progress, not
+  closure, and it is reported as a failure.
+- **Functional:** `tb_isa.v` 47/47; new archived `tb_muldiv_sign.v` 10/10 on
+  both the published core and the new core (ordinary signed divide/remainder
+  sign fixup, which `tb_isa.v` does not cover); full regression **30/30 PASS,
+  exit 0** (15 min).
+- **Remaining Rank 1:** `sram_macro_wrap.sv` selects bank read data with a
+  64-deep `if (rd_bank_q == k)` priority chain → ~60 cascaded 2:1 muxes,
+  28.23 ns arrival, 96 endpoints, −752 ns. Not bundled here so the before/after
+  attribution stays clean.
+- **Files changed:** `rtl/rtl_top/riscv_core.sv`,
+  `scripts/sta/has_soc_path_analysis.tcl`,
+  `reports/{TIMING_CLOSURE_2026-11-27,TIMING_AND_CDC_QUALIFICATION}.md`,
+  `README.md`, `AGENTS.md`, `research/coordination/*`,
+  `research/runs/RUN-0027-timing-closure-2026-11-27/`.
+- **Stop:** committed and verified; nothing half-done.

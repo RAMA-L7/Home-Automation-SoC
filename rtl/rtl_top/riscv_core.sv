@@ -7,8 +7,9 @@
 // took an interrupt and could not complete a load or store because it waited
 // for gnt and rvalid in the same cycle.  This is a rewrite.
 //
-// Structure: 4-state multi-cycle machine
-//   S_FETCH -> S_EXEC -> (S_MEM | S_TRAP) -> S_FETCH
+// Structure: 5-state multi-cycle machine
+//   S_FETCH -> S_EXEC -> (S_MEM | S_DIV | S_TRAP) -> S_FETCH
+//   S_DIV iterates the M-extension divide/remainder one quotient bit per cycle.
 //
 // Memory interface contract (see req_gnt_to_axi_lite):
 //   req held until gnt; gnt one cycle on accept; rvalid one cycle on
@@ -81,7 +82,7 @@ module riscv_core #(
   localparam int IRQ_MTI = 7;
   localparam int IRQ_MEI = 11;
 
-  typedef enum logic [1:0] {S_FETCH, S_EXEC, S_MEM, S_TRAP} state_e;
+  typedef enum logic [2:0] {S_FETCH, S_EXEC, S_MEM, S_TRAP, S_DIV} state_e;
   state_e state, state_n;
 
   //--------------------------------------------------------------------------
@@ -206,46 +207,73 @@ module riscv_core #(
   assign cmp_ltu = (rs1_val < rs2_val);
 
   //--------------------------------------------------------------------------
-  // Multiply / divide (combinational; synthesises to a mult+div unit)
+  // M extension: MUL is combinational, DIV/REM iterate in S_DIV
+  //
+  // A combinational `$signed(a) / $signed(b)` maps to a 32-step restoring
+  // divider, i.e. roughly 470 levels of carry-chain logic.  At the 2026-11-27
+  // timing baseline that single cone produced WNS -106.48 ns and 992 of the
+  // 1160 failing endpoints (99.2% of TNS), because every register-file write
+  // port sits behind wb_data.  Division now retires through S_DIV one quotient
+  // bit per cycle; MUL keeps the single-cycle array multiplier.  This core is
+  // multi-cycle and does not overlap instructions, so the change costs latency
+  // (34 cycles per divide) but no throughput, and the architectural results
+  // are unchanged (tb_isa.v checks divide-by-zero, signed overflow, sign and
+  // remainder rules against the spec).
   //--------------------------------------------------------------------------
-  logic [XLEN-1:0] muldiv_out;
+  wire is_m_ext = (opcode == OP_REG) && (funct7 == 7'b0000001);
+  wire is_div   = is_m_ext && funct3[2];       // DIV/DIVU/REM/REMU
+
+  logic [XLEN-1:0] mul_result;
   wire [63:0] prod_ss = $signed(rs1_val) * $signed(rs2_val);
   wire [63:0] prod_su = $signed(rs1_val) * $signed({1'b0, rs2_val});
   wire [63:0] prod_uu = rs1_val * rs2_val;
 
   always_comb begin
-    muldiv_out = 32'd0;
-    if (rs2_val == 32'd0)
-      muldiv_out = (funct3 == 3'b100) ? 32'hFFFF_FFFF :   // DIV  -> -1
-                   (funct3 == 3'b101) ? 32'hFFFF_FFFF :   // DIVU -> max
-                                       rs1_val;           // REM/REMU -> a
-    // Signed overflow: only DIV/REM of 0x80000000 / -1 overflow.  The same
-    // operand pattern is an ordinary, non-overflowing unsigned division
-    // (0x80000000 / 0xFFFFFFFF = 0, remainder 0x80000000), which this branch
-    // used to answer with 0x80000000 for DIVU/REMU as well.
-    else if (rs1_val == 32'h8000_0000 && rs2_val == 32'hFFFF_FFFF &&
-             (funct3 == 3'b100 || funct3 == 3'b110))
-      muldiv_out = (funct3 == 3'b110) ? 32'd0 : 32'h8000_0000;
-    else begin
-      case (funct3)
-        3'b000: muldiv_out = prod_uu[31:0];
-        3'b001: muldiv_out = prod_ss[63:32];
-        3'b010: muldiv_out = prod_su[63:32];
-        3'b011: muldiv_out = prod_uu[63:32];
-        3'b100: muldiv_out = $signed(rs1_val) / $signed(rs2_val);
-        3'b101: muldiv_out = rs1_val / rs2_val;
-        3'b110: muldiv_out = $signed(rs1_val) % $signed(rs2_val);
-        3'b111: muldiv_out = rs1_val % rs2_val;
-        default: ;
-      endcase
-    end
+    case (funct3)
+      3'b000:  mul_result = prod_uu[31:0];    // MUL
+      3'b001:  mul_result = prod_ss[63:32];   // MULH
+      3'b010:  mul_result = prod_su[63:32];   // MULHSU
+      default: mul_result = prod_uu[63:32];   // MULHU
+    endcase
+  end
+
+  // Iterative divider state.  div_rem carries one extra bit because the
+  // partial remainder is shifted left together with the next dividend bit
+  // before each trial subtraction.
+  logic [XLEN-1:0] div_dividend, div_divisor, div_quot;
+  logic [XLEN:0]   div_rem;
+  logic [5:0]      div_cnt;
+  logic            div_neg_q, div_neg_r, div_is_rem, div_special;
+  logic [XLEN-1:0] div_special_q, div_special_r;
+
+  // Unsigned magnitudes.  |-2^31| is 2^31, which fits in 32 unsigned bits.
+  wire [XLEN-1:0] div_a_mag = (!funct3[0] && rs1_val[XLEN-1]) ? -rs1_val : rs1_val;
+  wire [XLEN-1:0] div_b_mag = (!funct3[0] && rs2_val[XLEN-1]) ? -rs2_val : rs2_val;
+
+  // Architecturally defined results that do not need the iteration.
+  wire div_by_zero = (rs2_val == 32'd0);
+  wire div_ovf     = !funct3[0] && (rs1_val == 32'h8000_0000) &&
+                     (rs2_val == 32'hFFFF_FFFF);
+
+  // One restoring-division step: shift in the next dividend bit, subtract the
+  // divisor when it fits, and shift the decision into the quotient.
+  wire [XLEN:0] div_shift = {div_rem[XLEN-1:0], div_dividend[XLEN-1]};
+  wire          div_sub   = (div_shift >= {1'b0, div_divisor});
+  wire [XLEN:0] div_diff  = div_shift - {1'b0, div_divisor};
+
+  wire [XLEN-1:0] div_quot_fix = div_neg_q ? -div_quot : div_quot;
+  wire [XLEN-1:0] div_rem_fix  = div_neg_r ? -div_rem[XLEN-1:0] : div_rem[XLEN-1:0];
+
+  logic [XLEN-1:0] div_result;
+  always_comb begin
+    if (div_special) div_result = div_is_rem ? div_special_r : div_special_q;
+    else             div_result = div_is_rem ? div_rem_fix    : div_quot_fix;
   end
 
   //--------------------------------------------------------------------------
   // Immediate legality / instruction class
   //--------------------------------------------------------------------------
   logic is_illegal;
-  wire is_m_ext = (opcode == OP_REG) && (funct7 == 7'b0000001);
   wire is_system = (opcode == OP_SYSTEM);
 
   always_comb begin
@@ -503,7 +531,8 @@ module riscv_core #(
   logic [XLEN-1:0] wb_data;
   always_comb begin
     if (opcode == OP_LOAD)                 wb_data = ld_data;
-    else if (is_m_ext)                     wb_data = muldiv_out;
+    // Only MUL retires from S_EXEC; DIV/DIVU/REM/REMU write back in S_DIV.
+    else if (is_m_ext)                     wb_data = mul_result;
     else if (is_alu_reg || opcode == OP_IMM) wb_data = alu_out;
     else if (opcode == OP_LUI || opcode == OP_AUIPC) wb_data = alu_out;
     else if (opcode == OP_JAL || opcode == OP_JALR)  wb_data = pc + 32'd4;
@@ -522,12 +551,24 @@ module riscv_core #(
         // previous bus data into rd first, which a faulting load then left in
         // place, corrupting the destination register.
         OP_LUI, OP_AUIPC, OP_JAL, OP_JALR,
-        OP_IMM, OP_REG, OP_MISC: reg_we = (rd != 5'd0);
+        OP_IMM, OP_MISC: reg_we = (rd != 5'd0);
+        // A divide/remainder retires in S_DIV, not here.
+        OP_REG:          reg_we = (rd != 5'd0) && !is_div;
         OP_SYSTEM: reg_we = is_csr && (rd != 5'd0);
         default: reg_we = 1'b0;
       endcase
     end
   end
+
+  // Single register-file write port.  Every retirement path drives this one
+  // `if (wb_we) rf[rd] <= wb_val`, so Yosys builds a per-entry select
+  // (`wb_we && rd == i`) instead of a second, global enable for the divide
+  // path.  A separate `if (div_wb) rf[rd] <= div_result;` statement produced a
+  // single enable net with 909 loads and a 25 ns net delay on the first
+  // post-fix synthesis, which replaced the divider as the worst path.
+  wire div_wb = (state == S_DIV) && (div_cnt == 6'd32);
+  wire wb_we  = div_wb ? (rd != 5'd0) : reg_we;
+  wire [XLEN-1:0] wb_val = div_wb ? div_result : wb_data;
 
   //--------------------------------------------------------------------------
   // Instruction fetch
@@ -560,8 +601,11 @@ module riscv_core #(
       S_EXEC: begin
         if (exc_take)               state_n = S_TRAP;
         else if (is_mem)            state_n = S_MEM;
+        else if (is_div)            state_n = S_DIV;
         else                        state_n = S_FETCH;
       end
+      // 32 quotient bits plus the writeback/fixup cycle.
+      S_DIV:  if (div_cnt == 6'd32) state_n = S_FETCH;
       S_MEM:  if (data_rvalid) begin
                 if (data_err)       state_n = S_TRAP;
                 else                state_n = S_FETCH;
@@ -589,6 +633,17 @@ module riscv_core #(
       mip       <= 32'd0;
       mcycle    <= 64'd0;
       minstret  <= 64'd0;
+      div_dividend <= '0;
+      div_divisor  <= '0;
+      div_rem      <= '0;
+      div_quot     <= '0;
+      div_cnt      <= 6'd0;
+      div_neg_q    <= 1'b0;
+      div_neg_r    <= 1'b0;
+      div_is_rem   <= 1'b0;
+      div_special  <= 1'b0;
+      div_special_q <= '0;
+      div_special_r <= '0;
       state     <= S_FETCH;
       fault_v   <= 1'b0;
       fault_cause <= 32'd0;
@@ -608,15 +663,19 @@ module riscv_core #(
         ir <= instr_rdata;
       end
 
+      // Register-file writeback (S_EXEC retirement and S_DIV retirement).
+      if (wb_we) rf[rd] <= wb_val;
+
       // Execute / writeback
       if (state == S_EXEC && !exc_take) begin
-        if (reg_we) rf[rd] <= wb_data;
 
         // minstret counts architectural RETIREMENT, not fetches.  Counting at
         // fetch also counted instructions that trap, which is architecturally
         // wrong and made the counter useless as a retirement witness.  Memory
         // instructions retire below, when their transaction completes.
-        if (!is_mem) minstret <= minstret + 64'd1;
+        // A divide/remainder retires in S_DIV (below), so it is not counted
+        // here as well.
+        if (!is_mem && !is_div) minstret <= minstret + 64'd1;
 
         // CSR write.  Gated by `csr_we`, so a read-only form (CSRRS/CSRRC with
         // rs1 == x0, or the matching immediate with zimm == 0) has no effect.
@@ -644,11 +703,40 @@ module riscv_core #(
           mstatus[MSTATUS_MIE] <= mstatus[MSTATUS_MPIE];
           mstatus[MSTATUS_MPIE]<= 1'b1;
           mstatus[MSTATUS_MPP] <= 2'b00;
-        end else if (!is_mem) begin
+        end else if (!is_mem && !is_div) begin
           // WFI is architecturally a NOP here: clock gating is entered through
           // the power-manager register block, not driven by the core.
           pc <= pc_next;
         end
+      end
+
+      // Iterative M-extension divide/remainder.  One quotient bit per cycle;
+      // div_cnt == 32 is the writeback/fixup cycle, reached immediately for the
+      // architecturally defined divide-by-zero and signed-overflow cases.
+      if (state == S_EXEC && is_div && !exc_take) begin
+        div_dividend  <= div_a_mag;
+        div_divisor   <= div_b_mag;
+        div_rem       <= '0;
+        div_quot      <= '0;
+        div_neg_q     <= !funct3[0] && (rs1_val[XLEN-1] ^ rs2_val[XLEN-1]);
+        div_neg_r     <= !funct3[0] && rs1_val[XLEN-1];
+        div_is_rem    <= funct3[1];
+        div_special   <= div_by_zero || div_ovf;
+        div_special_q <= div_ovf ? 32'h8000_0000 : 32'hFFFF_FFFF;
+        div_special_r <= div_ovf ? 32'd0 : rs1_val;
+        div_cnt       <= (div_by_zero || div_ovf) ? 6'd32 : 6'd0;
+      end else if (state == S_DIV && div_cnt != 6'd32) begin
+        div_rem       <= div_sub ? div_diff : div_shift;
+        div_quot      <= {div_quot[XLEN-2:0], div_sub};
+        div_dividend  <= {div_dividend[XLEN-2:0], 1'b0};
+        div_cnt       <= div_cnt + 6'd1;
+      end
+
+      // Retire the divide/remainder in the fixup cycle.  The register write
+      // itself is the shared `wb_we` writeback above.
+      if (div_wb) begin
+        pc       <= pc + 32'd4;
+        minstret <= minstret + 64'd1;
       end
 
       // Memory completion.  An error completes the transaction but must not

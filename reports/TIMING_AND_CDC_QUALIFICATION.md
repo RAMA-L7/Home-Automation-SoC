@@ -1,5 +1,13 @@
 # Timing and CDC qualification — constraints versus the implemented RTL
 
+> **Update 2026-11-27 (RUN-0027).** The `b5e0642` measurement below is kept as
+> the historical record. The worst path has since been attributed to the
+> combinational M-extension divider in `riscv_core.sv`; moving DIV/REM to an
+> iterative state took WNS to **−8.4509 ns** and TNS to **−848.81 ns**, with
+> **30/30** regression. 50 MHz still fails. Evidence:
+> `research/runs/RUN-0027-timing-closure-2026-11-27/`; analysis:
+> `reports/TIMING_CLOSURE_2026-11-27.md`.
+
 **Tested commit:** `b5e0642`
 **Engine:** OpenSTA 3.1.0 (Linux build, WSL2 `Ubuntu-24.04`)
 **Result:** STA runs and reports **FAIL** — WNS setup `-106.4775 ns`,
@@ -100,9 +108,11 @@ Worst setup path (`build/sta/sta.log`):
 | Data required | 19.7660 ns (20 ns − 0.100 uncertainty − 0.134 setup) |
 | Slack | **−106.4775 ns** |
 
-The arrival is dominated by fanout, not by logic depth: the second buffer on the
-path (`_088628_/X`) drives 87 loads, has a 3.13 ns slew and contributes 2.49 ns
-by itself, and the path then walks a long `maj3` cascade. That matches the
+The arrival is dominated by the `maj3` cascade itself, not by that buffer: the
+second buffer on the path (`_088628_/X`) drives 87 loads, has a 3.13 ns slew and
+contributes 2.49 ns, but 114 majority-gate carry stages account for ~92% of the
+126.24 ns. That cascade is the combinational divider (RUN-0027 §3), so the
+earlier "fanout, not logic depth" reading of this figure was incomplete. It matches the
 earlier independent diagnosis (`reports/STA_CRITICAL_PATH_DIAGNOSIS.md`,
 −106.23 ns at `04c3084`): same shape, same order of magnitude, different netlist
 because AXI capture logic and the ROM changed.

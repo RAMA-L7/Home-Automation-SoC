@@ -184,7 +184,7 @@
 
 | Blocker | Impact | What's Needed |
 |---------|--------|---------------|
-| Path-based STA | **FIXED 2026-11-27** — OpenSTA 3.1.0 runs under WSL2 and `node scripts/eda/run_sta.js` produces real slack. The result is a **failing** timing number (WNS −106.4775 ns), not a BLOCKED stage. Earlier "no runnable OpenSTA / WSL1 unsupported" claims in this file and in `reports/REVIEW_INTERVENTION_2026-11-26.md` were stale (F19) | Fix the fanout/logic depth on the worst path; see `reports/TIMING_AND_CDC_QUALIFICATION.md` |
+| Path-based STA | **FIXED 2026-11-27** — OpenSTA 3.1.0 runs under WSL2 and `node scripts/eda/run_sta.js` produces real slack. The result is a **failing** timing number (WNS −106.4775 ns at `09e2eaa`; −8.4509 ns after the RUN-0027 divider fix), not a BLOCKED stage. Earlier "no runnable OpenSTA / WSL1 unsupported" claims in this file and in `reports/REVIEW_INTERVENTION_2026-11-26.md` were stale (F19) | Rank 1 remaining: the 64-deep SRAM bank read-data priority mux in `rtl/rtl_top/sram_macro_wrap.sv`; see `reports/TIMING_CLOSURE_2026-11-27.md` |
 | No OpenLane 2 | FIXED — OpenLane 2 v2.0.0b16 installed at D:\tools\venv-openlane2\ (source D:\tools\src\openlane2\), CLI reports `OpenLane v2.0.0b16`. Also installed: Magic 8.3.105 (DRC), Netgen 6.2.2401 (LVS), volare 0.20.6, bazelisk 1.30.0, tkinter | End-to-end flow still needs a volare-enabled sky130A PDK and an OpenROAD build the flow can drive — NOT_TESTED |
 | No g++/make | FIXED — WinLibs MCF UCRT installed at D:\tools\mingw64\ (g++ 16.1.0, make 4.4.1, ar). Verilator C++ simulation now works end-to-end (full SoC 7/7 PASS). | None |
 | No RTL style linter | FIXED — Verible v0.0-4298-g085eef05 installed at D:\tools\verible\ (11 tools) | None |

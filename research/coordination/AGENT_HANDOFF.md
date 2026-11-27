@@ -12,7 +12,23 @@ history; this file is the one document rewritten at session boundaries.
 ---
 
 ## STATUS (current)
-### Current override — 2026-11-27 (second external review intervention)
+### Current override — 2026-11-27 (timing closure investigation)
+
+**Trust these fields first.** Report: `reports/TIMING_CLOSURE_2026-11-27.md`;
+run: `research/runs/RUN-0027-timing-closure-2026-11-27/`.
+
+| Field | Value |
+|---|---|
+| Baseline (unchanged) | **`09e2eaa`** — not rewritten, not force-pushed |
+| Timing | **STA FAILS.** WNS setup **−8.4509 ns**, TNS **−848.81 ns**, WNS hold **+0.2544 ns**, 3,594 registers. Baseline `09e2eaa` was −106.4775 ns / −104736.49 ns / 3,422 |
+| Cause fixed | Worst path was the combinational DSP-less M-extension divider (114 `maj3` carry stages, 469 cells) feeding every register-file write port. DIV/DIVU/REM/REMU now iterate in a new `S_DIV` state; MUL stays combinational |
+| Clusters (baseline) | 1,160 violating endpoints; 992 below −90 ns carrying 99.25% of TNS — the register-file write cone |
+| Functional | Regression **30/30 PASS, exit 0**; `tb_isa.v` 47/47; new `tb_muldiv_sign.v` 10/10 on both the published and the new core |
+| Rank 1 remaining | `rtl/rtl_top/sram_macro_wrap.sv` bank read-data select is a 64-deep priority mux (~60 cascaded `mux2`, 28.23 ns arrival, 96 endpoints, −752 ns). Fix: indexed or balanced selection (6 levels) |
+| Highest verified stage | RTL functionally verified in simulation; timing measured and **still failing** at 50 MHz. Everything past netlist remains **BLOCKED** (memory macros, physical implementation, signoff) |
+| Deadline | unchanged: **2026-11-28T12:17:36Z** — not restarted |
+
+### Superseded — 2026-11-27 (second external review intervention)
 
 **Trust these fields first.** Report: `reports/REVIEW_INTERVENTION_2026-11-27.md`.
 
