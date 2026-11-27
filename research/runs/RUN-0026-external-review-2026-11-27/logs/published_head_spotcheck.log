@@ -1,0 +1,26 @@
+# Published-HEAD spot check — 854db60 (clean worktree, no build artefacts)
+# git diff b5e0642..854db60 -- rtl sim scripts constraints firmware asic  =>  only scripts/evidence/make_manifest.py
+
+## node scripts/fw_build/gen_boot_image.js
+boot image: loader 33 words, payload 961 words (tcm 960, data 1), bss at 0x20000004
+wrote build\fw\boot_rom.hex sha256 429d3189e2d0e942a145d7d14b65ca428d6b405a74aa9082a002458d4fff3c42
+
+## tb_axi_split
+AXI SPLIT: ALL TESTS PASSED
+sim/sim_top/tb_axi_split.v:357: $finish called at 1100000 (1ps)
+
+## tb_boot_loader (no -DSIM_MEM_PRELOAD)
+[boot] pass TCM word 0 is unknown at t=0 (nothing preloaded it)
+[boot] pass SRAM word 0 is unknown at t=0 (nothing preloaded it)
+[boot] total UART bytes: 332
+[boot] system-reset assertions observed: 5
+[boot] pass payload ran from TCM on every boot (>= 2 boots)
+[boot] pass .data was copied from the ROM into SRAM on every boot
+[boot] pass .bss was zeroed by the loader on every boot
+[boot] pass cold boot completed at least twice (cold reset, then watchdog recovery)
+[boot] pass every boot that started the payload also reached its PASS line
+[boot] pass no FAIL line from the payload
+[boot] pass the watchdog actually reset the SoC
+[boot] pass SoC is not stuck in reset
+[boot] pass TCM word 0 became defined after the loader copied into it
+BOOT LOADER: ALL TESTS PASSED
