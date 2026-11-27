@@ -1,0 +1,38 @@
+{
+  "generated_by": "scripts/fw_build/gen_boot_image.js",
+  "loader": {
+    "source": "firmware/boot/loader.S",
+    "words": 33
+  },
+  "payload": {
+    "source": "firmware/boot/payload.S",
+    "words": 961,
+    "tcm_words": 960,
+    "data_words": 1
+  },
+  "rom": {
+    "bytes": 16384,
+    "words": 4096,
+    "loader_at": 0,
+    "header_at": 2048,
+    "tcm_image_at": 4096,
+    "data_image_at": 7936
+  },
+  "header": {
+    "tcm_dst": 65536,
+    "tcm_words": 960,
+    "data_dst": 536870912,
+    "data_words": 1,
+    "bss_dst": 536870916,
+    "bss_words": 1,
+    "entry": 65536,
+    "data_src": 7936
+  },
+  "objects": {
+    "sim_mem_preload": false
+  },
+  "output": {
+    "path": "build/fw/boot_rom.hex",
+    "sha256": "429d3189e2d0e942a145d7d14b65ca428d6b405a74aa9082a002458d4fff3c42"
+  }
+}

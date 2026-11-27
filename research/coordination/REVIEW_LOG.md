@@ -671,3 +671,31 @@ negative-control run are disclosed in the matrix rather than quietly replaced.
   real-macro simulation and physical signoff remain BLOCKED.
 - **Evidence:** `reports/REVIEW_INTERVENTION_2026-11-26.md`;
   `research/runs/RUN-0025-external-review-2026-11-26/`.
+
+## 2026-11-27 — external review intervention #2 (Buffy, DeepSeek V4.1 Flash)
+
+- **Review type:** external intervention against `aa80783`; inspected at
+  `04c3084`; fixes committed at `b5e0642`.
+- **Findings closed:** split-channel AXI writes in all three write slaves (F17);
+  a preload-free production boot path (loader → TCM/SRAM, verified with the
+  memories `x` at t=0); constraints that match the implemented JTAG clocking with
+  both exceptions justified (F18); the stale "path-based STA BLOCKED / WSL1
+  unsupported" claim withdrawn after OpenSTA 3.1.0 actually ran (F19). ROM
+  qualification progressed (canonical mapping flow, `$mem_v2` 4 → 3, ROM measured
+  at 262,262 cells) but remains **BLOCKED** as an ASIC memory.
+- **Checks not weakened:** no test skipped, no assertion relaxed, no false path or
+  multicycle exception added to hide the timing failure, no force-push, no
+  unrelated work merged. The pre-fix AXI failure is preserved as a control
+  (`24/127`), and the boot test is defined by the *absence* of `-DSIM_MEM_PRELOAD`.
+- **Published numbers:** regression **30/30 PASS** (exit 0, 1,010 s) from a
+  detached worktree of tracked files only at `b5e0642`; AXI 127/127; boot loader
+  11/11; ROM 1059+1059 checks; SDC lint 49/49 ports; **STA FAIL** (WNS
+  −106.4775 ns); structural **BLOCKED** (exit 2).
+- **Verdict:** findings 1, 2 (ROM boot), 3 and 6 closed; findings 4 and 5
+  partially closed and stated as such. ASIC readiness, 50 MHz timing, flash boot,
+  real-macro simulation, an ASIC ROM array, physical signoff and independent
+  evaluation remain BLOCKED.
+- **Evidence:** `reports/REVIEW_INTERVENTION_2026-11-27.md`,
+  `reports/BOOT_PATH_QUALIFICATION.md`,
+  `reports/TIMING_AND_CDC_QUALIFICATION.md`, `reports/ROM_QUALIFICATION.md`,
+  `research/runs/RUN-0026-external-review-2026-11-27/`.

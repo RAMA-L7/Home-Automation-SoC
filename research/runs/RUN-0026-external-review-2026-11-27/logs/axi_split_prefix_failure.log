@@ -1,0 +1,131 @@
+VCD info: dumpfile build/sim/tb_axi_split.vcd opened for output.
+[split] pass S0 sram ready after reset
+[split] pass S0 wrapper ready after reset
+[split] pass S0 no response pending
+[split] pass S1 AW accepted alone (address-first)
+[split] pass AW accepted within the guard window
+[split] pass S1 no B before W arrives
+[split] pass S1 W accepted after AW
+[split] pass W accepted within the guard window
+[split] FAIL S1 B response for address-first write
+[split] FAIL B response within the guard window
+[split] pass sram BRESP OKAY
+[split] pass macro wrapper BRESP OKAY
+[split] pass AR accepted on both writable slaves
+[split] pass R response on both writable slaves
+[split] FAIL S1 sram committed the address-first write
+[split] FAIL S1 wrapper committed the address-first write
+[split] pass S2 W accepted alone (data-first)
+[split] pass W accepted within the guard window
+[split] pass S2 AW accepted after W
+[split] pass AW accepted within the guard window
+[split] FAIL S2 B response for data-first write
+[split] FAIL B response within the guard window
+[split] pass sram BRESP OKAY
+[split] pass macro wrapper BRESP OKAY
+[split] pass AR accepted on both writable slaves
+[split] pass R response on both writable slaves
+[split] FAIL S2 sram committed the data-first write
+[split] FAIL S2 wrapper committed the data-first write
+[split] pass S3 AW accepted in the simultaneous cycle
+[split] pass S3 B response for simultaneous write
+[split] pass B response within the guard window
+[split] pass sram BRESP OKAY
+[split] pass macro wrapper BRESP OKAY
+[split] pass AR accepted on both writable slaves
+[split] pass R response on both writable slaves
+[split] pass S3 sram simultaneous write
+[split] pass S3 wrapper simultaneous write
+[split] pass S4 BVALID held under backpressure
+[split] pass S4 BVALID held under backpressure
+[split] pass S4 BVALID held under backpressure
+[split] pass S4 BVALID held under backpressure
+[split] pass S4 BVALID held under backpressure
+[split] pass S4 BVALID held under backpressure
+[split] pass S4 BVALID held under backpressure
+[split] pass S4 BVALID held under backpressure
+[split] pass AR accepted on both writable slaves
+[split] pass R response on both writable slaves
+[split] pass S4 sram write survived backpressure
+[split] pass S4 wrapper write survived backpressure
+[split] pass S5 AW accepted before reset
+[split] pass AW accepted within the guard window
+[split] pass S5 sram ready again after reset
+[split] pass S5 wrapper ready again after reset
+[split] pass S5 W accepted alone after reset (stale AW dropped)
+[split] pass W accepted within the guard window
+[split] pass S5 no response for a W with no address
+[split] pass AR accepted on both writable slaves
+[split] pass R response on both writable slaves
+[split] pass S5 sram did not commit the abandoned write
+[split] pass S5 wrapper did not commit the abandoned write
+[split] pass S5 post-reset AW pairs with the held W
+[split] pass AW accepted within the guard window
+[split] FAIL S5 post-reset B
+[split] FAIL B response within the guard window
+[split] pass sram BRESP OKAY
+[split] pass macro wrapper BRESP OKAY
+[split] pass AR accepted on both writable slaves
+[split] pass R response on both writable slaves
+[split] FAIL S5 sram usable after reset (held W committed here)
+[split] FAIL S5 wrapper usable after reset (held W committed here)
+[split] pass AR accepted on both writable slaves
+[split] pass R response on both writable slaves
+[split] pass S5 sram left the abandoned address untouched
+[split] pass S5 wrapper left the abandoned address untouched
+[split] pass S6 write accepted when read is offered too
+[split] pass S6 read deferred while the write commits
+[split] pass S6 write response with a read outstanding
+[split] pass S6 deferred read completes after the write
+[split] pass S6 read still returns the earlier value
+[split] pass S6 wrapper read still returns the earlier value
+[split] pass AR accepted on both writable slaves
+[split] pass R response on both writable slaves
+[split] pass S6 write committed while the read waited
+[split] pass S7 AW for strobed write
+[split] pass AW accepted within the guard window
+[split] pass S7 W zeroing the word
+[split] pass W accepted within the guard window
+[split] FAIL S7 B for the zeroing write
+[split] FAIL B response within the guard window
+[split] pass sram BRESP OKAY
+[split] pass macro wrapper BRESP OKAY
+[split] pass S7 W data-first, byte0 strobe
+[split] pass W accepted within the guard window
+[split] pass S7 AW after the strobed data
+[split] pass AW accepted within the guard window
+[split] FAIL S7 B for the byte0 write
+[split] FAIL B response within the guard window
+[split] pass sram BRESP OKAY
+[split] pass macro wrapper BRESP OKAY
+[split] pass AR accepted on both writable slaves
+[split] pass R response on both writable slaves
+[split] FAIL S7 sram strobe 0001 kept byte0 only
+[split] FAIL S7 wrapper strobe 0001 kept byte0 only
+[split] pass S7 W byte3 strobe
+[split] pass W accepted within the guard window
+[split] pass S7 AW for the byte3 write
+[split] pass AW accepted within the guard window
+[split] FAIL S7 B for the byte3 write
+[split] FAIL B response within the guard window
+[split] pass sram BRESP OKAY
+[split] pass macro wrapper BRESP OKAY
+[split] pass AR accepted on both writable slaves
+[split] pass R response on both writable slaves
+[split] FAIL S7 sram strobe 1000 kept byte3 only
+[split] FAIL S7 wrapper strobe 1000 kept byte3 only
+[split] pass S8 ROM AW accepted alone
+[split] pass AW accepted within the guard window
+[split] pass S8 ROM holds the write until W arrives
+[split] pass S8 ROM W accepted after AW
+[split] pass W accepted within the guard window
+[split] FAIL S8 ROM B response for the read-only write
+[split] FAIL B response within the guard window
+[split] pass sram BRESP OKAY
+[split] pass macro wrapper BRESP OKAY
+[split] pass S8 ROM answers SLVERR, not a hang
+[split] pass S8 ROM AR accepted
+[split] pass S8 ROM read returns the NOP fill
+[split] checks=127 errors=24
+AXI SPLIT: FAIL (24 errors)
+sim/sim_top/tb_axi_split.v:357: $finish called at 3900000 (1ps)

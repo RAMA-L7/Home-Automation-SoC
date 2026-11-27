@@ -1,0 +1,94 @@
+[boot] pass TCM word 0 is unknown at t=0 (nothing preloaded it)
+[boot] pass SRAM word 0 is unknown at t=0 (nothing preloaded it)
+BOOT: PAYLOAD RUNNING FROM TCM[uart] end of line (32 bytes)
+BOOT: DATA OK[uart] end of line (47 bytes)
+BOOT: BSS OK[uart] end of line (61 bytes)
+BOOT: COLD BOOT PASS[uart] end of line (83 bytes)
+BOOT: PAYLOAD RUNNING FROM TCM[uart] end of line (115 bytes)
+BOOT: DATA OK[uart] end of line (130 bytes)
+BOOT: BSS OK[uart] end of line (144 bytes)
+BOOT: COLD BOOT PASS[uart] end of line (166 bytes)
+BOOT: PAYLOAD RUNNING FROM TCM[uart] end of line (198 bytes)
+BOOT: DATA OK[uart] end of line (213 bytes)
+BOOT: BSS OK[uart] end of line (227 bytes)
+BOOT: COLD BOOT PASS[uart] end of line (249 bytes)
+BOOT: PAYLOAD RUNNING FROM TCM[uart] end of line (281 bytes)
+BOOT: DATA OK[uart] end of line (296 bytes)
+BOOT: BSS OK[uart] end of line (310 bytes)
+BOOT: COLD BOOT PASS[uart] end of line (332 bytes)
+
+[boot] total UART bytes: 332
+[boot] system-reset assertions observed: 5
+[boot] pass payload ran from TCM on every boot (>= 2 boots)
+[boot] pass .data was copied from the ROM into SRAM on every boot
+[boot] pass .bss was zeroed by the loader on every boot
+[boot] pass cold boot completed at least twice (cold reset, then watchdog recovery)
+[boot] pass every boot that started the payload also reached its PASS line
+[boot] pass no FAIL line from the payload
+[boot] pass the watchdog actually reset the SoC
+[boot] pass SoC is not stuck in reset
+[boot] pass TCM word 0 became defined after the loader copied into it
+
+BOOT LOADER: ALL TESTS PASSED
+sim/sim_top/tb_boot_loader.v:196: $finish called at 6000390000 (1ps)
+end of line (613 bytes)
+BOOT: DATA OK[uart] end of line (628 bytes)
+BOOT: BSS OK[uart] end of line (642 bytes)
+BOOT: COLD BOOT PASS[uart] end of line (664 bytes)
+BOOT: PAYLOAD RUNNING FROM TCM[uart] end of line (696 bytes)
+BOOT: DATA OK[uart] end of line (711 bytes)
+BOOT: BSS OK[uart] end of line (725 bytes)
+BOOT: COLD BOOT PASS[uart] end of line (747 bytes)
+BOOT: PAYLOAD RUNNING FROM TCM[uart] end of line (779 bytes)
+BOOT: DATA OK[uart] end of line (794 bytes)
+BOOT: BSS OK[uart] end of line (808 bytes)
+BOOT: COLD BOOT PASS[uart] end of line (830 bytes)
+BOOT: PAYLOAD RUNNING FROM TCM[uart] end of line (862 bytes)
+BOOT: DATA OK[uart] end of line (877 bytes)
+BOOT: BSS OK[uart] end of line (891 bytes)
+BOOT: COLD BOOT PASS[uart] end of line (913 bytes)
+BOOT: PAYLOAD RUNNING FROM TCM[uart] end of line (945 bytes)
+BOOT: DATA OK[uart] end of line (960 bytes)
+BOOT: BSS OK[uart] end of line (974 bytes)
+BOOT: COLD BOOT PASS[uart] end of line (996 bytes)
+BOOT: PAYLOAD RUNNING FROM TCM[uart] end of line (1028 bytes)
+BOOT: DATA OK[uart] end of line (1043 bytes)
+BOOT: BSS OK[uart] end of line (1057 bytes)
+BOOT: COLD BOOT PASS[uart] end of line (1079 bytes)
+BOOT: PAYLOAD RUNNING FROM TCM[uart] end of line (1111 bytes)
+BOOT: DATA OK[uart] end of line (1126 bytes)
+BOOT: BSS OK[uart] end of line (1140 bytes)
+BOOT: COLD BOOT PASS[uart] end of line (1162 bytes)
+BOOT: PAYLOAD RUNNING FROM TCM[uart] end of line (1194 bytes)
+BOOT: DATA OK[uart] end of line (1209 bytes)
+BOOT: BSS OK[uart] end of line (1223 bytes)
+BOOT: COLD BOOT PASS[uart] end of line (1245 bytes)
+BOOT: PAYLOAD RUNNING FROM TCM[uart] end of line (1277 bytes)
+BOOT: DATA OK[uart] end of line (1292 bytes)
+BOOT: BSS OK[uart] end of line (1306 bytes)
+BOOT: COLD BOOT PASS[uart] end of line (1328 bytes)
+BOOT: PAYLOAD RUNNING FROM TCM[uart] end of line (1360 bytes)
+BOOT: DATA OK[uart] end of line (1375 bytes)
+BOOT: BSS OK[uart] end of line (1389 bytes)
+BOOT: COLD BOOT PASS[uart] end of line (1411 bytes)
+BOOT: PAYLOAD RUNNING FROM TCM[uart] end of line (1443 bytes)
+BOOT: DATA OK[uart] end of line (1458 bytes)
+BOOT: BSS OK[uart] end of line (1472 bytes)
+BOOT: COLD BOOT PASS[uart] end of line (1494 bytes)
+BOOT: PAYLOAD RUNNING FROM TCM[uart] end of line (1526 bytes)
+BOOT: DATA OK[uart] end of line (1541 bytes)
+BOOT: BSS OK[uart] end of line (1555 bytes)
+BOOT: COLD BOOT PASS[uart] end of line (1577 bytes)
+BOOT: PAYLOAD RUNNING FROM TCM[uart] end of line (1609 bytes)
+BOOT: DATA OK[uart] end of line (1624 bytes)
+BOOT: BSS OK[uart] end of line (1638 bytes)
+BOOT: COLD BOOT PASS[uart] end of line (1660 bytes)
+BOOT: PAYLOAD RUNNING FROM TCM[uart] end of line (1692 bytes)
+BOOT: DATA OK[uart] end of line (1707 bytes)
+BOOT: BSS OK[uart] end of line (1721 bytes)
+BOOT: COLD BOOT PASS[uart] end of line (1743 bytes)
+BOOT: PAYLOAD RUNNING FROM TCM[uart] end of line (1775 bytes)
+BOOT: DATA OK[uart] end of line (1790 bytes)
+BOOT: BSS OK[uart] end of line (1804 bytes)
+BOOT: COLD BOOT PASS[uart] end of line (1826 bytes)
+BOOT: PAYLOAD RUNNING FROM TCM[uart] end of line (1858 bytes)

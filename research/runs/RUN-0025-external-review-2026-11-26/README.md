@@ -32,7 +32,11 @@ command lines and a SHA-256 of every file in this directory. Regenerate it with
 
 ## What this run does NOT establish
 
-* No timing number: path-based STA is **BLOCKED** (no runnable OpenSTA).
+* ~~No timing number: path-based STA is **BLOCKED** (no runnable OpenSTA).~~
+  **CORRECTED 2026-11-27 (F19):** this was wrong — the machine runs WSL2 and
+  OpenSTA 3.1.0 executes. STA was run at `b5e0642` and **fails** (WNS
+  −106.4775 ns). See RUN-0026 and `reports/TIMING_AND_CDC_QUALIFICATION.md`.
+  This run directory is otherwise immutable and is not updated.
 * No real-macro result: the memory cell is the simulation proxy model in
   `sim/models/sky130_sram_sim_model.v`. The vendor Verilog models do not
   elaborate in Icarus 14 (`mem[addr_reg]` non-constant index).

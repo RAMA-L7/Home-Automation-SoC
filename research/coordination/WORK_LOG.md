@@ -838,3 +838,69 @@ created after the work. Each says so; the runs are the authoritative record.
   OpenSTA; WSL1 unsupported), real-macro simulation (vendor models do not
   elaborate in Icarus 14), TCM/SRAM silicon init, ASIC physical signoff.
 - **Stop:** all actionable review items closed; nothing left half-done.
+
+## 2026-11-27 21:40 IST (2026-11-27T16:10Z) — Buffy (DeepSeek V4.1 Flash)
+
+**Task:** second external review intervention — close six findings in dependency
+order (AXI split-channel writes → production boot path → constraints vs RTL →
+memory/ROM qualification → publication → clean-checkout verification). Deadline
+unchanged (`2026-11-28T12:17:36Z`); this work did not restart it.
+
+**Reviewed HEAD** `aa80783` (inspected at `04c3084`). **Tested/published commit
+`b5e0642`.**
+
+- **AXI4-Lite split channels (F17, FIXED).** `sram.sv`,
+  `sram_macro_wrap.sv` and `boot_rom.sv` each evaluated `awvalid & wvalid` in one
+  cycle and took the index from the live `awaddr`. The SoC hid it because
+  `axi_lite_interconnect` holds both channels. Each slave now captures AW and W
+  into its own register, commits when both are present, and arbitrates so a
+  completable write wins the cycle, otherwise a presented read is served; no
+  ready depends on another ready. New `sim/sim_top/tb_axi_split.v` drives
+  address-first, data-first, simultaneous, backpressured, reset-with-outstanding,
+  read+write and byte-strobe traffic into all three slaves: **24/127 checks fail
+  against the pre-fix RTL** (log and sources preserved) and **127/127 pass** after.
+- **Production boot path (FIXED for ROM boot).** `firmware/boot/loader.S` reads a
+  header written by `scripts/fw_build/gen_boot_image.js`, copies the TCM and
+  `.data` images out of the boot ROM, zeroes `.bss`, sets the stack and jumps to
+  a RAM payload. `sim/sim_top/tb_boot_loader.v` compiles **without**
+  `-DSIM_MEM_PRELOAD`, asserts TCM/SRAM word 0 read `x` at t=0, and gets 11/11
+  checks over two boots with a real watchdog reset between them. The
+  ROM-resident assembly demo remains its own test (`tb_boot.v`, 7/7).
+- **Constraints vs RTL (F18, FIXED; F19 claim withdrawn).** The TAP runs on
+  `sys_clk` and samples TCK/TMS/TDI through two flops, so `jtag_tck` is now a
+  **virtual** clock at the documented 10× ratio floor (200 ns, not the 100 ns the
+  file advertised), CDC inputs are bounded by `set_max_delay 2.0
+  -ignore_clock_latency`, and both exceptions state why. Real STA now runs:
+  OpenSTA 3.1.0 under WSL2, **WNS −106.4775 ns, TNS −104736.49 ns, WNS hold
+  +0.2544 ns, 3,422 registers** — a measured **FAIL**, not BLOCKED. The older
+  "no runnable OpenSTA / WSL1 unsupported" claims in `AGENTS.md`,
+  `reports/REVIEW_INTERVENTION_2026-11-26.md` and RUN-0025 are marked corrected.
+  `scripts/evidence/make_manifest.py` no longer hardcodes that claim (it probed
+  for and now records OpenSTA 3.1.0).
+- **ROM in synthesis (PARTIALLY FIXED, still BLOCKED as a memory).** New
+  `asic/synthesis/fullsoc_map_rom.ys` + `structural_policy_rom.json`; the
+  generated ROM is in the mapped netlist and declared `$mem_v2` drops 4 → 3.
+  `asic/synthesis/rom_map.ys` measures the ROM alone at **262,262 sky130 cells**
+  (21 s) — a mux tree, explicitly not an array ROM. Structural verdict remains
+  **BLOCKED** (exit 2): 274,757 leaf cells, 3 `$mem_v2`, 80 declared macro
+  blackboxes.
+- **Verification at `b5e0642`:** AXI 127/127 (+ pre-fix 24-failure control);
+  boot loader 11/11; `run_rom_check.js` 1059+1059 checks / 0 errors + CPU boot
+  7/7; SDC lint 49/49 ports; STA FAIL as measured; full regression from a
+  detached worktree of tracked files only → **PASS 30/30**, exit 0, 1,010 s.
+- **Files changed:** `rtl/rtl_top/{sram.sv,sram_macro_wrap.sv,boot_rom.sv}`,
+  `sim/sim_top/{tb_axi_split.v,tb_boot_loader.v,tb_sram_macro_wrap.v}`,
+  `firmware/boot/{loader.S,payload.S}`, `scripts/fw_build/{gen_boot_image.js,gen_rom_rtl.py}`,
+  `scripts/eda/{run_regression.js,run_sdc_lint.js,check_structure.js}`,
+  `scripts/sta/sdc_check.tcl`, `scripts/evidence/make_manifest.py`,
+  `constraints/timing_constraints/has_soc.sdc`,
+  `asic/synthesis/{fullsoc_map_rom.ys,rom_map.ys,structural_policy_rom.json}`,
+  `reports/{REVIEW_INTERVENTION_2026-11-27,BOOT_PATH_QUALIFICATION,TIMING_AND_CDC_QUALIFICATION,ROM_QUALIFICATION}.md`,
+  `research/findings.csv`, `README.md`, `AGENTS.md`,
+  `research/coordination/AGENT_HANDOFF.md`,
+  `research/runs/RUN-0026-external-review-2026-11-27/`.
+- **Blockers:** QSPI flash boot (controller has no program/erase → SLVERR),
+  50 MHz timing (**fails**, needs a design fix), real-macro simulation (vendor
+  models do not elaborate in Icarus 14), ASIC ROM array, physical
+  implementation/signoff, independent evaluation.
+- **Stop:** committed and verified; nothing left half-done.

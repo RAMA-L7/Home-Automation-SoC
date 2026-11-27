@@ -1,0 +1,8 @@
+ports=49
+--- tclsh exit 0 ---
+SDC-PORTS total=49
+SDC-CLOCKS sys_clk,jtag_tck
+SDC-MISSING-COUNT 0
+SDC-ERROR-COUNT 0
+SDC-RESULT=PASS
+

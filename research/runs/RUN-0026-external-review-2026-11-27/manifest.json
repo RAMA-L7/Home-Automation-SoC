@@ -1,0 +1,129 @@
+{
+  "run": "RUN-0026-external-review-2026-11-27",
+  "created_utc": "2026-11-27T16:17:46Z",
+  "source_commit": "b5e0642ea1cf67b1f6fe263a75499b8b94df2384",
+  "head_at_manifest": "b5e0642ea1cf67b1f6fe263a75499b8b94df2384",
+  "worktree_dirty": true,
+  "notes": "Second external review intervention. AXI split-channel write fix + discriminating bench with the pre-fix failure preserved, preload-free production boot loader, JTAG/SDC model corrected and exercised by real OpenSTA (producing a measured timing FAIL), generated ROM in a canonical mapping flow (structural BLOCKED), full regression 30/30 from a tracked-files-only worktree.",
+  "commands": [
+    "vvp build/sim/tb_axi_split.vvp => 127 checks, 0 errors",
+    "vvp pre-fix RTL against tb_axi_split.v => 24 errors (control)",
+    "vvp build/sim/chk_boot_loader.vvp (no -DSIM_MEM_PRELOAD) => 11/11",
+    "node scripts/eda/run_sdc_lint.js => PASS 49/49 ports",
+    "node scripts/eda/run_sta.js --verbose => exit 1, WNS -106.4775 ns",
+    "yosys -s asic/synthesis/rom_map.ys => 262262 cells",
+    "check_structure.js (fullsoc_map_rom.ys) => BLOCKED exit 2",
+    "node scripts/eda/run_rom_check.js => PASS",
+    "node scripts/eda/run_regression.js (clean worktree b5e0642) => PASS 30/30 exit 0"
+  ],
+  "tools": {
+    "iverilog": "Icarus Verilog version 14.0 (devel) (s20260301-500-g2e81fcccb-dirty)",
+    "yosys": "Yosys 0.69+154 (git sha1 30d62572e-dirty, Release, GNU /usr/bin/x86_64-w64-mingw32-g++ 15.2.1)",
+    "node": "v26.7.0",
+    "python": "Python 3.10.11 (D:\\tools\\venv\\Scripts\\python.exe)",
+    "tclsh": "8.6.17",
+    "opensta": "3.1.0 (via wsl: /mnt/d/tools/opensta/build/sta)"
+  },
+  "paths": {
+    "PATH_head": [
+      "C:\\Program Files\\Git\\mingw64\\bin",
+      "C:\\Program Files\\Git\\usr\\bin",
+      "C:\\Users\\91846\\bin",
+      "C:\\WINDOWS\\system32",
+      "C:\\WINDOWS",
+      "C:\\WINDOWS\\System32\\Wbem"
+    ]
+  },
+  "files": [
+    {
+      "path": "artifacts/boot_rom_cells.json",
+      "bytes": 1664,
+      "sha256": "d13249e6a72e4748e965fe4365c79fb259cd9d8b55fc60bbff254d45881dfb45"
+    },
+    {
+      "path": "artifacts/boot_rom_header.json",
+      "bytes": 789,
+      "sha256": "cce73e749ceb62d3b503936b15387cfcb9c56c02e0254c3e60468a48339287df"
+    },
+    {
+      "path": "artifacts/has_soc_rom_cells.json",
+      "bytes": 22104,
+      "sha256": "f6bec3ab0a0595b440f746e006088e94b277d6a9b36d11c0d51ae47839716f8e"
+    },
+    {
+      "path": "artifacts/prefix_rtl/boot_rom.sv",
+      "bytes": 4797,
+      "sha256": "c6e1d550fb691552be22f00b332e3430ebe3720cdc3bd628ce7b2566f8812b89"
+    },
+    {
+      "path": "artifacts/prefix_rtl/sram.sv",
+      "bytes": 6061,
+      "sha256": "10e0ff110df6fb0efff6bc1ce566de44bf570719bbb0f454ced49971a250ff5f"
+    },
+    {
+      "path": "artifacts/prefix_rtl/sram_macro_wrap.sv",
+      "bytes": 39411,
+      "sha256": "8f378df8bf4ae09fa145927a76de97e053bfe76ed8ec5ec44be80c6a2024ce4a"
+    },
+    {
+      "path": "commands.jsonl",
+      "bytes": 4506,
+      "sha256": "2784e74dca42953f444bf8569cc5ccfbc6ad5b237953659f17f5c2442187463a"
+    },
+    {
+      "path": "logs/axi_split_postfix.log",
+      "bytes": 6180,
+      "sha256": "55cf2757b7c5b2ae36471f45d71d7637a69e8751ae51586ad8ab6828e670289b"
+    },
+    {
+      "path": "logs/axi_split_prefix_failure.log",
+      "bytes": 6181,
+      "sha256": "6fd4b8a24c42a2a44ea86984b6889cf180179fbfbdc0d0c4738e5af6b53a5add"
+    },
+    {
+      "path": "logs/boot_loader.log",
+      "bytes": 4853,
+      "sha256": "1c8a96376b079e7e18d07e9624e844c1ed94b6783caf8c564b03d3a7501569d6"
+    },
+    {
+      "path": "logs/clean_worktree_regression.log",
+      "bytes": 2542,
+      "sha256": "99154b7035199e05488cce4bde406ec1b6ab731ccf70616608462baadffdbb12"
+    },
+    {
+      "path": "logs/fullsoc_rom_map.log",
+      "bytes": 356363,
+      "sha256": "6028662ea81c8c8b5c8a359ca5684cfd2cfa61f3652a640c6c952be18290695d"
+    },
+    {
+      "path": "logs/rom_check.log",
+      "bytes": 582,
+      "sha256": "84b9025b874ce5409763c1846c428a7a12377c797a4392908ff421f8a62aceb3"
+    },
+    {
+      "path": "logs/rom_map.log",
+      "bytes": 17468,
+      "sha256": "bfeef93abd4d2085edef6e4e253d6ced9690e9994e0836b59ca6730f0a582192"
+    },
+    {
+      "path": "logs/sdc_lint.log",
+      "bytes": 137,
+      "sha256": "db11e4035b9661563ecb3b3e127d9d80e2003c8309009c8e8b34a71820edd042"
+    },
+    {
+      "path": "logs/sta.log",
+      "bytes": 267282,
+      "sha256": "081750a3a8e7ae189aaf32d0dfa6dd9b1adc708cb0911bc45f9489363faee4ee"
+    },
+    {
+      "path": "logs/sta_summary.log",
+      "bytes": 267883,
+      "sha256": "f2c4fdf9aed454d869e6eef82a77fce820651460c09e2feaa294144667da71b4"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2795,
+      "sha256": "d082326a404fdee8368de5ae49518ebb73d7129b1a6fd13495ce79c183dfcb07"
+    }
+  ]
+}

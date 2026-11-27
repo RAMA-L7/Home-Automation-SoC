@@ -79,7 +79,7 @@ therefore discriminates; it is not a no-op.
 
 | Item | Blocker | Consequence |
 |---|---|---|
-| Path-based STA (slack, WNS) | No runnable OpenSTA. The Linux binary cannot execute (WSL1 is unsupported on this machine) and there is no Windows build. | The SDC is validated as a *file*; no timing number is claimed. |
+| Path-based STA (slack, WNS) | ~~No runnable OpenSTA. The Linux binary cannot execute (WSL1 is unsupported on this machine)~~ **CORRECTED 2026-11-27 (F19): this was stale.** The machine runs WSL2 and OpenSTA 3.1.0 executes. | ~~The SDC is validated as a *file*~~ At this commit the SDC was still only validated as a file. STA was later run at `b5e0642` and **fails**: WNS −106.4775 ns (`reports/TIMING_AND_CDC_QUALIFICATION.md`). |
 | Real-macro simulation | The vendor Verilog models do not elaborate in Icarus 14 (`mem[addr_reg]` non-constant index). | Wrapper results are **proxy-model** results, labelled as such everywhere. |
 | TCM/SRAM silicon initialisation | Real SRAM macros have no init port. | Boot code must initialise TCM before use; preload exists only under `SIM_MEM_PRELOAD`. |
 | ASIC ROM | A synthesizable ROM exists but maps to a ~33 k-cell mux tree. | ROM readiness is **BLOCKED** as an area/characterisation decision; see F7. |

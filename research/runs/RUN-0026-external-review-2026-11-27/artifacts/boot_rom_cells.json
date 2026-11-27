@@ -1,0 +1,49 @@
+{
+   "creator": "Yosys 0.69+154 (git sha1 30d62572e-dirty, Release, GNU /usr/bin/x86_64-w64-mingw32-g++ 15.2.1)",
+   "invocation": "stat -top boot_rom -json ",
+   "modules": {
+      "\\boot_rom": {
+         "num_wires":         8305,
+         "num_wire_bits":     262455,
+         "num_pub_wires":     39,
+         "num_pub_wire_bits": 287,
+         "num_ports":         24,
+         "num_port_bits":     197,
+         "num_memories":      0,
+         "num_memory_bits":   0,
+         "num_processes":     0,
+         "num_cells":         262262,
+         "num_submodules":       0,
+         "num_cells_by_type": {
+            "sky130_fd_sc_hd__and2_1": 24,
+            "sky130_fd_sc_hd__dfrtp_1": 29,
+            "sky130_fd_sc_hd__inv_1": 21,
+            "sky130_fd_sc_hd__mux2_1": 262158,
+            "sky130_fd_sc_hd__or2_1": 22,
+            "sky130_fd_sc_hd__xor2_1": 8
+         }
+      }
+   },
+      "design": {
+         "num_wires":         8305,
+         "num_wire_bits":     262455,
+         "num_pub_wires":     39,
+         "num_pub_wire_bits": 287,
+         "num_ports":         24,
+         "num_port_bits":     197,
+         "num_memories":      0,
+         "num_memory_bits":   0,
+         "num_processes":     0,
+         "num_cells":         262262,
+         "num_submodules":       0,
+         "num_cells_by_type": {
+            "sky130_fd_sc_hd__and2_1": 24,
+            "sky130_fd_sc_hd__dfrtp_1": 29,
+            "sky130_fd_sc_hd__inv_1": 21,
+            "sky130_fd_sc_hd__mux2_1": 262158,
+            "sky130_fd_sc_hd__or2_1": 22,
+            "sky130_fd_sc_hd__xor2_1": 8
+         }
+      }
+}
+

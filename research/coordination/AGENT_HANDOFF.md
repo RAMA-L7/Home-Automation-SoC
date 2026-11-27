@@ -12,7 +12,25 @@ history; this file is the one document rewritten at session boundaries.
 ---
 
 ## STATUS (current)
-### Current override — 2026-11-26 (external review intervention)
+### Current override — 2026-11-27 (second external review intervention)
+
+**Trust these fields first.** Report: `reports/REVIEW_INTERVENTION_2026-11-27.md`.
+
+| Field | Value |
+|---|---|
+| Reviewed HEAD | `aa80783` (inspected at `04c3084`) |
+| Tested commit | **`b5e0642`** on `main` |
+| AXI split-channel writes | **FIXED.** All three write slaves capture AW and W independently. `tb_axi_split.v`: 24/127 checks fail pre-fix, 127/127 pass post-fix |
+| Production boot path | **FIXED for ROM boot.** `firmware/boot/loader.S` copies the TCM and `.data` images, zeroes `.bss`, sets the stack, jumps. `tb_boot_loader.v` runs with **no** `-DSIM_MEM_PRELOAD`, proves TCM/SRAM are `x` at t=0, and boots twice (cold + watchdog recovery). Flash boot **BLOCKED** (no program/erase) |
+| Timing | **STA RUNS.** OpenSTA 3.1.0 under WSL2: WNS setup **−106.4775 ns**, TNS **−104736.49 ns**, WNS hold **+0.2544 ns**, 3,422 registers. This is a measured **FAIL**, not BLOCKED. The old "no runnable OpenSTA (WSL1)" claim is withdrawn (F19) |
+| Constraints vs RTL | **FIXED.** JTAG modelled as implemented (TAP on `sys_clk`, TCK sampled through 2 flops); virtual `jtag_tck` at the 200 ns / 5 MHz ratio floor; CDC bounded by `set_max_delay 2.0 -ignore_clock_latency`; both exceptions justified in the file |
+| ROM in synthesis | Generated ROM now in `asic/synthesis/fullsoc_map_rom.ys`; `$mem_v2` 4 → 3; ROM itself maps to **262,262** sky130 cells. Verdict **BLOCKED** (mux tree, not an array) |
+| Clean checkout | Full regression from a detached worktree at `b5e0642`, tracked files only — `research/runs/RUN-0026-external-review-2026-11-27/logs/clean_worktree_regression.log` |
+| New findings | F17 (AXI split channels), F18 (JTAG constraints vs RTL), F19 (stale STA-BLOCKED claim) — all FIXED |
+| Highest verified stage | RTL functionally verified in simulation, preload-free ROM boot verified, constraints validated **and** exercised by real STA, ROM synthesizable. Timing **fails**; ASIC readiness, physical and signoff **BLOCKED** |
+| Deadline | unchanged: **2026-11-28T12:17:36Z** — not restarted |
+
+### Superseded — 2026-11-26 (external review intervention)
 
 The table below describes the tree as of `67132f5` / RUN-0022 and is kept as
 history. **These are the fields to trust today:**

@@ -259,10 +259,13 @@ alias and byte-write checks in `sim/sim_top/tb_mem_contract.v`.
 
 | Verification Domain | Result | Evidence |
 |---|---|---|
-| **Regression (Icarus)** | 28 targets from a clean worktree (27 functional PASS, 1 design stage BLOCKED) | `research/runs/RUN-0025-external-review-2026-11-26/logs/clean_worktree_regression.log` |
+| **Regression (Icarus)** | **30/30 PASS, exit 0** (1,010 s) from a tracked-files-only worktree at `b5e0642`; firmware images rebuilt from source with per-file SHA-256 | `research/runs/RUN-0026-external-review-2026-11-27/logs/clean_worktree_regression.log` |
 | **Macro wrapper (production geometry)** | 81 checks, 0 errors; 64-bank 128 KiB SRAM + 16-bank 32 KiB TCM; **2 negative controls rejected** (3 and 30 failures) | `node scripts/eda/run_macro_wrapper.js`; `research/runs/RUN-0025-external-review-2026-11-26/logs/macro_wrapper_*.log` |
-| **Boot ROM (synthesizable)** | 1059 checks against the behavioural model on both modules; CPU boot 7/7 from the generated ROM; Yosys maps 32,840 `$_MUX_` with no `$mem` cell | `node scripts/eda/run_rom_check.js`; `research/runs/RUN-0025-external-review-2026-11-26/logs/rom_*.log` |
-| **Timing constraints** | SDC executes as Tcl; 49/49 ports constrained; 0 object errors. **Path-based STA BLOCKED** (no runnable OpenSTA) | `node scripts/eda/run_sdc_lint.js`; `research/runs/RUN-0025-external-review-2026-11-26/logs/sdc_lint.log` |
+| **Boot ROM (synthesizable)** | 1059 checks against the behavioural model on both modules; CPU boot 7/7 from the generated ROM; Yosys maps 32,846 `$_MUX_` for the 339-word demo image with no `$mem` cell. The production 4096-word image maps to **262,262** sky130 cells — a mux tree, **not** an array ROM | `node scripts/eda/run_rom_check.js`; `yosys -s asic/synthesis/rom_map.ys`; `research/runs/RUN-0026-external-review-2026-11-27/`; `reports/ROM_QUALIFICATION.md` |
+| **Timing constraints** | SDC executes as Tcl; 49/49 ports constrained; 0 object errors; JTAG modelled as implemented (TAP on `sys_clk`, TCK sampled), 2 justified exceptions. **File check only — not a timing result** | `node scripts/eda/run_sdc_lint.js`; `research/runs/RUN-0026-external-review-2026-11-27/logs/sdc_lint.log`; `reports/TIMING_AND_CDC_QUALIFICATION.md` |
+| **Path-based STA (real)** | **RUNS — and FAILS.** OpenSTA 3.1.0 (WSL2) on the mapped netlist: WNS setup **−106.4775 ns**, TNS setup **−104736.49 ns**, WNS hold **+0.2544 ns**, 3,422 registers. The earlier "no runnable OpenSTA" BLOCKED claim was stale (F19) | `node scripts/eda/run_sta.js`; `research/runs/RUN-0026-external-review-2026-11-27/logs/sta.log` |
+| **AXI4-Lite split channels** | 127/127 checks with AW and W captured independently on all three write slaves; **24/127 fail on the pre-fix RTL** (control preserved) | `vvp build/sim/tb_axi_split.vvp`; `research/runs/RUN-0026-external-review-2026-11-27/logs/axi_split_*.log` |
+| **Production boot (no preload)** | 11/11 checks. Compiled **without** `-DSIM_MEM_PRELOAD`: TCM/SRAM are `x` at t=0, the loader copies both images, zeroes `.bss`, and the payload runs from TCM on two boots with a watchdog reset in between | `vvp build/sim/tb_boot_loader.vvp`; `research/runs/RUN-0026-external-review-2026-11-27/logs/boot_loader.log`; `reports/BOOT_PATH_QUALIFICATION.md` |
 | **Unified gate** | functional stages PASS; **ASIC readiness BLOCKED** (2 design stages) | `runs/RUN-0012-closure-publication/logs/gate.log` |
 | **Firmware build** | exit 0; `.text` 3,684 B; rom 26 words; TCM 895 words | `scripts/fw_build/build_fw.js`; discovery via `toolchain.js` |
 | **Firmware E2E** | 7/7 steps, corruption control detected | `scripts/firmware/run_e2e.js` |
@@ -271,6 +274,7 @@ alias and byte-write checks in `sim/sim_top/tb_mem_contract.v`.
 | **Verilator C++ build + boot** | exit 0; 7/7 subtests pass; 4 ms simulated in 0.233 s | `runs/RUN-0011-evidence-provenance/logs/verilator_run.log` |
 | **Structural checker self-test** | 16/16 controls (checker only — not a design result) | `runs/RUN-0012-closure-publication/logs/structural_self_test.log` |
 | **Structural (actual full SoC)** | BLOCKED, exit 2 — 4 declared `$mem_v2` gaps | `runs/RUN-0012-closure-publication/logs/structural_design.log` |
+| **Structural (full SoC, generated ROM)** | BLOCKED, exit 2 — **3** `$mem_v2` (the ROM is gone) + 80 declared macro blackboxes; 274,757 leaf cells | `asic/synthesis/fullsoc_map_rom.ys`; `asic/synthesis/structural_policy_rom.json`; `research/runs/RUN-0026-external-review-2026-11-27/logs/fullsoc_rom_map.log` |
 | **Memory audit self-test** | 7/7 drift controls | `runs/RUN-0012-closure-publication/logs/memory_self_test.log` |
 | **Memory audit (actual design)** | BLOCKED, exit 2 — arrays reconciled (F5); **real macro integrated in verified netlist `be827aa...` (80 `sky130_sram_2kbyte_1rw1r_32x512_8` + boot_rom), physical signoff still blocked** (WSL mount, PDN mismatch RUN-0021 PDN-217) | `runs/RUN-0012-closure-publication/logs/memory_design.log`; `reports/phase5_3b_report.md`; `artifacts/synthesis/2026-11-25_synth_20261125_234131/` |
 | **Memory contract boundaries** | 26/26 checks (apertures, aliases, byte writes) | `sim/sim_top/tb_mem_contract.v` |
@@ -278,11 +282,11 @@ alias and byte-write checks in `sim/sim_top/tb_mem_contract.v`.
 | **$pmux mapping test** | 7/7 steps, 393,608 vectors, 0 mismatches | `scripts/eda/run_pmux_map_test.js` |
 | **dfrbp model test** | 11/11 directed checks, exit 0 | `scripts/eda/run_dfrbp_model_test.js` |
 
-**Run provenance:** the four rows marked with a `RUN-0025` log were re-run at
-`3a71175` from a tracked-files-only worktree. The rows citing `RUN-0011` /
-`RUN-0012` were produced at `025ef24`/`eff293d` and have **not** been re-run
-since; they are historical results, not evidence for the current commit
-(tracked as F9 in `research/findings.csv`).
+**Run provenance:** rows marked with a `RUN-0026` log were re-run at `b5e0642`
+(the current tested commit), rows marked `RUN-0025` at `3a71175`, and the rows
+citing `RUN-0011` / `RUN-0012` at `025ef24`/`eff293d`. Only the `RUN-0026` rows
+are evidence for the current commit; the rest are historical and must not be
+quoted as current (tracked as F9 in `research/findings.csv`).
 
 
 **Flow:** `node scripts/closure.js` is the single entry point: environment and
@@ -317,7 +321,11 @@ checker self-test is reported separately and never substitutes for that.
 | **F10** | I²C standard-mode timing (tHIGH/tLOW/START/STOP/bus-free) not checked, and SCL was high for only 1 of 4 quarters | **FIXED** (RUN-0012) | At pclk 50 MHz / CLKDIV 124 the generator gave tHIGH 2.5 µs against a 4.0 µs minimum and tHD;STA 2.5 µs against 4.0 µs. SCL now holds for quarters 1–2, START holds SDA two quarters, DONE spans four. Measured at the pins with a 300 ns delayed-rise model: fSCL 100.00 kHz, tHIGH 4700 ns, tLOW 5300 ns, tSU;DAT 2500 ns, tHD;DAT 20 ns, tHD;STA 5000 ns, tSU;STO 5000 ns, tBUF 14720 ns; 23 checks, 5/5 runner controls | Fast mode (400 kHz), clock stretching and repeated START are **not** supported and are not claimed |
 | **F11** | Two supported commands only worked in the author's checkout: they wrote into `build/` directories nothing created | **FIXED** (RUN-0014) | A separate worktree with only tracked files failed: `as.js` → `ENOENT build/fw/boot.hex` (boot regression IMAGE-FAIL, 26/27) and `memory_audit.ys` → `Can't create file` (memory stages produced no verdict; this Yosys build has no `file mkdir`). Reproduced deterministically at `d09d59e`. Producers now create their own outputs; `audit_memory.js --elaborate` is the documented entry point. Re-run at `eff293d`: publication COMPLETE, 13/13 functional, 27/27 regression, 2 design stages BLOCKED | Any new stage that writes `build/` must create its own directory |
 
-**Summary:** F1, F2, F3, F4, F5, F6, F8, F10, F11 **FIXED**. F7 **BLOCKED** (complete inventory, no memory implementation). F9 **PARTIAL** (all current targets traced at the tested commit; no PPA, no independent review; historical reports banner-marked). **Highest gate: G0 PASS** (G1/G2 PARTIAL, G3/G4 OPEN). ASIC readiness is BLOCKED and this repository makes no tapeout-readiness claim.
+**Summary:** F1–F6, F8, F10, F11, and the 2026-11-27 findings **F17, F18, F19 FIXED** — AXI split-channel writes, a preload-free production boot path, and constraints that match the implemented JTAG clocking, with real STA now running. F7 **BLOCKED** (complete inventory, no memory implementation). F9 **PARTIAL** (all current targets traced at the tested commit; no PPA, no independent review; historical reports banner-marked). **Highest gate: G0 PASS** (G1/G2 PARTIAL, G3/G4 OPEN). 50 MHz timing **FAILS** (WNS −106.48 ns) and ASIC readiness is BLOCKED; this repository makes no tapeout-readiness claim.
+
+**2026-11-27 intervention:** see `reports/REVIEW_INTERVENTION_2026-11-27.md`,
+`reports/BOOT_PATH_QUALIFICATION.md`, `reports/TIMING_AND_CDC_QUALIFICATION.md`
+and `reports/ROM_QUALIFICATION.md`. Tested commit **`b5e0642`**.
 
 ***
 
