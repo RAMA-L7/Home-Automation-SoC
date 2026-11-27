@@ -1,0 +1,4 @@
+macro-wrapper: PROD       MUST PASS ok   checks=82 errors=0
+macro-wrapper: NEG_BANK   MUST FAIL ok   checks=82 errors=3
+macro-wrapper: NEG_STROBE MUST FAIL ok   checks=82 errors=30
+macro-wrapper: RESULT PASS (production geometry 64-bank SRAM + 16-bank TCM, proxy macro model; 2 negative controls rejected)

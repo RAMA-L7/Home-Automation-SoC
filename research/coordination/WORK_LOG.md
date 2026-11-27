@@ -951,3 +951,27 @@ manifest or clean-checkout work was reopened.
   `README.md`, `AGENTS.md`, `research/coordination/*`,
   `research/runs/RUN-0027-timing-closure-2026-11-27/`.
 - **Stop:** committed and verified; nothing half-done.
+
+## RUN-0028 — SRAM read-bank select (2026-11-27)
+
+- **Change:** one hunk in `rtl/rtl_top/sram_macro_wrap.sv` (9+/4−). The per-bank
+  `if (rd_bank_q == k)` chain became `if (rd_bank_q < NUM_MACROS) rd_dout =
+  dout0_bank[rd_bank_q]` for both ports; `riscv_core.sv` untouched, so the
+  divider fix is preserved. Same `'0` behaviour for an X/out-of-range bank.
+- **Discriminating test written first:** `tb_bank_select.v` (64 banks, unique
+  patterns, bit-reversed reads, 37-step i-fetch permutation, back-to-back
+  opposite banks, rolling digest). Prefix 324/324 digest `0d61aa60`, postfix
+  324/324 digest `0d61aa60`, XOR-1 mutant 196 errors.
+- **Functional:** wrapper suite 82 checks + `NEG_BANK`/`NEG_STROBE` rejected,
+  `tb_isa` 47/47, regression **30/30 PASS, exit 0**.
+- **Measured (same SDC/corner/tools):** WNS **−8.4509 → −1.2141 ns**, TNS
+  **−848.81 → −107.66 ns**, violating endpoints 632 → 574, endpoints < −5 ns
+  96 → 0, worst-path mux2 60 → 6, cells 46,696 → 44,252, max fanout 69 → 67,
+  registers 3,594 and hold +0.2544 ns unchanged.
+- **Not claimed:** 50 MHz still fails at −1.2141 ns. The new worst path is an
+  arithmetic carry cone (21.00 ns, 23 `maj3`, no memory instance) — consistent
+  with the combinational multiply, not proven by ablation. Next phase's first
+  task is that attribution.
+- **Files changed:** `rtl/rtl_top/sram_macro_wrap.sv`, `README.md`, `AGENTS.md`,
+  `reports/{TIMING_CLOSURE_2026-11-27,TIMING_AND_CDC_QUALIFICATION}.md`,
+  `research/coordination/*`, `research/runs/RUN-0028-sram-bank-select-2026-11-27/`.

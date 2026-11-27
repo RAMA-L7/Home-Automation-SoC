@@ -1,0 +1,28 @@
+max_delay/setup group gated clock
+
+                                      Required    Actual
+Endpoint                                 Delay     Delay     Slack
+------------------------------------------------------------------
+_76462_/B (sky130_fd_sc_hd__and2_1)    19.9000   10.3071    9.5929 (MET)
+
+max_delay/setup group path delay
+
+                                      Required    Actual
+Endpoint                                 Delay     Delay     Slack
+------------------------------------------------------------------
+_59895_/D (sky130_fd_sc_hd__dfxtp_1)    1.8893    0.0628    1.8265 (MET)
+
+max_delay/setup group jtag_tck
+
+                                      Required    Actual
+Endpoint                                 Delay     Delay     Slack
+------------------------------------------------------------------
+jtag_tdo (output)                     195.0000  180.3328   14.6672 (MET)
+
+max_delay/setup group sys_clk
+
+                                      Required    Actual
+Endpoint                                 Delay     Delay     Slack
+------------------------------------------------------------------
+_66077_/D (sky130_fd_sc_hd__dfxtp_1)   19.7892   21.0033   -1.2141 (VIOLATED)
+

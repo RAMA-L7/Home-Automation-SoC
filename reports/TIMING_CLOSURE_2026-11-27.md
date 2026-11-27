@@ -6,6 +6,11 @@
 **Result:** WNS `−106.4775 ns` → `−8.4509 ns`; TNS `−104736.49 ns` → `−848.81 ns`.
 Timing still **FAILS** at 50 MHz. One defect was fixed; the design is not closed.
 
+**Follow-up (RUN-0028, same day, same SDC/tools):** the Rank 1 bank-read select
+was replaced with an indexed select — WNS `−8.4509 ns` → `−1.2141 ns`, TNS
+`−848.81 ns` → `−107.66 ns`, and every endpoint below −5 ns is gone. 50 MHz
+still fails. See §9.
+
 This report is the investigation the second external review asked for: extract
 the worst paths, cluster the failing endpoints, name the dominant cause, rank
 the bottlenecks, make one evidence-supported change, and measure it before and
@@ -179,15 +184,18 @@ Limits of this result, stated so they cannot be mistaken for closure:
   claim.
 * No formal equivalence proof between the two cores; the evidence is directed
   simulation plus the recorded pre/post test outputs.
-* The multiply path was not independently characterised after the change; it is
-  simply no longer the worst path.
+* The multiply path was not independently characterised after the RUN-0027
+  change, because it was no longer the worst path. After RUN-0028 it *is* the
+  worst path (21.00 ns, 23 `maj3` carry cells, no memory instance), which is the
+  structural evidence that it is the next bottleneck (§9.3).
 
 ## 8. Ranked remaining bottlenecks
 
 | Rank | Bottleneck | Evidence | Fix (not done here) |
 |---|---|---|---|
-| 1 | SRAM bank read-data select is a 64-deep priority mux chain (`sram_macro_wrap.sv`: `for (k…) if (rd_bank_q == k) rd_dout = dout0_bank[k];`) | Worst path after the fix: ~60 cascaded `mux2`, 28.23 ns arrival, 96 endpoints, −752 ns | Index the bank array (`dout0_bank[rd_bank_q]`) or build a balanced tree: 6 levels instead of ~63 |
-| 2 | Residual −1…0 ns endpoints (536) | §2/§5 histogram | Local sizing/pipelining after rank 1 lands |
+| 1 | ~~SRAM bank read-data select is a 64-deep priority mux chain (`sram_macro_wrap.sv`: `for (k…) if (rd_bank_q == k) rd_dout = dout0_bank[k];`)~~ **FIXED in RUN-0028** | Worst path before: ~60 cascaded `mux2`, 28.23 ns arrival, 96 endpoints, −752 ns. After: 6 `mux2`, the cluster is empty | Indexed select, §9 |
+| 1 (new) | Combinational arithmetic carry cone, WNS −1.2141 ns | §9.3: 57 cells, 23 `maj3`, no SRAM instance, 21.00 ns arrival | Characterise and pipeline/serialise the multiply (not done here) |
+| 2 | Residual −1…0 ns endpoints (509) | §9.2 histogram | Local sizing/pipelining once rank 1 lands |
 | 3 | No clock tree (ideal clocks in STA) | SDC scope note | CTS in a real P&R flow |
 
 Rank 1 is a small, well-localised RTL change in a file this investigation did
@@ -195,7 +203,67 @@ not otherwise touch, and it is the natural next step. It was deliberately not
 bundled here: the review asked for one evidence-supported optimization with a
 clean before/after, and mixing two changes would make the attribution weaker.
 
-## 9. Evidence index
+## 9. RUN-0028 — SRAM bank read-data select (same day)
+
+Run: `research/runs/RUN-0028-sram-bank-select-2026-11-27/`. One hunk in one
+file, `rtl/rtl_top/sram_macro_wrap.sv` (9+/4−); `riscv_core.sv` untouched, so
+the divider fix is preserved.
+
+```systemverilog
+-    for (int k = 0; k < NUM_MACROS; k++) begin
+-      if (rd_bank_q == k[BANK_AW-1:0]) rd_dout = dout0_bank[k];
+-      if (ir_bank_q == k[BANK_AW-1:0]) ir_dout = dout1_bank[k];
+-    end
++    if (rd_bank_q < NUM_MACROS) rd_dout = dout0_bank[rd_bank_q];
++    if (ir_bank_q < NUM_MACROS) ir_dout = dout1_bank[ir_bank_q];
+```
+
+The bounds test keeps the chain's old "no match → `'0`" behaviour for an X or
+out-of-range captured bank; the one-cycle bank capture and all handshakes are
+unchanged.
+
+### 9.1 Discriminating test
+
+`tb_bank_select.v` writes a unique pattern to two words of all 64 banks, then
+reads word 0 in bit-reversed bank order, word 7 ascending, instruction-fetches
+word 0 in a 37-step permutation, and does back-to-back opposite-bank reads. It
+prints a digest of every (address, data) pair.
+
+| Run | checks | errors | digest |
+|---|---|---|---|
+| prefix (published `8dfb09d`) | 324 | 0 | `0d61aa60` |
+| postfix | 324 | 0 | `0d61aa60` |
+| mutant (`dout0_bank[k ^ 1]`) | 324 | 196 | `xxxxxxxx` |
+
+The mutant fails exactly the 128 AXI bank reads, 64 i-fetches and 4 b2b reads,
+so the bench does discriminate bank identity. Identical digests are the
+equivalence evidence. Existing `tb_sram_macro_wrap.v` still passes (82 checks,
+`NEG_BANK` and `NEG_STROBE` both rejected), `tb_isa.v` 47/47, regression 30/30.
+
+### 9.2 Measured result (same SDC, corner, libraries, tool)
+
+| Metric | Prefix | Postfix | Change |
+|---|---|---|---|
+| WNS setup | −8.4509 ns | **−1.2141 ns** | +7.2368 ns |
+| TNS setup | −848.81 ns | **−107.66 ns** | 7.9× |
+| Violating endpoints | 632 | 574 | −58 |
+| Endpoints < −5 ns | 96 (−752.02 ns) | **0** | cluster removed |
+| Endpoints −1…0 ns | 536 (−96.79 ns) | 509 (−34.11 ns) | −45 % |
+| Worst-path `mux2` | 60 | 6 | −54 |
+| Worst-path arrival | 28.2349 ns | 21.0033 ns | −7.23 ns |
+| Cells | 46,696 | 44,252 | −5.2 % |
+| Registers / hold WNS | 3,594 / +0.2544 ns | 3,594 / +0.2544 ns | unchanged |
+
+### 9.3 What replaced it, and what is *not* claimed
+
+The new worst path (21.0033 ns) is 57 cells of carry logic: 23 `maj3`, 6
+`mux2`, no `sram_inst` instance anywhere on it, startpoint flop fanning out to
+86 loads. That is an arithmetic adder cone. It is *consistent with* the
+combinational multiply being the next bottleneck, but this run did not prove
+that by ablation or by a MUL-only characterisation; the attribution is the
+first task of the next phase. **50 MHz still fails at WNS −1.2141 ns.**
+
+## 10. Evidence index
 
 `research/runs/RUN-0027-timing-closure-2026-11-27/`
 
@@ -210,3 +278,6 @@ clean before/after, and mixing two changes would make the attribution weaker.
 * `tb_muldiv_sign.v`, `prefix_rtl/riscv_core.sv` — equivalence bench and the
   published core it was compared against
 * `artifacts/has_soc_gate_prefix.v.gz` — archived baseline netlist
+
+Follow-up run: `research/runs/RUN-0028-sram-bank-select-2026-11-27/` (bank
+select, §9).

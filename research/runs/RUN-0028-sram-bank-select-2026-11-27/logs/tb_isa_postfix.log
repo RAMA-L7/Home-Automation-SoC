@@ -1,0 +1,8 @@
+utc: 2026-11-27T17:15:25Z
+rtl_sha256: d48f839decf7df83e1eb0377e6452df74fbbd0b0ca9a77818f47d748b7762057
+compile_exit=0
+=== HAS-SoC directed RV32IM test ===
+[isa] checks: 47, failures: 0
+[isa] RESULT: PASS
+sim/sim_top/tb_isa.v:338: $finish called at 160190000 (1ps)
+run_exit=0

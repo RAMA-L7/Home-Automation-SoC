@@ -1,0 +1,4 @@
+=== SRAM bank read-select discrimination (64 banks) ===
+[bank] checks=324 errors=0 timeouts=0 digest=0d61aa60
+[bank] RESULT: PASS
+research/runs/RUN-0028-sram-bank-select-2026-11-27/tb_bank_select.v:245: $finish called at 9145000 (1ps)

@@ -1,0 +1,24 @@
+== prefix ==
+endpoints with paths: 1668   violating: 632
+sum negative slack: -848.81 ns   WNS: -8.4509 ns
+  slack < -5     96 endpoints, -752.02 ns
+  slack -1..0    536 endpoints, -96.79 ns
+
+== postfix ==
+endpoints with paths: 1804   violating: 574
+sum negative slack: -107.66 ns   WNS: -1.2141 ns
+  slack -5..-1   65 endpoints, -73.55 ns
+  slack -1..0    509 endpoints, -34.11 ns
+
+prefix (bank priority chain): 1 cells on worst path
+   types: []
+postfix (indexed bank select): 0 cells on worst path
+   types: []
+prefix (bank priority chain): 68 cells on worst path
+   types: {'a22o_1': 1, 'mux2_1': 60, 'nand2_1': 1, 'a21oi_1': 2, 'mux2i_1': 1, 'a222oi_1': 1, 'nor2_1': 1, 'and2_0': 1}
+   first: _87582_ last: _54417_
+postfix (indexed bank select): 57 cells on worst path
+   types: {'dfxtp_1': 1, 'clkbuf_1': 5, 'mux2_1': 6, 'nand2_1': 6, 'inv_1': 5, 'maj3_1': 23, 'a21oi_1': 2, 'o311a_1': 1, 'o21ai_0': 1, 'o21a_1': 1, 'o221ai_1': 1, 'a31oi_1': 1, 'clkinv_1': 1, 'buf_1': 1, 'nor2b_1': 1, 'nor3_1': 1}
+   first: _64744_ last: _75810_
+prefix: max fanout 69 on _04316_
+postfix: max fanout 67 on _40147_

@@ -12,19 +12,20 @@ history; this file is the one document rewritten at session boundaries.
 ---
 
 ## STATUS (current)
-### Current override — 2026-11-27 (timing closure investigation)
+### Current override — 2026-11-27 (timing closure investigation, two steps)
 
 **Trust these fields first.** Report: `reports/TIMING_CLOSURE_2026-11-27.md`;
-run: `research/runs/RUN-0027-timing-closure-2026-11-27/`.
+runs: `research/runs/RUN-0027-timing-closure-2026-11-27/` (divider) and
+`research/runs/RUN-0028-sram-bank-select-2026-11-27/` (SRAM bank select).
 
 | Field | Value |
 |---|---|
 | Baseline (unchanged) | **`09e2eaa`** — not rewritten, not force-pushed |
-| Timing | **STA FAILS.** WNS setup **−8.4509 ns**, TNS **−848.81 ns**, WNS hold **+0.2544 ns**, 3,594 registers. Baseline `09e2eaa` was −106.4775 ns / −104736.49 ns / 3,422 |
-| Cause fixed | Worst path was the combinational DSP-less M-extension divider (114 `maj3` carry stages, 469 cells) feeding every register-file write port. DIV/DIVU/REM/REMU now iterate in a new `S_DIV` state; MUL stays combinational |
+| Timing | **STA FAILS.** WNS setup **−1.2141 ns**, TNS **−107.66 ns**, WNS hold **+0.2544 ns**, 3,594 registers. `09e2eaa` was −106.4775 ns / −104736.49 ns / 3,422; after the divider fix −8.4509 ns / −848.81 ns; after the bank-select fix the numbers above. No endpoint is below −5 ns |
+| Causes fixed | (1) Combinational DSP-less M-extension divider (114 `maj3` carry stages, 469 cells) feeding every register-file write port → DIV/DIVU/REM/REMU iterate in a new `S_DIV` state; MUL unchanged. (2) 64-deep SRAM bank read-data priority chain in `sram_macro_wrap.sv` (~60 cascaded `mux2`) → indexed select on the captured bank, both ports |
 | Clusters (baseline) | 1,160 violating endpoints; 992 below −90 ns carrying 99.25% of TNS — the register-file write cone |
-| Functional | Regression **30/30 PASS, exit 0**; `tb_isa.v` 47/47; new `tb_muldiv_sign.v` 10/10 on both the published and the new core |
-| Rank 1 remaining | `rtl/rtl_top/sram_macro_wrap.sv` bank read-data select is a 64-deep priority mux (~60 cascaded `mux2`, 28.23 ns arrival, 96 endpoints, −752 ns). Fix: indexed or balanced selection (6 levels) |
+| Functional | Regression **30/30 PASS, exit 0**; `tb_isa.v` 47/47; `tb_muldiv_sign.v` 10/10 on both cores; new `tb_bank_select.v` 324/324 with identical pre/post digest and an XOR-1 mutant failing 196 checks; wrapper suite 82 checks + 2 negative controls |
+| Rank 1 remaining | An arithmetic carry cone: 21.00 ns arrival, 57 cells, 23 `maj3`, no memory instance. Consistent with the combinational M-extension multiply, **not yet proven by ablation** — that attribution is the next phase's first task. The SRAM bank mux is fixed |
 | Highest verified stage | RTL functionally verified in simulation; timing measured and **still failing** at 50 MHz. Everything past netlist remains **BLOCKED** (memory macros, physical implementation, signoff) |
 | Deadline | unchanged: **2026-11-28T12:17:36Z** — not restarted |
 
