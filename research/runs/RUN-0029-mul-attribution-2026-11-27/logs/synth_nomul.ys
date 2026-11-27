@@ -1,0 +1,32 @@
+#==============================================================================
+# synth_has_soc.ys — gate-level netlist for path-based STA
+#
+# Template. scripts/eda/run_sta.js substitutes three tokens: the RTL
+# read_verilog line (built from rtl/filelist.f, the single source of truth for
+# the file set), the sky130_fd_sc_hd TT liberty path, and the output netlist
+# path; it then runs the result with Yosys.
+#
+# Mapping strategy: synth, structural mux2 map for the ROM mux tree (see
+# scripts/sta/mux2_map.v for why), abc -liberty -dff for logic and buffering,
+# then dfflibmap for the flops ABC returns. Isolation cells are excluded: they
+# are not functional logic and their SLEEP control has no data timing arc.
+#==============================================================================
+read_verilog -sv -Irtl/rtl_top rtl/rtl_top/has_addr_map.sv rtl/rtl_peripherals/clint.sv rtl/rtl_peripherals/plic.sv rtl/rtl_peripherals/gpio.sv rtl/rtl_peripherals/uart.sv rtl/rtl_peripherals/i2c_ctrl.sv rtl/rtl_peripherals/spi_ctrl.sv rtl/rtl_peripherals/pwm.sv rtl/rtl_peripherals/timer.sv rtl/rtl_peripherals/watchdog.sv rtl/rtl_peripherals/i2s.sv rtl/rtl_peripherals/power_mgr.sv rtl/rtl_peripherals/power_mgr_regs.sv rtl/rtl_peripherals/debug_jtag.sv rtl/rtl_peripherals/qspi_flash_ctrl.sv rtl/rtl_top/boot_rom.sv rtl/rtl_top/sram.sv rtl/rtl_top/sram_macro_wrap.sv rtl/rtl_top/tcm_macro_wrap.sv rtl/rtl_top/intc_axi.sv rtl/rtl_top/axi_lite_interconnect.sv rtl/rtl_top/axi_lite_to_apb.sv rtl/rtl_top/req_gnt_to_axi_lite.sv research/runs/RUN-0029-mul-attribution-2026-11-27/ablation/riscv_core_nomul.sv rtl/rtl_top/reset_ctrl.sv rtl/rtl_top/has_soc.sv 
+read_verilog rtl/blackbox/sky130_sram_macro_blackbox.v
+hierarchy -check -top has_soc
+synth -top has_soc -flatten
+techmap -map scripts/sta/mux2_map.v
+opt_clean
+# -dff keeps the flip-flops inside ABC's network. Without it every flop D pin
+# is a network output, ABC refuses to buffer a net feeding thousands of them,
+# and the netlist keeps a single driver on a 3000+ fanout / 11 pF net. -constr
+# enables ABC's buffer/upsize/dnsize steps.
+abc -liberty //wsl$/Ubuntu-24.04/root/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib -D 20000 -dff -constr scripts/sta/abc.constr \
+  -dont_use "sky130_fd_sc_hd__lpflow_*"
+dfflibmap -liberty //wsl$/Ubuntu-24.04/root/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+opt_clean
+setundef -zero
+techmap -map scripts/sta/mux2_map.v
+opt_clean
+stat
+write_verilog -noattr -noexpr build/sta/has_soc_gate_nomul.v

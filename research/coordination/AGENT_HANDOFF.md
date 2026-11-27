@@ -12,7 +12,26 @@ history; this file is the one document rewritten at session boundaries.
 ---
 
 ## STATUS (current)
-### Current override — 2026-11-27 (timing closure investigation, two steps)
+### Current override — 2026-11-28 (timing closure step 3: MUL attribution, negative)
+
+**Trust these fields first.** Report: `reports/TIMING_CLOSURE_2026-11-27.md` §10;
+runs: `research/runs/RUN-0027-timing-closure-2026-11-27/` (divider),
+`research/runs/RUN-0028-sram-bank-select-2026-11-27/` (bank select),
+`research/runs/RUN-0029-mul-attribution-2026-11-27/` (MUL attribution).
+
+| Field | Value |
+|---|---|
+| Baseline (unchanged) | **`09e2eaa`** — not rewritten, not force-pushed |
+| Timing | **STA FAILS.** WNS setup **−1.2141 ns**, TNS **−107.66 ns**, WNS hold **+0.2544 ns**, 3,594 registers. RUN-0029 changed no RTL, so these are RUN-0028's published numbers reproduced exactly (also on a name-sanitised and a bit-blasted netlist) |
+| RUN-0029 verdict | The residual 21.00 ns path is the closed **`pc → alu_a operand mux → ALU adder → mem_misaligned/exception → pc_next`** loop: startpoint flop `core.pc[2]`, endpoint flop `core.pc[31]`; 9.10 ns adder, 4.87 ns pc net, 4.48 ns alignment/exception, 1.59 ns pc_next, 0.65 ns operand mux. No multiply cell on it |
+| Ablations (same template/SDC/libs) | all three `prod_*` zeroed: WNS −1.8206 ns, TNS −1110.91 ns, 32,314 cells; one `prod_uu` kept: −2.2110 / −2289.03, 37,901 cells; `alu_add` zeroed: −1.2007 / −1051.42, 44,723 cells. Registers 3,594 in all |
+| MUL variants standalone | `probe/mul_probe.sv` at 20 ns: **PASS**, WNS +7.0887 ns, hold +0.5289 ns. MULHU is the slowest (three worst paths), ≈12.7 ns including c2q and setup; MUL/MULH/MULHSU faster |
+| Rank 1 remaining | The pc→ALU→exception→pc_next loop. A serialised or pipelined MUL would gain **nothing** and is not justified — do not spend the deadline on it. Next isolated change: parallel-prefix `alu_add`, and/or real buffering of the 86-load pc net |
+| Functional | Regression **30/30 PASS**, `tb_isa` 47/47 — unchanged, because RUN-0029 touched no RTL (`git diff -- rtl/` empty) |
+| Highest verified stage | RTL functionally verified in simulation; timing measured and **failing** at 50 MHz. Everything past netlist remains **BLOCKED** |
+| Deadline | unchanged: **2026-11-28T12:17:36Z** — not restarted |
+
+### Superseded — 2026-11-27 (timing closure investigation, two steps: RUN-0027/0028)
 
 **Trust these fields first.** Report: `reports/TIMING_CLOSURE_2026-11-27.md`;
 runs: `research/runs/RUN-0027-timing-closure-2026-11-27/` (divider) and

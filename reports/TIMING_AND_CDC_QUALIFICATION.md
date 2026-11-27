@@ -1,15 +1,20 @@
 # Timing and CDC qualification — constraints versus the implemented RTL
 
-> **Update 2026-11-27 (RUN-0027 → RUN-0028).** The `b5e0642` measurement below
-> is kept as the historical record. The worst path was first attributed to the
-> combinational M-extension divider in `riscv_core.sv`; moving DIV/REM to an
-> iterative state took WNS to **−8.4509 ns** and TNS to **−848.81 ns**. The
-> next Rank 1, the 64-deep SRAM bank read-data priority mux in
-> `sram_macro_wrap.sv`, was then replaced by an indexed select: WNS
+> **Update 2026-11-27 (RUN-0027 → RUN-0028 → RUN-0029).** The `b5e0642`
+> measurement below is kept as the historical record. The worst path was first
+> attributed to the combinational M-extension divider in `riscv_core.sv`;
+> moving DIV/REM to an iterative state took WNS to **−8.4509 ns** and TNS to
+> **−848.81 ns**. The next Rank 1, the 64-deep SRAM bank read-data priority mux
+> in `sram_macro_wrap.sv`, was then replaced by an indexed select: WNS
 > **−1.2141 ns**, TNS **−107.66 ns**, no endpoint below −5 ns, **30/30**
-> regression. 50 MHz still fails. Evidence:
+> regression. RUN-0029 then attributed the remaining 21.00 ns path end to end:
+> it is the single-cycle `pc → alu_a mux → ALU adder → mem_misaligned/exception
+> → pc_next` loop, **not** the multiplier (zeroing all three multipliers makes
+> WNS worse at −1.8206 ns, and MULHU alone needs ≈12.7 ns of a 19.79 ns
+> budget). RUN-0029 changed no RTL. 50 MHz still fails. Evidence:
 > `research/runs/RUN-0027-timing-closure-2026-11-27/`,
-> `research/runs/RUN-0028-sram-bank-select-2026-11-27/`; analysis:
+> `research/runs/RUN-0028-sram-bank-select-2026-11-27/`,
+> `research/runs/RUN-0029-mul-attribution-2026-11-27/`; analysis:
 > `reports/TIMING_CLOSURE_2026-11-27.md`.
 
 **Tested commit:** `b5e0642`

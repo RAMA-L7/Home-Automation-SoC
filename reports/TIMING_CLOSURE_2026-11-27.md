@@ -194,8 +194,8 @@ Limits of this result, stated so they cannot be mistaken for closure:
 | Rank | Bottleneck | Evidence | Fix (not done here) |
 |---|---|---|---|
 | 1 | ~~SRAM bank read-data select is a 64-deep priority mux chain (`sram_macro_wrap.sv`: `for (k…) if (rd_bank_q == k) rd_dout = dout0_bank[k];`)~~ **FIXED in RUN-0028** | Worst path before: ~60 cascaded `mux2`, 28.23 ns arrival, 96 endpoints, −752 ns. After: 6 `mux2`, the cluster is empty | Indexed select, §9 |
-| 1 (new) | Combinational arithmetic carry cone, WNS −1.2141 ns | §9.3: 57 cells, 23 `maj3`, no SRAM instance, 21.00 ns arrival | Characterise and pipeline/serialise the multiply (not done here) |
-| 2 | Residual −1…0 ns endpoints (509) | §9.2 histogram | Local sizing/pipelining once rank 1 lands |
+| 1 (new) | Single-cycle `pc → alu_a mux → ALU adder → mem_misaligned/exception → pc_next` loop, WNS −1.2141 ns. **Not the multiplier** | §10: startpoint `core.pc[2]`, endpoint `core.pc[31]`; 9.10 ns adder, 4.87 ns on the pc net, 4.48 ns alignment/exception, 1.59 ns pc_next select. Zeroing all three multipliers makes WNS worse (§10.2) | An explicit parallel-prefix adder and real buffering of the 86-load pc net, each as its own phase. A multiply change is not justified by this evidence |
+| 2 | 574 violating endpoints, 509 of them within 1 ns | §9.2 histogram, §10.2 | Distributed sizing; no single cone carries the deficit |
 | 3 | No clock tree (ideal clocks in STA) | SDC scope note | CTS in a real P&R flow |
 
 Rank 1 is a small, well-localised RTL change in a file this investigation did
@@ -261,9 +261,74 @@ The new worst path (21.0033 ns) is 57 cells of carry logic: 23 `maj3`, 6
 86 loads. That is an arithmetic adder cone. It is *consistent with* the
 combinational multiply being the next bottleneck, but this run did not prove
 that by ablation or by a MUL-only characterisation; the attribution is the
-first task of the next phase. **50 MHz still fails at WNS −1.2141 ns.**
+first task of the next phase. That attribution is done in §10: the cone is the
+ALU adder inside the `pc → pc_next` loop, and the multiplier is exonerated.
+**50 MHz still fails at WNS −1.2141 ns.**
 
-## 10. Evidence index
+## 10. RUN-0029 — MUL attribution: the multiplier is not the next bottleneck
+
+Run: `research/runs/RUN-0029-mul-attribution-2026-11-27/`. **No RTL changed**
+(`git diff -- rtl/` is empty); this phase was attribution only.
+
+### 10.1 The path, resolved to RTL
+
+RUN-0028 §9.3 could only say the multiply was *consistent with* the 21.0033 ns
+path. Re-mapping the same RTL with `src` attributes kept the escaped bus names
+in the netlist, so the path resolves end to end:
+
+| Segment | Arrival (ns) | Cost (ns) | RTL anchor |
+|---|---:|---:|---|
+| Clock-to-Q, `core.pc[2]` | 0.3109 | 0.31 | `pc` flop `_64744_` |
+| Two `clkbuf_1` on the pc net | 5.1793 | 4.87 | 86-pin aggregate net |
+| `alu_a` operand mux | 5.8333 | 0.65 | `assign alu_a = … ? pc : rs1_val;` |
+| 23-cell `maj3` carry chain | 14.9313 | 9.10 | `assign alu_add = alu_a + alu_b;` |
+| Alignment / exception muxing | 19.4129 | 4.48 | `assign mem_misaligned = … alu_out[1:0] …` |
+| `pc_next` select to D | 21.0033 | 1.59 | `assign pc_next = (opcode == OP_JAL) ? …` |
+
+The endpoint flop `_66077_` holds `core.pc[31]`. The path is therefore a closed
+**pc → pc_next** combinational loop: operand mux, ALU adder, address-alignment
+decision, exception selection and the pc mux all inside one clock period. There
+is no multiply cell anywhere on it (23 `maj3`, 6 `mux2`, 5 `clkbuf_1`).
+
+### 10.2 Ablations (same template, same SDC, same libraries)
+
+| Variant | WNS | TNS | Cells | Registers |
+|---|---:|---:|---:|---:|
+| Baseline `83b7e01` | −1.2141 | −107.66 | 44,252 | 3,594 |
+| All three `prod_*` zeroed | −1.8206 | −1110.91 | 32,314 | 3,594 |
+| Only `prod_uu` kept | −2.2110 | −2289.03 | 37,901 | 3,594 |
+| `alu_add` zeroed | −1.2007 | −1051.42 | 44,723 | 3,594 |
+
+Removing all three multipliers deletes 11,938 cells and makes timing **worse**;
+keeping one of three buys area and nothing else (the three products are
+parallel, so their depth is the depth of one). The `alu_add` ablation leaves
+WNS essentially unchanged while TNS degrades tenfold, which shows the residual
+deficit is distributed over hundreds of near-critical endpoints, not carried by
+any single removable cone — ABC re-partitions and the maximum simply moves.
+
+### 10.3 The four variants, measured standalone
+
+`probe/mul_probe.sv` registers operands and results around each product and is
+mapped and timed with the same flow (`probe/probe.sdc`, 20 ns): **PASS**, setup
+WNS +7.0887 ns, hold +0.5289 ns. The three worst paths all terminate in
+`mulhu_uu` — MULHU is the slowest variant at ≈12.7 ns including clock-to-Q and
+setup, i.e. about 7 ns of margin at 50 MHz. MUL, MULH and MULHSU are faster.
+
+So even the worst multiply variant would pass on its own. The core fails
+because of the loop in §10.1, not because of arithmetic width.
+
+### 10.4 What this rules out
+
+A serialised or pipelined MUL — the obvious next step had the hypothesis held —
+would have cost ISA-retirement risk and changed the core's latency for **zero**
+timing gain. That work is not started, and should not be, on this evidence.
+Two flow checks were also run and rejected: a name-sanitised netlist and a
+correctly bit-blasted `core.pc` both reproduce −1.2141488158527418 /
+−107.65510743128912 exactly, so the flow and the 4.87 ns pc-net cost are real.
+An earlier bit-blast that left part-selects dangling reported +0.7128 ns; it is
+recorded in the run README (§7) as a rejected experiment, not a result.
+
+## 11. Evidence index
 
 `research/runs/RUN-0027-timing-closure-2026-11-27/`
 
@@ -279,5 +344,6 @@ first task of the next phase. **50 MHz still fails at WNS −1.2141 ns.**
   published core it was compared against
 * `artifacts/has_soc_gate_prefix.v.gz` — archived baseline netlist
 
-Follow-up run: `research/runs/RUN-0028-sram-bank-select-2026-11-27/` (bank
-select, §9).
+Follow-up runs: `research/runs/RUN-0028-sram-bank-select-2026-11-27/` (bank
+select, §9) and `research/runs/RUN-0029-mul-attribution-2026-11-27/` (MUL
+attribution, §10 — negative result, no RTL change).

@@ -1,0 +1,36 @@
+===== riscv_core_nomul.sv vs rtl/rtl_top/riscv_core.sv
+@@ -224,9 +224,9 @@
+   wire is_div   = is_m_ext && funct3[2];       // DIV/DIVU/REM/REMU
+ 
+   logic [XLEN-1:0] mul_result;
+-  wire [63:0] prod_ss = $signed(rs1_val) * $signed(rs2_val);
+-  wire [63:0] prod_su = $signed(rs1_val) * $signed({1'b0, rs2_val});
+-  wire [63:0] prod_uu = rs1_val * rs2_val;
++  wire [63:0] prod_ss = 64'b0; // ABLATION
++  wire [63:0] prod_su = 64'b0; // ABLATION
++  wire [63:0] prod_uu = 64'b0; // ABLATION
+ 
+   always_comb begin
+     case (funct3)
+===== riscv_core_uuonly.sv vs rtl/rtl_top/riscv_core.sv
+@@ -224,8 +224,8 @@
+   wire is_div   = is_m_ext && funct3[2];       // DIV/DIVU/REM/REMU
+ 
+   logic [XLEN-1:0] mul_result;
+-  wire [63:0] prod_ss = $signed(rs1_val) * $signed(rs2_val);
+-  wire [63:0] prod_su = $signed(rs1_val) * $signed({1'b0, rs2_val});
++  wire [63:0] prod_ss = 64'b0; // ABLATION
++  wire [63:0] prod_su = 64'b0; // ABLATION
+   wire [63:0] prod_uu = rs1_val * rs2_val;
+ 
+   always_comb begin
+===== riscv_core_noadd.sv vs rtl/rtl_top/riscv_core.sv
+@@ -165,7 +165,7 @@
+   // Hoisting each result into a typed wire removes the ambiguity.
+   wire signed [XLEN-1:0] alu_a_signed = alu_a;
+   wire signed [XLEN-1:0] alu_b_signed = alu_b;
+-  wire [XLEN-1:0] alu_add = alu_a + alu_b;
++  wire [XLEN-1:0] alu_add = '0; // ABLATION: removes the ALU carry chain
+   wire [XLEN-1:0] alu_sub = alu_a - alu_b;
+   wire [XLEN-1:0] alu_sll = alu_a << shamt;
+   wire [XLEN-1:0] alu_sra = alu_a_signed >>> shamt;

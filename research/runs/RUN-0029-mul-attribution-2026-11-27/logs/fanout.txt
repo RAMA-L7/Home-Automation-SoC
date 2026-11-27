@@ -1,0 +1,11 @@
+named nets with the highest fanout:
+  \core.state [4]          85
+  \apb_bridge.wdata_q [0]  72
+  \core.shamt [1]          70
+  \core.shamt [0]          65
+  \core.shamt [2]          63
+  \core.shamt [3]          59
+  \axi_ic.txn_sel [0]      40
+  \tcm_inst.u_tcm.w_have_q  37
+max fanout overall: 85
+nets with fanout >= 40: 14

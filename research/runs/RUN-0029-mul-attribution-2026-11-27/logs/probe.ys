@@ -1,0 +1,13 @@
+read_verilog -sv research/runs/RUN-0029-mul-attribution-2026-11-27/probe/mul_probe.sv
+hierarchy -check -top mul_probe
+synth -top mul_probe -flatten
+techmap -map scripts/sta/mux2_map.v
+opt_clean
+abc -liberty //wsl$/Ubuntu-24.04/root/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib -D 20000 -dff -constr scripts/sta/abc.constr -dont_use "sky130_fd_sc_hd__lpflow_*"
+dfflibmap -liberty //wsl$/Ubuntu-24.04/root/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+opt_clean
+setundef -zero
+techmap -map scripts/sta/mux2_map.v
+opt_clean
+stat
+write_verilog -noattr -noexpr build/sta/mul_probe_gate.v

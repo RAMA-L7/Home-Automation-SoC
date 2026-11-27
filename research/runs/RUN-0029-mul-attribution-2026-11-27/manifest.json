@@ -1,0 +1,141 @@
+{
+  "run": "RUN-0029-mul-attribution-2026-11-27",
+  "date_utc": "2026-11-27T17:45Z/2026-11-28T00:15Z",
+  "purpose": "Prove or refute that the 21.00 ns residual critical path is the RV32M multiplier cone, then characterise all four variants.",
+  "verdict": "REFUTED. The path is the single-cycle pc -> alu_a mux -> ALU adder -> mem_misaligned/exception -> pc_next loop. No RTL changed.",
+  "baseline_commit": "83b7e01",
+  "tools": {
+    "yosys": "0.69+154",
+    "opensta": "3.1.0",
+    "pdk": "sky130A volare 0fe599b2afb6708d281543108caf8310912f54af",
+    "lib": "sky130_fd_sc_hd__tt_025C_1v80"
+  },
+  "inputs": {
+    "rtl/rtl_top/riscv_core.sv": "d48f839decf7df83e1eb0377e6452df74fbbd0b0ca9a77818f47d748b7762057",
+    "rtl/rtl_top/sram_macro_wrap.sv": "d5273edc78dab85d3bc90467e263e28562f6e8ffa1ed3422d17610dd8b7a862f",
+    "constraints/timing_constraints/has_soc.sdc": "6abd7b41c262b9d3cb32e7c6beafdf28bd4cf11bec8961e6027c0fabce21c80c",
+    "scripts/sta/synth_has_soc.ys": "10f8bc100559c37bf822508bf1d48c1169571b30d805640def472d9541be2fdb",
+    "scripts/sta/abc.constr": "5f266bba57db3b2d3d9c05cb1b6714fca907eee2b49779250e57af29d4a1378c",
+    "scripts/sta/has_soc_sta.tcl": "181678a4e6082563429ee9a41179e1172348537fe66d17100ec7ca47331b660e"
+  },
+  "ablations": [
+    {
+      "tag": "nomul",
+      "source": "research/runs/RUN-0029-mul-attribution-2026-11-27/ablation/riscv_core_nomul.sv",
+      "source_sha256": "d3ac707eeb7da6aa95dca2c1d3c0f1c6a2deee844eaa9e4524e543d18f6e612a",
+      "netlist_sha256": "541da38dd24f0251a2c75204a2323e1f37fabfea86019581746ea90db0548926",
+      "cells": 32314,
+      "wns_ns": -1.8205935052617357,
+      "tns_ns": -1110.9098382305087
+    },
+    {
+      "tag": "uuonly",
+      "source": "research/runs/RUN-0029-mul-attribution-2026-11-27/ablation/riscv_core_uuonly.sv",
+      "source_sha256": "762d95d3b39e3768a2c95c030aacd95e06e812578563f63618054bbca6eac545",
+      "netlist_sha256": "32e7a7b7fa46bcbd9c42228ddfd9a878d6c9b2cb5791547b3db854920927ca43",
+      "cells": 37901,
+      "wns_ns": -2.210967471685704,
+      "tns_ns": -2289.0324736913217
+    },
+    {
+      "tag": "noadd",
+      "source": "research/runs/RUN-0029-mul-attribution-2026-11-27/ablation/riscv_core_noadd.sv",
+      "source_sha256": "422c2ac4674c106161fef05a8b6761eaa347ecdab12374ee0746d9ade5ee6ff9",
+      "netlist_sha256": "1501ceddf8e3a24574f8938b1bbeeeb65860db27cedee887c56abb45189c8980",
+      "cells": 44723,
+      "wns_ns": -1.200676925201719,
+      "tns_ns": -1051.4167185603426
+    }
+  ],
+  "flow_checks": [
+    {
+      "tag": "sanitized",
+      "netlist_sha256": "d38724d8bcb63ffbda4de825525c28082409e11c2ad6c80ae67de1e7a5e8639a",
+      "wns_ns": -1.2141488158527418,
+      "tns_ns": -107.65510743128912,
+      "note": "plain identifiers, no escaped names: identical to baseline"
+    },
+    {
+      "tag": "pcb2x",
+      "netlist_sha256": "ab5af2cfeffa338b06f0b191d7a1ebc91b6b0dfb866cabd438ba2709541f2178",
+      "wns_ns": -1.2141488158527418,
+      "tns_ns": -107.65510743128912,
+      "note": "core.pc bit-blasted with part-selects expanded: identical to baseline"
+    },
+    {
+      "tag": "pcb",
+      "netlist_sha256": "49e021c43c4810c6c68d4f21a3191b63a1f7e75c480755d338086140d51a4dd6",
+      "wns_ns": 0.7128378089570354,
+      "note": "INVALID: first bit-blast left part-selects dangling; kept only as a negative control"
+    }
+  ],
+  "probe": {
+    "source": "research/runs/RUN-0029-mul-attribution-2026-11-27/probe/mul_probe.sv",
+    "sdc": "research/runs/RUN-0029-mul-attribution-2026-11-27/probe/probe.sdc",
+    "netlist_sha256": "7c2ed6a5768a887a17126c2dcf9f73d459168c796728d7cf54054005604396f3",
+    "wns_setup_ns": 7.0887351328642785,
+    "wns_hold_ns": 0.5288996057486905,
+    "result": "PASS",
+    "worst_variant": "MULHU"
+  },
+  "baseline_reproduced": {
+    "netlist_sha256": "05d4ecd8aeed6af507154ce608d67b74f73da417dca5af0d4d1cd01f40d5cdbb",
+    "wns_ns": -1.2141488158527418,
+    "tns_ns": -107.65510743128912,
+    "registers": 3594
+  },
+  "critical_path": {
+    "arrival_ns": 21.0033,
+    "cells": 57,
+    "maj3": 23,
+    "mux2": 6,
+    "clkbuf_1": 5,
+    "startpoint": "_64744_ Q=core.pc[2]",
+    "endpoint": "_66077_ D=core.pc[31]",
+    "segments_ns": {
+      "c2q": 0.3109,
+      "pc_net_buffers": 4.8684,
+      "alu_a_mux": 0.654,
+      "alu_adder_chain": 9.098,
+      "align_exception": 4.4816,
+      "pc_next_select": 1.5904
+    }
+  },
+  "files": {
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/README.md": "f7b81790ec7116e6d5273d5b28074340329de67a0eaaabbc96f32b13adeb63db",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/ablation/riscv_core_noadd.sv": "422c2ac4674c106161fef05a8b6761eaa347ecdab12374ee0746d9ade5ee6ff9",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/ablation/riscv_core_nomul.sv": "d3ac707eeb7da6aa95dca2c1d3c0f1c6a2deee844eaa9e4524e543d18f6e612a",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/ablation/riscv_core_uuonly.sv": "762d95d3b39e3768a2c95c030aacd95e06e812578563f63618054bbca6eac545",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/bitblast_bus.py": "b347fe4198a65f9a14ebce6f3d1698ac8687ccd9536179b9cb2fa5a725bcdb9b",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/logs/ablation_diffs.txt": "ac8d5bd23a5272c11d61039b8835bb2e49663b74145d0f2dba14526064d152d0",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/logs/fanout.txt": "ff804ab66ddd4329dd93dbae23a3395bb2b6b8948eb5c53dcb7a85a34e2fbaa4",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/logs/net_probe.log": "9b4a0213672d18121df2cf4823875524edd4477801486adc3fbda8c1f323d815",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/logs/net_probe.tcl": "8ce3a3f02157a457c150c2961a8c1323b108719f7f6e116a133301c5552e57c9",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/logs/path_breakdown.txt": "4361dc11c57eb6a5c3cb99650a38b842a658c682376ed14a26c9f0556dc470c5",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/logs/probe.ys": "aed1e40b53622e796329dfe1f0e942af8368c97443122d6c9e31e768626993e9",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/logs/probe_synth.log": "39e946115a93f37b2b6c08374da2a58442867204280596beef431c0bdd3d47bc",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/logs/sta_noadd.log": "c01bd705cb2143e329a872ed588fdfddb87408e58f6426def5d81cc776472df4",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/logs/sta_nomul.log": "15f6058cb81b5b86ae581cc0a3ce02ddf005eeccaf573cbd7429a3d74e630fbd",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/logs/sta_pcb.log": "c9cf7879b893a045c09f7fabba6f1cfdaee585153b931b767c2af81e24275bcc",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/logs/sta_pcb2x.log": "237809975e4604dd2734b666d02a8d7c4c1120a115438d7adebf8cded7056552",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/logs/sta_probe.log": "aebe61361d9c18b38e302e6a4c0a21d365fa00b1d03b3e2941bd01f3e387284f",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/logs/sta_sanitized.log": "aa0a7ee0005ab38bb355155b3463f70712956178de98ca4c9ab457f285a3734f",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/logs/sta_uuonly.log": "b8e597bb099310b3c0717dd467b679f36af9889b6da6bd6c883c8f8b60f10045",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/logs/synth_noadd.log.gz": "2f2912687aba254d514e932ca6fbd60e2c401fc854a67af2636384d75acc36b6",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/logs/synth_noadd.ys": "2c013e6fe78c3a56d2dee7a5be78cf2d20a5b6e75b44a8103d9b9d1610bfc2b4",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/logs/synth_nomul.log.gz": "8cbe15ecec214c949cbac37e4eecc7eb44e8610614392845648ab3f2d7cb377a",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/logs/synth_nomul.ys": "f6292479ef89bba5ea987ef42445f9acb11255b806a14ca0659fc25141a27432",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/logs/synth_srcattr.log.gz": "285b3628dec547aa0f9f0bf0a866b0e17ee735b82eb5e253e6749cd45269eaf4",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/logs/synth_srcattr.ys": "127ee1cc8b9cb4b27ded656990d5bd76cf65c8611dda1220261db488ca3de7f6",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/logs/synth_uuonly.log.gz": "1dd0a9cc0fdb753b05aa07cdd0b78477ffceac8f6c1d05db3e169a755aa6aa9d",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/logs/synth_uuonly.ys": "058db0380344da60176ce09194d720a30668505075bfd3fb09ed22941f2c603f",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/make_manifest.py": "356c2ef82f6d5fd4c83d577b5a94f6e13a021e0013435d7ef6c3646722509d26",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/probe/mul_probe.sv": "e3bece0accbb770e1ec3b7f3e334b450286f5ebf73c2fccf609a58292d322e8d",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/probe/probe.sdc": "b46b4aeabef56474ec97ac809186d182cf30e9f721597168ee32c18df2e15209",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/probe_net.sh": "c962cdcb348189f32b2c9cb32b0a9ac39b2ca3d44715e2b5e2f8bbb7c2c83a00",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/probe_sta.sh": "ab8dc9f3817c8bf876b46de5e5f3d553a615feeb101dc876d20b701535d3536d",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/run_synth_sta.sh": "ca55e68cf5328ec2bfe3f426f9258e68b897f3202ac5f9e85782530675f5ad0c",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/sanitize_names.py": "a7207b7eb5a2986e75d713f6c887a9ff24443c3029e6584a9900aaa9935853af",
+    "research/runs/RUN-0029-mul-attribution-2026-11-27/sta_only.sh": "3bf4d77a01322416ea442f2b7e7e2e3121ca1dc036d398250e4e98ddb185737e"
+  }
+}

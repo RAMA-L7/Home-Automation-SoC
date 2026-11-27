@@ -975,3 +975,41 @@ manifest or clean-checkout work was reopened.
 - **Files changed:** `rtl/rtl_top/sram_macro_wrap.sv`, `README.md`, `AGENTS.md`,
   `reports/{TIMING_CLOSURE_2026-11-27,TIMING_AND_CDC_QUALIFICATION}.md`,
   `research/coordination/*`, `research/runs/RUN-0028-sram-bank-select-2026-11-27/`.
+
+## 2026-11-28 00:11 IST (2026-11-27T18:41Z) — complete — RUN-0029 MUL attribution (negative result)
+
+Buffy (DeepSeek V4.1 Flash). No start block was logged separately; the session
+ran continuously. No RTL was changed in this phase.
+
+- Question carried over from RUN-0028 §9.3: is the 21.00 ns residual path the
+  combinational M-extension multiply?
+- Resolved the path end to end by re-mapping with `src` attributes so the
+  escaped bus names survive in the netlist: startpoint flop `_64744_`
+  (`core.pc[2]`) → two `clkbuf_1` on the pc net → `alu_a` operand mux → 23-cell
+  `maj3` adder (`alu_add`) → `core.alu_out[0]` → `mem_misaligned`/exception →
+  `pc_next` select → endpoint flop `_66077_` (`core.pc[31]`).
+  Segments: 0.31 c2q, 4.87 pc net, 0.65 mux, 9.10 adder, 4.48 exception,
+  1.59 pc_next. No multiply cell anywhere on the path.
+- Ablations (same template, SDC and libraries): all three `prod_*` zeroed →
+  WNS −1.8206 / TNS −1110.91 (32,314 cells); only `prod_uu` kept → −2.2110 /
+  −2289.03 (37,901 cells); `alu_add` zeroed → −1.2007 / −1051.42 (44,723
+  cells). Registers 3,594 in every variant. Removing the multiply makes timing
+  worse; the deficit is distributed, not carried by one cone.
+- Standalone probe (registered operands/results, 20 ns, same flow): **PASS**,
+  WNS +7.0887 ns, hold +0.5289 ns. The three worst paths are all MULHU, i.e.
+  the slowest variant needs ≈12.7 ns of a 19.79 ns budget; MUL/MULH/MULHSU are
+  faster.
+- Flow checks: a name-sanitised netlist and a correctly bit-blasted `core.pc`
+  reproduce −1.2141488158527418 / −107.65510743128912 exactly. An earlier
+  bit-blast that left part-selects dangling reported +0.7128 ns; it is rejected
+  and recorded as a negative control, not as a result.
+- Verdict: the multiplier is exonerated; a serialised or pipelined MUL would
+  cost ISA-retirement risk for no timing gain. 50 MHz still fails at
+  −1.2141 ns with the RUN-0027/0028 numbers unchanged.
+- Recommended next isolated phases: a parallel-prefix `alu_add`, and real
+  buffering of the 86-load pc net — then re-measure; anything that changes when
+  `pc` updates is architectural and needs retirement semantics tested.
+- Files: `research/runs/RUN-0029-mul-attribution-2026-11-27/`,
+  `reports/TIMING_CLOSURE_2026-11-27.md` §10,
+  `reports/TIMING_AND_CDC_QUALIFICATION.md`, `README.md`, `AGENTS.md`,
+  `research/coordination/*`.
