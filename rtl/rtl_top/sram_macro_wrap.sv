@@ -431,13 +431,18 @@ module sram_macro_wrap #(
   // Select the matching bank's DOUT one cycle after the access.
   logic [MACRO_DW-1:0] rd_dout, ir_dout;
 
+  // Indexed selection, not a priority chain.  The previous loop compared the
+  // captured bank against every constant and kept the last match, which
+  // synthesis turned into a NUM_MACROS-deep 2:1 mux chain: at 64 banks that was
+  // ~60 cascaded mux2 and 28.2 ns of the post-divider critical path.  Indexing
+  // the arrays lets Yosys build a log2(NUM_MACROS)-level select (6 levels for
+  // 64 banks).  The bounds test preserves the old behaviour for an out-of-range
+  // or X captured bank ('0'), which the chain produced by matching nothing.
   always_comb begin
     rd_dout = '0;
     ir_dout = '0;
-    for (int k = 0; k < NUM_MACROS; k++) begin
-      if (rd_bank_q == k[BANK_AW-1:0]) rd_dout = dout0_bank[k];
-      if (ir_bank_q == k[BANK_AW-1:0]) ir_dout = dout1_bank[k];
-    end
+    if (rd_bank_q < NUM_MACROS) rd_dout = dout0_bank[rd_bank_q];
+    if (ir_bank_q < NUM_MACROS) ir_dout = dout1_bank[ir_bank_q];
   end
 
   // RDATA hold under RVALID && !RREADY (macro drives DOUT for one cycle; a stalled master
