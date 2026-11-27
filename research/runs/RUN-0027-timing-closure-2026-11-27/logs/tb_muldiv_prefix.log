@@ -1,0 +1,9 @@
+variant: prefix
+src_sha256: e8e46c9aded0d99bce1dfd68b4aa57d15604416a23c3789c5efe18e6c6783710
+utc: 2026-11-27T16:49:11Z
+compile_exit=0
+=== M-extension signed divide/remainder check ===
+[muldiv] checks: 10, failures: 0
+[muldiv] RESULT: PASS
+research/runs/RUN-0027-timing-closure-2026-11-27/tb_muldiv_sign.v:158: $finish called at 40190000 (1ps)
+run_exit=0

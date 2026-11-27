@@ -1,0 +1,175 @@
+{
+  "run": "RUN-0027-timing-closure-2026-11-27",
+  "created_utc": "2026-11-27T17:04:39Z",
+  "source_commit": "a4efa4e",
+  "head_at_manifest": "a4efa4e71df7dc2c6b89b44cf95d2e3741604154",
+  "worktree_dirty": true,
+  "notes": "Timing closure investigation. Critical path attributed to the combinational M-extension divider; DIV/REM moved to an iterative S_DIV state, MUL unchanged. One optimization, before/after STA on the same SDC and corner, full regression, and the negative 909-fanout intermediate run preserved.",
+  "commands": [
+    "node scripts/eda/run_sta.js --verbose => exit 1 (WNS -8.4509 ns, TNS -848.81 ns; timing still fails)",
+    "wsl bash run_analysis.sh prefix/postfix 3000 => exit 0",
+    "iverilog+vvp tb_isa => 47/47 PASS (marker, exit 0)",
+    "iverilog+vvp tb_muldiv_sign on prefix and postfix cores => 10/10 each",
+    "node scripts/eda/run_regression.js => PASS 30/30, exit 0"
+  ],
+  "tools": {
+    "iverilog": "Icarus Verilog version 14.0 (devel) (s20260301-500-g2e81fcccb-dirty)",
+    "yosys": "Yosys 0.69+154 (git sha1 30d62572e-dirty, Release, GNU /usr/bin/x86_64-w64-mingw32-g++ 15.2.1)",
+    "node": "v26.7.0",
+    "python": "Python 3.10.11 (D:\\tools\\venv\\Scripts\\python.exe)",
+    "tclsh": "8.6.17",
+    "opensta": "3.1.0 (via wsl: /mnt/d/tools/opensta/build/sta)"
+  },
+  "paths": {
+    "PATH_head": [
+      "C:\\Program Files\\Git\\mingw64\\bin",
+      "C:\\Program Files\\Git\\usr\\bin",
+      "C:\\Users\\91846\\bin",
+      "C:\\WINDOWS\\system32",
+      "C:\\WINDOWS",
+      "C:\\WINDOWS\\System32\\Wbem"
+    ]
+  },
+  "files": [
+    {
+      "path": "artifacts/has_soc_gate_prefix.v.gz",
+      "bytes": 873950,
+      "sha256": "d69a6837bbcc515d704483fc6b1a82cf248f5232c3249c62bb5f4aea349515a7"
+    },
+    {
+      "path": "commands.jsonl",
+      "bytes": 4080,
+      "sha256": "67e961e3d29ebb3e6759b12d6399d0103da30601f5ec3cc37d7939868532706c"
+    },
+    {
+      "path": "logs/cluster_summary.txt",
+      "bytes": 526,
+      "sha256": "cf87315cadf589922af6204d1508124396bf620126a8157729dcc8aa0754649d"
+    },
+    {
+      "path": "logs/inputs_before.sha256",
+      "bytes": 200,
+      "sha256": "f11829a96865f025a8adc1c7c716dac75b0bc7b36bd813258c2df0149726e5d0"
+    },
+    {
+      "path": "logs/postfix/analysis.log",
+      "bytes": 833,
+      "sha256": "3316600a667ae507d3397340a5674447de52bdb444f15299baf0d0907d9a957f"
+    },
+    {
+      "path": "logs/postfix/design_rules.rpt",
+      "bytes": 229546,
+      "sha256": "63dea9d96d44a98ebad9f8ff3988ea581ae6ca801716f2ecd3cc9b611c88d529"
+    },
+    {
+      "path": "logs/postfix/paths_hold.rpt",
+      "bytes": 221492,
+      "sha256": "4e49dfc42b5ec3ae8252c299727ab78a6d457fb0b218c9efbaec8141017f1156"
+    },
+    {
+      "path": "logs/postfix/paths_setup.rpt",
+      "bytes": 272562,
+      "sha256": "9384c7f9be6b40aa0188e1828c53d31992d416b0a123f03250fc0361f3008cbf"
+    },
+    {
+      "path": "logs/postfix/paths_setup_top50.json",
+      "bytes": 1683892,
+      "sha256": "f4074dafa8f77b1420bc895e264161775e49bdb459451191232de35fbd246d2f"
+    },
+    {
+      "path": "logs/postfix/paths_unconstrained.rpt",
+      "bytes": 1197,
+      "sha256": "e1987bb5a84d19c39a7172674ec469d0828d43d41f0b2ff0ac21f88f2c33bc94"
+    },
+    {
+      "path": "logs/postfix/run.txt",
+      "bytes": 417,
+      "sha256": "77970bc522dda79d6175bff01d9d212a4c4c1ab2c8dce1b47bc86d9c0a14ad18"
+    },
+    {
+      "path": "logs/prefix/analysis.log",
+      "bytes": 833,
+      "sha256": "0fc945ab038af7646cf7972c6aa16a11cbc7a1262f95bccf650cdd3fd542c19f"
+    },
+    {
+      "path": "logs/prefix/design_rules.rpt",
+      "bytes": 279462,
+      "sha256": "7b0c8e300d1321bf877034736a045299b457da96a64ba088c7a6f1e496e41534"
+    },
+    {
+      "path": "logs/prefix/paths_hold.rpt",
+      "bytes": 224828,
+      "sha256": "af1b80b97041145d82c8d816e1089a385ef626d8f2dea53c51fc9eabdcf93108"
+    },
+    {
+      "path": "logs/prefix/paths_setup.rpt",
+      "bytes": 281630,
+      "sha256": "5e089114be4275dde3fa99c7fff663f3cfe15937ef3bdd8de99f55eedf01a95b"
+    },
+    {
+      "path": "logs/prefix/paths_unconstrained.rpt",
+      "bytes": 1199,
+      "sha256": "37d78005f01a86e4e4bf1dce1d2830a7bc734a40357eb9bfa1e2fba8cd55c116"
+    },
+    {
+      "path": "logs/prefix/run.txt",
+      "bytes": 422,
+      "sha256": "fa8a181b3a42a32d6e60311ee7c64f49e5675b8ca1dea69456449804e39a23e7"
+    },
+    {
+      "path": "logs/regression_postfix.txt",
+      "bytes": 2589,
+      "sha256": "dfe15b10b89a0dd7cffc99b1a49d19e7f4b5c33bdd3441ece181152d2a48b2bc"
+    },
+    {
+      "path": "logs/sta_postfix_v1_full.log",
+      "bytes": 28716,
+      "sha256": "1413550f0714aa370d0c7829a81e77296bbd21206924fd4f2d76318fe9daf6a8"
+    },
+    {
+      "path": "logs/sta_postfix_v1_netlist.sha256",
+      "bytes": 94,
+      "sha256": "0e6c9f8740f8a45d87b0d496244c9abd1d3b80803cd66deeae691b5f8e30b2a0"
+    },
+    {
+      "path": "logs/sta_postfix_v2_run.txt",
+      "bytes": 58953,
+      "sha256": "bfc1b854e06a408f8e3399c0de3e12f60cd3e7328a2810888e43edfe7be6d50c"
+    },
+    {
+      "path": "logs/tb_isa_postfix.log",
+      "bytes": 344,
+      "sha256": "6b7ce46f37a2abfafc4e66926f061d457f83a6805db572f618cc25c54547a710"
+    },
+    {
+      "path": "logs/tb_muldiv_postfix.log",
+      "bytes": 355,
+      "sha256": "c1a0603ac8b89dadf18a73c6acbab69ca79e43eb754545b142ea8e51a9878fd9"
+    },
+    {
+      "path": "logs/tb_muldiv_prefix.log",
+      "bytes": 354,
+      "sha256": "afb37dea39771668f4cb31e2a55526e5ef777f5195ad353e80d1a056b25771e8"
+    },
+    {
+      "path": "prefix_rtl/riscv_core.sv",
+      "bytes": 30726,
+      "sha256": "e8e46c9aded0d99bce1dfd68b4aa57d15604416a23c3789c5efe18e6c6783710"
+    },
+    {
+      "path": "README.md",
+      "bytes": 6519,
+      "sha256": "a4892c3d3f17d558e160fee81a8d24fc2ef2fdff0ecac08702d339936f5cee26"
+    },
+    {
+      "path": "run_analysis.sh",
+      "bytes": 1633,
+      "sha256": "9affcb2da8709a242e516c3004fc23877a10a20e12926b43e635df7c5ed15d42"
+    },
+    {
+      "path": "tb_muldiv_sign.v",
+      "bytes": 6272,
+      "sha256": "388e7380346243c7a14a2f1304ae01f43e823329e2d401841fb6c7912ced3438"
+    }
+  ]
+}

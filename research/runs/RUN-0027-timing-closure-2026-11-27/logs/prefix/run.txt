@@ -1,0 +1,10 @@
+start_utc=2026-11-27T16:45:47Z
+tag=prefix
+netlist=/mnt/d/Home-Automation-SoC/build/sta/has_soc_gate_prefix.v
+netlist_sha256=f9cdd8338c12a22fc35b3433eb68f0c4dfeb589326d4090c8ff67d07eba7252b
+sdc_sha256=6abd7b41c262b9d3cb32e7c6beafdf28bd4cf11bec8961e6027c0fabce21c80c
+sta_version=3.1.0
+paths=3000
+out=/mnt/d/Home-Automation-SoC/research/runs/RUN-0027-timing-closure-2026-11-27/logs/prefix
+exit=0
+end_utc=2026-11-27T16:45:57Z

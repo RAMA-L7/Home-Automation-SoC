@@ -1,0 +1,10 @@
+ANALYSIS-CLOCKS=2
+ANALYSIS-REGISTERS=3422
+wns max -106.48
+tns max -104736.49
+ANALYSIS: writing 3000 setup paths to /mnt/d/Home-Automation-SoC/research/runs/RUN-0027-timing-closure-2026-11-27/logs/prefix/paths_setup.rpt
+ANALYSIS: writing top 50 setup paths (json) to /mnt/d/Home-Automation-SoC/research/runs/RUN-0027-timing-closure-2026-11-27/logs/prefix/paths_setup_top50.json
+ANALYSIS: writing 3000 hold paths to /mnt/d/Home-Automation-SoC/research/runs/RUN-0027-timing-closure-2026-11-27/logs/prefix/paths_hold.rpt
+ANALYSIS: writing unconstrained paths to /mnt/d/Home-Automation-SoC/research/runs/RUN-0027-timing-closure-2026-11-27/logs/prefix/paths_unconstrained.rpt
+ANALYSIS: writing design-rule violations to /mnt/d/Home-Automation-SoC/research/runs/RUN-0027-timing-closure-2026-11-27/logs/prefix/design_rules.rpt
+ANALYSIS-DONE

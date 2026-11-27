@@ -1,0 +1,8 @@
+cmd: iverilog -g2012 -o build/sim/tb_isa_final.vvp -s tb_isa sim/sim_top/tb_isa.v rtl/rtl_top/riscv_core.sv && vvp build/sim/tb_isa_final.vvp
+utc: 2026-11-27T16:49:10Z
+compile_exit=0
+=== HAS-SoC directed RV32IM test ===
+[isa] checks: 47, failures: 0
+[isa] RESULT: PASS
+sim/sim_top/tb_isa.v:338: $finish called at 160190000 (1ps)
+run_exit=0

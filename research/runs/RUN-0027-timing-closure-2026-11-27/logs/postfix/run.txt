@@ -1,0 +1,10 @@
+start_utc=2026-11-27T16:45:57Z
+tag=postfix
+netlist=/mnt/d/Home-Automation-SoC/build/sta/has_soc_gate.v
+netlist_sha256=16d833870fb7fefbe6a7f54c7c0b05a6fa622618f2cf8555b54dc1c18fa45af8
+sdc_sha256=6abd7b41c262b9d3cb32e7c6beafdf28bd4cf11bec8961e6027c0fabce21c80c
+sta_version=3.1.0
+paths=3000
+out=/mnt/d/Home-Automation-SoC/research/runs/RUN-0027-timing-closure-2026-11-27/logs/postfix
+exit=0
+end_utc=2026-11-27T16:46:01Z

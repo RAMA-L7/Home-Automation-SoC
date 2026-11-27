@@ -1,0 +1,15 @@
+== prefix ==
+paths enumerated: 1536   violating endpoints: 1160
+sum negative slack: -104736.5 ns   WNS: -106.4775 ns
+  slack < -90     992 endpoints, -103946.3 ns
+  slack -20..-5   96 endpoints, -753.1 ns
+  slack -1..0     72 endpoints, -37.2 ns
+  flop types: [('dfxtp_1', 1160)]
+
+== postfix ==
+paths enumerated: 1668   violating endpoints: 632
+sum negative slack: -848.8 ns   WNS: -8.4509 ns
+  slack -20..-5   96 endpoints, -752.0 ns
+  slack -1..0     536 endpoints, -96.8 ns
+  flop types: [('dfxtp_1', 632)]
+
