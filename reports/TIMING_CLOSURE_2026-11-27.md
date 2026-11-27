@@ -41,9 +41,10 @@ though `build/` is not tracked.
 
 ## 2. Baseline characterisation
 
-Every violating endpoint was enumerated (1,536 paths requested, 1,160 violated,
-sum of negative slack `−104736.5 ns` — identical to the gate's TNS, so the
-enumeration is complete rather than sampled).
+Every violating endpoint was enumerated (3,000 paths requested; OpenSTA
+returned the 1,536 endpoints that exist, of which 1,160 violate, summing to
+`−104736.5 ns` — identical to the gate's TNS, so the enumeration is complete
+rather than sampled).
 
 | Slack band | Endpoints | Slack contributed |
 |---|---|---|
@@ -82,9 +83,9 @@ single divider cone put 1,024 register-file endpoints behind a ~470-level path.
 The 992 endpoints at < −90 ns in §2 are those write ports; the whole cluster
 moved together, which is why 99% of the energy sat in one place.
 
-The multiplier is not the dominant term: `$mul` maps to an array/Wallace
-structure whose depth is far below 32 chained additions, and the post-fix
-measurement confirms it is no longer the limit.
+The multiplier was not the dominant term, and this is measured rather than
+assumed: after the divider was removed the worst path is an SRAM read-data
+chain, and no multiplier path appears in the remaining clusters.
 
 Attribution is structural, not inferred from names: the cell mix (114 `maj3`
 carry stages), the 469-level depth, the common startpoint shared by the three
